@@ -1,0 +1,42 @@
+{
+  "version": "2026-07-17",
+  "principle": "Observe freely. Recommend with evidence. Change the athlete's world only with approval.",
+  "boundaries": [
+    {
+      "id": "read_training_data",
+      "action": "read_training_data",
+      "mode": "autonomous",
+      "reason": "Reading authorized athlete data is reversible and does not alter the training plan."
+    },
+    {
+      "id": "analyze_food_photo",
+      "action": "analyze_food_photo",
+      "mode": "autonomous",
+      "reason": "Analysis may run immediately, but uncertain portions and ingredients must be confirmed before logging."
+    },
+    {
+      "id": "log_food",
+      "action": "log_food",
+      "mode": "confirm",
+      "reason": "Image-based nutrition values are estimates and become athlete data only after confirmation."
+    },
+    {
+      "id": "change_training_plan",
+      "action": "change_training_plan",
+      "mode": "confirm",
+      "reason": "Training changes must be presented as a proposal with evidence, never silently applied."
+    },
+    {
+      "id": "push_garmin_workout",
+      "action": "push_garmin_workout",
+      "mode": "confirm",
+      "reason": "Writing to the athlete's Garmin calendar is an external side effect."
+    },
+    {
+      "id": "medical_red_flag",
+      "action": "medical_red_flag",
+      "mode": "stop",
+      "reason": "The harness provides wellness coaching, not diagnosis or treatment. Urgent symptoms require qualified care."
+    }
+  ]
+}

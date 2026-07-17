@@ -1,0 +1,10 @@
+.env
+.env.local
+node_modules/
+.DS_Store
+coverage/
+data/private/
+uploads/
+*.log
+.playwright-cli/
+output/

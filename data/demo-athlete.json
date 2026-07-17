@@ -1,0 +1,29 @@
+{
+  "athlete": {
+    "firstName": "Alex",
+    "goal": "Autumn half marathon",
+    "target": "1:38",
+    "daysToRace": 79
+  },
+  "today": {
+    "date": "2026-07-17",
+    "readiness": 74,
+    "sleepHours": 7.6,
+    "hrvMs": 58,
+    "restingHr": 48,
+    "pain": 0,
+    "rpeYesterday": 2.5
+  },
+  "workout": {
+    "name": "Aerobic rhythm",
+    "distanceKm": 8,
+    "target": "Easy conversational effort",
+    "garminStatus": "ready"
+  },
+  "week": {
+    "plannedKm": 42,
+    "completedKm": 24.6,
+    "runs": 5,
+    "restDays": 2
+  }
+}

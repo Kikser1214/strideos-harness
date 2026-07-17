@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f2f4f6" />
+    <meta name="description" content="StrideOS is a rule-governed personal running coach harness built with Codex and GPT-5.6." />
+    <title>StrideOS — the coach with a control plane</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="track-lines" aria-hidden="true"></div>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="StrideOS home">
+        <span class="brand-mark">S/</span>
+        <span>StrideOS</span>
+      </a>
+      <div class="system-status">
+        <span class="pulse" aria-hidden="true"></span>
+        <span id="modeLabel">Connecting</span>
+        <span class="separator">·</span>
+        <span id="modelLabel">GPT-5.6</span>
+      </div>
+      <a class="github-link" href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">Open source ↗</a>
+    </header>
+
+    <main id="top">
+      <section class="hero shell">
+        <div class="hero-copy">
+          <p class="eyebrow">Personal running coach / controlled by you</p>
+          <h1>A coach that can act.<br /><em>A harness that knows when not to.</em></h1>
+          <p class="lede">
+            StrideOS connects training, recovery, food, and how you actually feel—then turns them into one evidence-backed next move. It reads freely. It asks before it changes your world.
+          </p>
+          <div class="hero-actions">
+            <button class="primary" data-scroll="console">Try the live harness <span>↓</span></button>
+            <button class="text-button" data-scroll="rules">Inspect the rules</button>
+          </div>
+        </div>
+
+        <div class="hero-instrument" aria-label="Current athlete signal">
+          <div class="instrument-ring">
+            <div class="ring-label">TODAY</div>
+            <strong id="readinessValue">74</strong>
+            <span>ready / 100</span>
+          </div>
+          <div class="signal-grid">
+            <div><span>Sleep</span><strong id="sleepValue">7.6h</strong></div>
+            <div><span>HRV</span><strong id="hrvValue">58ms</strong></div>
+            <div><span>Pain</span><strong id="painValue">0/10</strong></div>
+            <div><span>Yesterday</span><strong id="rpeValue">RPE 2.5</strong></div>
+          </div>
+          <p class="instrument-note"><span></span> Four signals agree. No hidden leap of faith.</p>
+        </div>
+      </section>
+
+      <section class="thesis-strip" aria-label="StrideOS control loop">
+        <div class="shell thesis-inner">
+          <p>The control loop</p>
+          <ol>
+            <li><span>Sense</span>Garmin + food + feel</li>
+            <li><span>Reason</span>GPT-5.6 with evidence</li>
+            <li><span>Gate</span>Rules check every action</li>
+            <li><span>Act</span>Only after your approval</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="console-section shell" id="console">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Live harness</p>
+            <h2>Ask once. See every decision.</h2>
+          </div>
+          <p>The demo uses synthetic athlete data. Add an OpenAI key locally to run the same flow live with GPT-5.6.</p>
+        </div>
+
+        <div class="console-grid">
+          <aside class="today-panel">
+            <div class="panel-kicker">Friday / Week 5</div>
+            <h3 id="workoutName">Aerobic rhythm</h3>
+            <div class="workout-dose"><strong id="distanceValue">8.0</strong><span>KM</span></div>
+            <p id="workoutTarget">Easy conversational effort</p>
+            <div class="route-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <dl>
+              <div><dt>Week</dt><dd><span id="weekCompleted">24.6</span> / <span id="weekPlanned">42</span> km</dd></div>
+              <div><dt>Race</dt><dd id="daysToRace">79 days</dd></div>
+              <div><dt>Calendar</dt><dd>Garmin ready</dd></div>
+            </dl>
+            <button class="food-button" id="openFood">
+              <span class="food-icon">◫</span>
+              <span><strong>Scan a meal</strong><small>Photo → estimate → confirm</small></span>
+              <b>＋</b>
+            </button>
+          </aside>
+
+          <div class="coach-panel">
+            <div class="coach-header">
+              <div><span class="coach-avatar">S/</span><div><strong>Stride</strong><small>Rule-governed coach</small></div></div>
+              <span class="live-chip">● LIVE TRACE</span>
+            </div>
+            <div class="conversation" id="conversation" aria-live="polite">
+              <div class="message assistant">
+                <p>Your signals agree: readiness is solid, sleep is adequate, and yesterday felt easy. I can prepare today’s 8 km aerobic session for Garmin.</p>
+                <button class="inline-action" data-prompt="Should I keep today's run and send it to Garmin?">Check the decision →</button>
+              </div>
+            </div>
+            <form class="composer" id="coachForm">
+              <label class="sr-only" for="coachInput">Message your coach</label>
+              <textarea id="coachInput" rows="1" placeholder="Ask about today's training…"></textarea>
+              <button type="submit" aria-label="Send message">↑</button>
+            </form>
+            <div class="quick-prompts">
+              <button data-prompt="Should I run today?">Should I run today?</button>
+              <button data-prompt="My legs feel heavy. Should we change the plan?">My legs feel heavy</button>
+              <button id="quickFood">Analyze lunch</button>
+            </div>
+          </div>
+
+          <aside class="ledger-panel">
+            <div class="ledger-heading">
+              <div><p class="panel-kicker">Decision ledger</p><h3>Nothing happens off-record.</h3></div>
+              <span id="traceId">TRACE 001</span>
+            </div>
+            <div class="ledger" id="ledger">
+              <article class="ledger-step complete">
+                <span>1</span><div><small>EVIDENCE</small><strong>Four athlete signals loaded</strong><p>Readiness, sleep, pain, and RPE.</p></div><b>✓</b>
+              </article>
+              <article class="ledger-step complete">
+                <span>2</span><div><small>REASON</small><strong>Keep the aerobic session</strong><p>Signals agree; no risk flag detected.</p></div><b>✓</b>
+              </article>
+              <article class="ledger-step active">
+                <span>3</span><div><small>RULE GATE</small><strong>External write requires you</strong><p>Garmin calendar changes need approval.</p></div><b>!</b>
+              </article>
+              <article class="ledger-step waiting">
+                <span>4</span><div><small>ACTION</small><strong>Waiting to push workout</strong><p>The harness stops here.</p></div><b>…</b>
+              </article>
+            </div>
+            <div class="approval-card" id="approvalCard">
+              <div><span>Approval required</span><strong id="proposalText">Push “Aerobic rhythm · 8 km” to Garmin?</strong></div>
+              <div class="approval-actions">
+                <button class="approve" id="approveDecision">Approve action</button>
+                <button class="decline" id="declineDecision">Not now</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="rules-section" id="rules">
+        <div class="shell rules-grid">
+          <div class="rules-copy">
+            <p class="eyebrow">The compact</p>
+            <h2>The model reasons.<br />The harness decides what it may do.</h2>
+            <p>Rules are versioned, inspectable, and deliberately boring. They stay outside the prompt so a persuasive answer can never quietly become permission.</p>
+          </div>
+          <div class="rule-list" id="ruleList">
+            <div class="rule-row"><span class="autonomous">AUTO</span><strong>Read authorized training data</strong><p>Reversible observation</p></div>
+            <div class="rule-row"><span class="autonomous">AUTO</span><strong>Analyze a meal photo</strong><p>Estimate only</p></div>
+            <div class="rule-row"><span class="confirm">ASK</span><strong>Log food or change a plan</strong><p>Needs athlete confirmation</p></div>
+            <div class="rule-row"><span class="confirm">ASK</span><strong>Push a workout to Garmin</strong><p>External side effect</p></div>
+            <div class="rule-row"><span class="stop">STOP</span><strong>Medical red flags</strong><p>Route to qualified care</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="build-note shell">
+        <p class="eyebrow">OpenAI Build Week 2026</p>
+        <h2>Built from scratch with Codex.<br />Powered by GPT-5.6. Open for everyone.</h2>
+        <div>
+          <p>MIT licensed. Local-first by default. Synthetic judge mode included. No private athlete data in the repository.</p>
+          <a href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">View the source ↗</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="shell"><span>StrideOS / 2026</span><span>Wellness coaching, not medical advice.</span></footer>
+
+    <dialog class="food-dialog" id="foodDialog">
+      <form method="dialog" class="dialog-shell">
+        <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+        <div class="dialog-heading"><p class="eyebrow">Fuel lens</p><h2>Show the harness what you ate.</h2><p>GPT-5.6 estimates the meal. You correct the uncertain parts before anything is logged.</p></div>
+        <label class="drop-zone" id="dropZone" for="foodImage">
+          <input id="foodImage" type="file" accept="image/png,image/jpeg,image/webp" />
+          <img id="foodPreview" alt="Selected meal preview" />
+          <span id="dropCopy"><b>＋</b><strong>Choose a meal photo</strong><small>PNG, JPG, or WEBP</small></span>
+        </label>
+        <label class="note-field">Anything the image cannot show?<input id="foodNote" type="text" placeholder="e.g. olive oil in the dressing" /></label>
+        <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with the harness</button>
+        <div class="meal-result" id="mealResult" hidden></div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

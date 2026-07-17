@@ -1,0 +1,17 @@
+{
+  "name": "strideos-harness",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "An open-source, rule-governed personal running coach built with Codex and GPT-5.6.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node --watch src/server.mjs",
+    "start": "node src/server.mjs",
+    "test": "node --test",
+    "check": "node --check src/server.mjs && node --check src/harness.mjs && node --check src/openai.mjs && node --check src/env.mjs && node --check public/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
