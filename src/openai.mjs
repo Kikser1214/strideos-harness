@@ -4,8 +4,11 @@ async function createResponse({ input, instructions, schema, schemaName }) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
   const response = await fetch(API_URL, {
     method: "POST",
+    signal: controller.signal,
     headers: {
       "content-type": "application/json",
       authorization: `Bearer ${apiKey}`
@@ -25,7 +28,7 @@ async function createResponse({ input, instructions, schema, schemaName }) {
       instructions,
       input
     })
-  });
+  }).finally(() => clearTimeout(timeout));
 
   if (!response.ok) {
     const body = await response.text();

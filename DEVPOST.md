@@ -16,7 +16,7 @@ Training data is fragmented across a watch, a plan, meal photos, and the athlete
 
 StrideOS turns authorized training signals, pain and RPE feedback, and meal images into a single evidence-backed next move. GPT-5.6 handles multimodal understanding and reasoning. A deterministic policy outside the model then classifies the intended action as autonomous, approval-required, or stopped. The decision ledger shows the entire path: evidence → reason → rule gate → action.
 
-The included judge mode needs no account, wearable, private data, or API key. Judges can ask for today's workout, inspect why a Garmin write stops for approval, accept or decline it, upload a meal photo, and see uncertainty handled before the estimate is logged.
+The included judge mode needs no account, wearable, private data, or API key. Judges can ask for today's workout, inspect why a Garmin write stops for approval, accept or decline a clearly labeled simulation, and test the meal approval flow with a disclosed fixed sample estimate. With an OpenAI key, the same meal flow analyzes the uploaded image with GPT-5.6.
 
 ## How we built it
 
@@ -33,7 +33,8 @@ The hard part was not generating another training answer. It was defining the bo
 ## Accomplishments
 
 - A complete, coherent experience rather than a chat proof of concept.
-- Multimodal meal analysis that exposes uncertainty.
+- Multimodal meal analysis that exposes uncertainty, with an honest non-AI sample fallback.
+- Server-authoritative, persisted approvals and an optional Garmin bridge adapter.
 - Inspectable, versioned approval boundaries outside the model.
 - A deterministic zero-setup judge mode.
 - MIT-licensed source with synthetic data and no runtime dependencies.
@@ -44,7 +45,7 @@ Trust improves when the system shows both what it knows and what it is not autho
 
 ## What's next
 
-- Package Garmin and other wearable bridges as isolated adapters.
+- Publish a maintained reference implementation for the Garmin bridge contract.
 - Add encrypted local athlete memory and portable policy profiles.
 - Evaluate recommendations against retrospective training blocks.
 - Let runners share rules and coaching protocols without sharing personal data.

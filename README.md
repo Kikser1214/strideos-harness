@@ -53,7 +53,7 @@ No account, Garmin device, private athlete data, or API key is required.
 2. Watch the decision ledger cite four synthetic athlete signals.
 3. See the Garmin write stop at the approval boundary.
 4. Approve or decline it.
-5. Select **Scan a meal**, choose any local meal image, and review the estimate before logging.
+5. Select **Scan a meal**, choose a local image, and review the clearly labeled fixed sample estimate. Add an OpenAI key for real image analysis.
 6. Try a message mentioning chest pain or dizziness to see the safety stop.
 
 In demo mode, external writes are clearly marked as simulated.
@@ -67,9 +67,17 @@ rules/                 Versioned action policy
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/openai.mjs         GPT-5.6 text + vision reasoning
+src/garmin.mjs         Optional external bridge + honest simulation fallback
+src/store.mjs          Atomic local decision-state persistence
 src/server.mjs         Dependency-free Node HTTP server
-test/                  Rule-boundary tests
+test/                  Rule-boundary and HTTP integration tests
 ```
+
+### Optional Garmin bridge
+
+No Garmin integration is claimed by default. The interface reports **Garmin simulation**, and an approved workout records a simulated result without changing an external calendar. Deployers can set `GARMIN_BRIDGE_URL` (and optionally `GARMIN_BRIDGE_TOKEN`) to route approved workout writes through their own server-side adapter.
+
+Decisions are persisted atomically in the operating system's temporary directory by default. Set `STRIDEOS_STATE_FILE` to choose a durable deployment path.
 
 ## Safety and privacy
 

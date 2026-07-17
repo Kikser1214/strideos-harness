@@ -19,30 +19,25 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 ## Submission requirements
 
 - [ ] Join the hackathon on Devpost.
-- [x] Working project built with Codex and GPT-5.6.
+- [ ] Exercise the live GPT-5.6 path with a real API key and capture evidence.
 - [x] Category selected: **Apps for Your Life**.
 - [x] English project description drafted in `DEVPOST.md`.
 - [ ] Record a public YouTube demo shorter than three minutes, with audio explaining both Codex and GPT-5.6 use.
-- [ ] Create and push the public GitHub repository.
+- [x] Create and push the public GitHub repository.
 - [x] README includes setup, demo data, testing, and Codex collaboration details.
 - [x] Judges can run the project without a Garmin device, account, or API key.
 - [ ] Run `/feedback` in the Codex task where the majority of the core functionality was built; add that session ID to Devpost.
 - [ ] Add screenshots and the public demo URL to the submission.
 - [ ] Submit before the deadline and verify the Devpost confirmation screen.
 
-## Repository publishing blocker
+## Current engineering status
 
-The intended repository is `https://github.com/Kikser1214/strideos-harness`. The local GitHub CLI currently reports an invalid saved token. Re-authenticate with:
-
-```powershell
-gh auth login -h github.com
-```
-
-Then create and push the public repository:
-
-```powershell
-gh repo create Kikser1214/strideos-harness --public --source . --remote origin --push
-```
+- [x] Demo behavior is truthfully separated from live GPT-5.6 and Garmin connector state.
+- [x] Approval and decline state persists across reloads.
+- [x] Approval identity and action are server-authoritative.
+- [x] HTTP integration tests cover simulation, persistence, duplicate approval, safety stop, and image validation.
+- [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
+- [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 
 ## Prize reality check
 

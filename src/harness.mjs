@@ -36,7 +36,7 @@ export function gateAction(action, context = {}) {
 export function buildDecision({ evidence, action, context, proposal }) {
   const gate = gateAction(action, context);
   return {
-    id: `decision_${Date.now()}`,
+    id: `decision_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     createdAt: new Date().toISOString(),
     evidence,
     gate,

@@ -33,7 +33,7 @@
             StrideOS connects training, recovery, food, and how you actually feel—then turns them into one evidence-backed next move. It reads freely. It asks before it changes your world.
           </p>
           <div class="hero-actions">
-            <button class="primary" data-scroll="console">Try the live harness <span>↓</span></button>
+            <button class="primary" data-scroll="console">Try the harness <span>↓</span></button>
             <button class="text-button" data-scroll="rules">Inspect the rules</button>
           </div>
         </div>
@@ -69,7 +69,7 @@
       <section class="console-section shell" id="console">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Live harness</p>
+            <p class="eyebrow">Interactive harness</p>
             <h2>Ask once. See every decision.</h2>
           </div>
           <p>The demo uses synthetic athlete data. Add an OpenAI key locally to run the same flow live with GPT-5.6.</p>
@@ -85,8 +85,9 @@
             <dl>
               <div><dt>Week</dt><dd><span id="weekCompleted">24.6</span> / <span id="weekPlanned">42</span> km</dd></div>
               <div><dt>Race</dt><dd id="daysToRace">79 days</dd></div>
-              <div><dt>Calendar</dt><dd>Garmin ready</dd></div>
+              <div><dt>Calendar</dt><dd id="calendarStatus">Checking connector</dd></div>
             </dl>
+            <p class="connector-note" id="connectorNote">Checking whether an external calendar is connected.</p>
             <button class="food-button" id="openFood">
               <span class="food-icon">◫</span>
               <span><strong>Scan a meal</strong><small>Photo → estimate → confirm</small></span>
@@ -97,18 +98,19 @@
           <div class="coach-panel">
             <div class="coach-header">
               <div><span class="coach-avatar">S/</span><div><strong>Stride</strong><small>Rule-governed coach</small></div></div>
-              <span class="live-chip">● LIVE TRACE</span>
+              <span class="live-chip" id="traceMode">● CONNECTING</span>
             </div>
             <div class="conversation" id="conversation" aria-live="polite">
               <div class="message assistant">
-                <p>Your signals agree: readiness is solid, sleep is adequate, and yesterday felt easy. I can prepare today’s 8 km aerobic session for Garmin.</p>
+                <small class="message-mode">Synthetic athlete · no external writes</small>
+                <p>This workspace starts safely: ask a question to create a real decision trace. In demo mode, Garmin writes are simulated and clearly labeled.</p>
                 <button class="inline-action" data-prompt="Should I keep today's run and send it to Garmin?">Check the decision →</button>
               </div>
             </div>
             <form class="composer" id="coachForm">
               <label class="sr-only" for="coachInput">Message your coach</label>
               <textarea id="coachInput" rows="1" placeholder="Ask about today's training…"></textarea>
-              <button type="submit" aria-label="Send message">↑</button>
+              <button type="submit" id="sendCoach" aria-label="Send message">↑</button>
             </form>
             <div class="quick-prompts">
               <button data-prompt="Should I run today?">Should I run today?</button>
@@ -122,21 +124,8 @@
               <div><p class="panel-kicker">Decision ledger</p><h3>Nothing happens off-record.</h3></div>
               <span id="traceId">TRACE 001</span>
             </div>
-            <div class="ledger" id="ledger">
-              <article class="ledger-step complete">
-                <span>1</span><div><small>EVIDENCE</small><strong>Four athlete signals loaded</strong><p>Readiness, sleep, pain, and RPE.</p></div><b>✓</b>
-              </article>
-              <article class="ledger-step complete">
-                <span>2</span><div><small>REASON</small><strong>Keep the aerobic session</strong><p>Signals agree; no risk flag detected.</p></div><b>✓</b>
-              </article>
-              <article class="ledger-step active">
-                <span>3</span><div><small>RULE GATE</small><strong>External write requires you</strong><p>Garmin calendar changes need approval.</p></div><b>!</b>
-              </article>
-              <article class="ledger-step waiting">
-                <span>4</span><div><small>ACTION</small><strong>Waiting to push workout</strong><p>The harness stops here.</p></div><b>…</b>
-              </article>
-            </div>
-            <div class="approval-card" id="approvalCard">
+            <div class="ledger" id="ledger"><div class="empty-ledger"><strong>Ask the coach to create a trace.</strong><p>Evidence, the rule gate, and any proposed action will appear here.</p></div></div>
+            <div class="approval-card" id="approvalCard" hidden>
               <div><span>Approval required</span><strong id="proposalText">Push “Aerobic rhythm · 8 km” to Garmin?</strong></div>
               <div class="approval-actions">
                 <button class="approve" id="approveDecision">Approve action</button>
@@ -179,7 +168,7 @@
     <dialog class="food-dialog" id="foodDialog">
       <form method="dialog" class="dialog-shell">
         <button class="dialog-close" value="cancel" aria-label="Close">×</button>
-        <div class="dialog-heading"><p class="eyebrow">Fuel lens</p><h2>Show the harness what you ate.</h2><p>GPT-5.6 estimates the meal. You correct the uncertain parts before anything is logged.</p></div>
+        <div class="dialog-heading"><p class="eyebrow">Fuel lens</p><h2>Show the harness what you ate.</h2><p>With an OpenAI key, GPT-5.6 estimates the meal. Demo mode returns a clearly labeled fixed sample so judges can test the approval flow.</p></div>
         <label class="drop-zone" id="dropZone" for="foodImage">
           <input id="foodImage" type="file" accept="image/png,image/jpeg,image/webp" />
           <img id="foodPreview" alt="Selected meal preview" />
