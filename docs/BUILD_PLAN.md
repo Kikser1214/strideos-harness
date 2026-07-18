@@ -58,6 +58,8 @@ Done when the UI never labels a planned or simulated connector as connected.
 
 ## Task 5 — Athlete analysis
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - starting-stage classification: starter, returning, building, or established;

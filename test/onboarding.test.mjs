@@ -32,6 +32,14 @@ test("safety signals pause both running and strength prescription", () => {
   assert.match(analysis.safety.recommendation, /PAR-Q\+/i);
 });
 
+test("current red-flag symptoms remain a stop even when old clearance is selected", () => {
+  const profile = completeProfile({ safety: { chestPain: true, clearanceStatus: "cleared" } });
+  const analysis = buildOnboardingAnalysis(profile);
+  assert.equal(analysis.safety.blocked, true);
+  assert.equal(analysis.safety.hardStop, true);
+  assert.equal(analysis.athlete.recovery.status, "safety_stop");
+});
+
 test("advanced named methods are not blindly assigned to a starter", () => {
   const profile = completeProfile({ preferences: { trainingStyle: "norwegian_inspired" } });
   const analysis = buildOnboardingAnalysis(profile);

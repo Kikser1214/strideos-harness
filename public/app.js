@@ -231,19 +231,27 @@ async function renderOnboardingReview() {
   try {
     const result = await saveOnboardingDraft();
     const analysis = result.analysis;
+    const athlete = analysis.athlete;
     const connectorChips = analysis.data.selected.length
       ? analysis.data.selected.map((connector) => `<span>${escapeHtml(connector.label)} · ${escapeHtml(humanize(connector.status))}</span>`).join("")
       : "<span>Manual only</span>";
     const automations = analysis.automation.proposals.length ? analysis.automation.proposals.map((proposal) => `<li>${escapeHtml(proposal.label)} — proposal only</li>`).join("") : "<li>No scheduled briefs selected</li>";
+    const evidenceGaps = [...athlete.missingData.blocking, ...athlete.missingData.important, ...athlete.missingData.helpful].slice(0, 4);
+    const gapList = evidenceGaps.length ? evidenceGaps.map((gap) => `<li>${escapeHtml(gap.explanation)}</li>`).join("") : "<li>No important gap before a conservative first plan.</li>";
     $("#onboardingFields").innerHTML = `<div class="review-grid">
       <article class="review-card ${analysis.safety.blocked ? "alert" : "good"}"><small>Safety gate</small><strong>${escapeHtml(humanize(analysis.safety.status))}</strong><p>${escapeHtml(analysis.safety.recommendation)}</p></article>
-      <article class="review-card"><small>Starting point</small><strong>${escapeHtml(humanize(analysis.stage))}</strong><p>${escapeHtml(analysis.training.note)}</p></article>
+      <article class="review-card"><small>Starting point <span class="analysis-confidence">${escapeHtml(athlete.stage.confidence.label)} confidence</span></small><strong>${escapeHtml(humanize(analysis.stage))}</strong><p>${escapeHtml(athlete.stage.confidence.explanation)}</p></article>
+      <article class="review-card"><small>Goal window <span class="analysis-confidence">${escapeHtml(athlete.goal.confidence.label)} confidence</span></small><strong>${escapeHtml(humanize(athlete.goal.feasibility))}</strong><p>${escapeHtml(athlete.goal.explanation)}</p></article>
+      <article class="review-card"><small>Current running load <span class="analysis-confidence">${escapeHtml(athlete.load.confidence.label)} confidence</span></small><strong>${athlete.load.band === "none" ? "No running yet" : escapeHtml(humanize(athlete.load.band))} · ${athlete.load.planningWeeklyKm} km/wk</strong><p>${escapeHtml(athlete.load.confidence.explanation)}</p></article>
+      <article class="review-card"><small>Weekly room <span class="analysis-confidence">${escapeHtml(athlete.availability.confidence.label)} confidence</span></small><strong>${athlete.availability.daysPerWeek} days · ${athlete.availability.estimatedWeeklyMinutes} min</strong><p>${escapeHtml(athlete.availability.explanation)}</p></article>
+      <article class="review-card ${["safety_stop", "progression_hold"].includes(athlete.recovery.status) ? "alert" : ""}"><small>Recovery posture <span class="analysis-confidence">${escapeHtml(athlete.recovery.confidence.label)} confidence</span></small><strong>${escapeHtml(humanize(athlete.recovery.status))}</strong><p>${escapeHtml(athlete.recovery.explanation)}</p></article>
       <article class="review-card"><small>Running frame</small><strong>${analysis.training.runSessionsPerWeek} sessions / week</strong><p>${escapeHtml(humanize(analysis.training.recommended))}. ${analysis.training.researchRequired ? "The requested method needs a suitability research pass." : "The method can be refined from your feedback."}</p></article>
       <article class="review-card"><small>Strength frame</small><strong>${analysis.strength.sessionsPerWeek} sessions / week</strong><p>${escapeHtml(analysis.strength.recommendation)}</p></article>
       <article class="review-card review-full"><small>Evidence route</small><strong>${escapeHtml(analysis.data.primary.label)}</strong><p>${escapeHtml(analysis.data.note)}</p><div class="connector-truth">${connectorChips}</div></article>
+      <article class="review-card review-full"><small>What would improve confidence</small><strong>${escapeHtml(humanize(athlete.missingData.status))}</strong><ul>${gapList}</ul></article>
       <article class="review-card"><small>Fuel support</small><strong>${escapeHtml(humanize(analysis.nutrition.mode))}</strong><p>${escapeHtml(analysis.nutrition.recommendation)}</p></article>
       <article class="review-card"><small>Automation proposals</small><strong>${analysis.automation.proposals.length} selected</strong><ul>${automations}</ul></article>
-      <article class="review-card review-full"><small>First recommendation</small><strong>${escapeHtml(analysis.summary)}</strong><p>Your dashboard, schedule proposals, and any external writes remain under the approval rule you selected.</p></article>
+      <article class="review-card review-full"><small>First recommendation · ${escapeHtml(athlete.overallConfidence.label)} overall confidence</small><strong>${escapeHtml(analysis.summary)}</strong><p>${escapeHtml(athlete.permissions.explanation)}</p></article>
     </div>`;
     renderOnboardingNav();
   } catch (error) {

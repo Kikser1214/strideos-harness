@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { listConnectors as connectorCatalog } from "./connectors.mjs";
+import { analyzeAthlete } from "./athlete-analysis.mjs";
 
 const schemaUrl = new URL("../rules/onboarding-schema.json", import.meta.url);
 
@@ -12,6 +13,7 @@ const safetyLabels = {
   knownCondition: "a known condition that may affect exercise",
   medicationConsideration: "a medication consideration"
 };
+const hardSafetyFields = new Set(["chestPain", "dizzinessOrFainting", "unusualBreathlessness"]);
 
 export function loadOnboardingSchema() {
   return JSON.parse(fs.readFileSync(schemaUrl, "utf8"));
@@ -94,23 +96,16 @@ function completeness(profile) {
   return { answered, required: required.length, percent: Math.round((answered / required.length) * 100) };
 }
 
-function startingStage(profile) {
-  const activity = profile.baseline?.activityLevel;
-  const history = profile.baseline?.runningHistory;
-  const weeklyKm = Number(profile.baseline?.currentWeeklyKm || 0);
-  if (["never", "new"].includes(history) || ["mostly_inactive", "some_walking"].includes(activity) || weeklyKm === 0) return "starter";
-  if (history === "returning" || profile.baseline?.lastConsistentTraining === "over_1_year") return "returning";
-  if (["structured", "competitive"].includes(history) || activity === "structured_training" || weeklyKm >= 35) return "established";
-  return "building";
-}
-
 function safetyAnalysis(profile) {
-  const signals = Object.entries(safetyLabels).filter(([key]) => profile.safety?.[key] === true).map(([, label]) => label);
+  const active = Object.entries(safetyLabels).filter(([key]) => profile.safety?.[key] === true);
+  const signals = active.map(([, label]) => label);
   const clearance = profile.safety?.clearanceStatus;
-  const blocked = signals.length > 0 && clearance !== "cleared";
+  const hardStop = active.some(([key]) => hardSafetyFields.has(key));
+  const blocked = hardStop || (signals.length > 0 && clearance !== "cleared");
   return {
     status: blocked ? "review_required" : signals.length ? "cleared_with_context" : "clear",
     blocked,
+    hardStop,
     signals,
     recommendation: blocked
       ? "Save the profile, pause automated prescription, and complete the official PAR-Q+ follow-up or consult a qualified exercise or health professional before increasing training."
@@ -208,10 +203,11 @@ function automationAnalysis(profile) {
   return { proposals, scheduled: false, note: "These are proposals only. Test each prompt manually before creating a scheduled task." };
 }
 
-export function buildOnboardingAnalysis(input = {}) {
+export function buildOnboardingAnalysis(input = {}, { imports = [], checkins = [], now } = {}) {
   const profile = normalizeProfile(input);
   const progress = completeness(profile);
-  const stage = startingStage(profile);
+  const athlete = analyzeAthlete({ profile, imports, checkins, now });
+  const stage = athlete.stage.value;
   const safety = safetyAnalysis(profile);
   const data = dataAnalysis(profile);
   const strength = strengthAnalysis(profile, stage, safety);
@@ -223,6 +219,7 @@ export function buildOnboardingAnalysis(input = {}) {
     schemaVersion: loadOnboardingSchema().version,
     completeness: progress,
     stage,
+    athlete,
     safety,
     data,
     strength,

@@ -102,6 +102,9 @@ test("completed onboarding survives bootstrap", () => withServer(async (base) =>
   const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
   assert.equal(bootstrap.needsOnboarding, false);
   assert.ok(bootstrap.onboarding.completedAt);
+  assert.equal(bootstrap.athleteAnalysis.stage.value, "starter");
+  const analysis = await (await fetch(`${base}/api/athlete-analysis`)).json();
+  assert.equal(analysis.analysis.guardrails.modelCanOverrideSafety, false);
 }));
 
 test("decision approval is server-authoritative and survives bootstrap", () => withServer(async (base) => {

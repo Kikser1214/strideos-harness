@@ -8,6 +8,7 @@ import { analyzeMeal, coach } from "./openai.mjs";
 import { buildDecision, demoCoachDecision, loadPolicy } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
 import { connectorFreshnessPolicy, sourcePriority } from "./connectors.mjs";
+import { analyzeAthlete } from "./athlete-analysis.mjs";
 import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
 import { deleteCheckin, deleteImport, findDecision, getOnboarding, listCheckins, listImports, recentDecisions, resetOnboarding, saveCheckin, saveDecision, saveImportedActivities, saveOnboarding, updateDecision } from "./store.mjs";
 
@@ -59,6 +60,11 @@ function validateImage(dataUrl) {
   if (Buffer.byteLength(match[2], "base64") > 8_000_000) throw new HttpError(413, "Choose an image smaller than 8 MB.");
 }
 
+function currentAthleteAnalysis(onboarding = getOnboarding()) {
+  if (!onboarding?.profile) return null;
+  return analyzeAthlete({ profile: onboarding.profile, imports: listImports(), checkins: listCheckins() });
+}
+
 async function api(req, res, pathname) {
   if (req.method === "GET" && pathname === "/api/health") {
     return json(res, 200, { ok: true, openai: Boolean(process.env.OPENAI_API_KEY), garmin: garminStatus() });
@@ -73,6 +79,7 @@ async function api(req, res, pathname) {
       policy: loadPolicy(),
       connectors: { garmin: garminStatus(), catalog: listConnectors() },
       onboarding,
+      athleteAnalysis: currentAthleteAnalysis(onboarding),
       needsOnboarding: !onboarding?.completedAt,
       decisions: recentDecisions()
     });
@@ -94,6 +101,12 @@ async function api(req, res, pathname) {
     return json(res, 200, { schema: loadOnboardingSchema(), connectors: listConnectors() });
   }
 
+  if (req.method === "GET" && pathname === "/api/athlete-analysis") {
+    const analysis = currentAthleteAnalysis();
+    if (!analysis) throw new HttpError(409, "Start athlete onboarding before requesting analysis.");
+    return json(res, 200, { analysis });
+  }
+
   if (req.method === "POST" && pathname === "/api/onboarding") {
     const body = await readJson(req, 250_000);
     const complete = body.complete === true;
@@ -102,7 +115,7 @@ async function api(req, res, pathname) {
     if (complete && validation.missing.length) {
       return json(res, 422, { error: "Finish the required onboarding questions first.", missing: validation.missing });
     }
-    const analysis = buildOnboardingAnalysis(validation.profile);
+    const analysis = buildOnboardingAnalysis(validation.profile, { imports: listImports(), checkins: listCheckins() });
     const onboarding = saveOnboarding({ profile: validation.profile, analysis, complete });
     return json(res, complete ? 201 : 200, { onboarding, analysis, missing: validation.missing });
   }

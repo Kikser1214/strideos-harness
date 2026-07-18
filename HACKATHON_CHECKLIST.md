@@ -44,6 +44,8 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Data setup shows source priority and freshness without calling planned, simulated, or merely configured routes connected.
 - [x] FIT, GPX, TCX, and CSV preview/import works with explicit local-summary consent, raw-file discard, and per-record deletion.
 - [x] Manual pain, RPE, energy, sleep-feel, and context check-ins work without a wearable and can be deleted.
+- [x] Deterministic athlete analysis covers stage, goal pressure, load evidence, weekly room, recovery, missing data, confidence, and permission boundaries.
+- [x] Model enrichment is restricted to explanatory text and cannot override safety, stage, or permissions.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 

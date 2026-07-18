@@ -199,6 +199,7 @@ footer { min-height:100px; border-top:1px solid var(--line); display:flex; justi
 .review-card.alert { border-left:5px solid var(--orange); background:#fff7f4; }
 .review-card.good { border-left:5px solid var(--green); }
 .review-card small { display:block; color:var(--muted); font:800 8px var(--mono); text-transform:uppercase; letter-spacing:.11em; }
+.review-card small .analysis-confidence { float:right; color:var(--blue); letter-spacing:.04em; }
 .review-card strong { display:block; margin:7px 0; font:800 22px var(--display); text-transform:uppercase; }
 .review-card p { margin:0; color:#55626d; font-size:11px; line-height:1.5; }
 .review-card ul { margin:9px 0 0; padding-left:17px; color:#55626d; font-size:10px; line-height:1.5; }

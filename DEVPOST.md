@@ -14,7 +14,7 @@ Training data is fragmented across a watch, a plan, meal photos, and the athlete
 
 ## What it does
 
-StrideOS starts by building an athlete map for someone who may not know how to train. It asks about current movement, running history, safety, goals, real-life schedule, strength experience and equipment, data sources, coaching preferences, and optional nutrition. A deterministic analysis returns a suitable running frame, an explicit strength recommendation, connector truth, and any safety gate before a plan exists.
+StrideOS starts by building an athlete map for someone who may not know how to train. It asks about current movement, running history, safety, goals, real-life schedule, strength experience and equipment, data sources, coaching preferences, and optional nutrition. A deterministic analysis returns starting stage, deadline pressure, declared-versus-observed load, available time, recovery constraints, missing evidence, confidence, an explicit strength recommendation, connector truth, and any safety gate before a plan exists.
 
 From there, StrideOS turns authorized training signals, pain and RPE feedback, and meal images into a single evidence-backed next move. GPT-5.6 handles multimodal understanding and reasoning. A deterministic policy outside the model then classifies the intended action as autonomous, approval-required, or stopped. The decision ledger shows the entire path: evidence → reason → rule gate → action.
 
@@ -37,6 +37,7 @@ The hard part was not generating another training answer. It was defining the bo
 - A complete, coherent experience rather than a chat proof of concept.
 - Beginner-first onboarding that includes strength, real-life constraints, manual data, and honest native/partner connector routes.
 - A deterministic starter analysis that refuses to assign an advanced named method blindly and pauses both running and strength prescription when a safety review is needed.
+- Transparent confidence and evidence-gap labels for stage, goal window, load, weekly room, and recovery; model enrichment cannot rewrite safety or permissions.
 - Multimodal meal analysis that exposes uncertainty, with an honest non-AI sample fallback.
 - Server-authoritative, persisted approvals and an optional Garmin bridge adapter.
 - Real FIT, GPX, TCX, and CSV parsing with preview, explicit local-summary consent, raw-file discard, freshness, and deletion.
