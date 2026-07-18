@@ -66,6 +66,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Windows, macOS, and Linux clean-install instructions, optional live mode, persistent state, reset, and a non-auto-loaded synthetic sample are documented.
 - [x] Corrupt local JSON state is moved to a recoverable ignored backup before StrideOS starts with an empty state.
 - [x] Garmin approval is bound to the exact server-authored workout resource, revalidated against new evidence, and synthetic judge workouts stay simulated even when a bridge is configured.
+- [x] Onboarding separately asks about workout delivery, destination, and setup help; the optional Garmin community wrapper stays loopback-only and user-supplied.
 - [x] Security headers, content type, malformed JSON, oversized input, traversal, duplicate action, static accessibility, persistence, and bridge-payload boundaries have automated coverage.
 - [x] Task 11 release gate passes: setup doctor, syntax checks, 100 tests, and the production dependency audit report zero vulnerabilities.
 - [x] The isolated clean-state browser rehearsal completed all 11 onboarding steps, plan proposal/approval, active dashboard, desktop/mobile layouts, and a read-only automation preview.

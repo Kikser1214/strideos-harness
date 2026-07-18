@@ -49,12 +49,14 @@ Status: **complete — July 18, 2026**
 Deliverables:
 
 - Garmin and Strava setup contracts;
+- a separate workout-delivery opt-in, destination choice, and agent setup-assistance boundary;
+- official Garmin, loopback-only community Garmin, Apple WorkoutKit, and Android planned-exercise routes;
 - Apple Health and Health Connect companion-app routes clearly labeled as requiring native apps;
 - Fitbit, Oura, WHOOP, Polar, COROS, and Suunto capability cards;
 - FIT, GPX, TCX, and CSV import plus manual check-in fallback;
 - source priority, freshness, consent, disconnect, and delete controls.
 
-Done when the UI never labels a planned or simulated connector as connected.
+Done when the UI never labels a planned or simulated connector as connected, setup help never implies write consent, and a disabled destination cannot create a device write.
 
 ## Task 5 — Athlete analysis
 

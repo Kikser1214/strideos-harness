@@ -41,7 +41,7 @@ The included judge mode needs no account, wearable, private data, or API key. Ju
 
 ## How we built it
 
-The project was created from scratch during OpenAI Build Week with Codex. It uses a small Node.js server, Garmin's official FIT JavaScript SDK, a responsive first-run wizard, a versioned onboarding schema, atomic local persistence, deterministic analysis and action gates, and the OpenAI Responses API. GPT-5.6 receives text and image inputs and returns strict schema-constrained outputs; the model never grants itself permission to act.
+The project was created from scratch during OpenAI Build Week with Codex. It uses a small Node.js server, Garmin's official FIT JavaScript SDK, a responsive first-run wizard, a versioned onboarding schema, atomic local persistence, deterministic analysis and action gates, and the OpenAI Responses API. Device delivery is a separate opt-in: the connector catalog distinguishes Garmin's official route, an optional loopback-only wrapper for a user-reviewed community Python connector, and the native companion boundaries required by Apple and Android. GPT-5.6 receives text and image inputs and returns strict schema-constrained outputs; the model never grants itself permission to act.
 
 A clean clone reaches onboarding with `npm run setup`: the command installs the locked dependency, runs a privacy-aware setup doctor, and starts the zero-account demo. Windows, macOS, and Linux instructions, a complete synthetic sample profile, reset flow, environment template, and local-state contract are checked into the repository.
 

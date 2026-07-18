@@ -39,7 +39,7 @@ The current Sites template is a product mock, not yet the durable multi-user bac
 
 Later starts use `npm start`. Windows users can run `npm.cmd run setup`; macOS and Linux use the same `npm run setup` command. See the complete [clean-clone install guide](docs/INSTALL.md), including port, environment, persistent-state, reset, and troubleshooting details. No watch, account, database, or API key is required.
 
-On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Draft answers save locally, and the final review shows starting stage, deadline pressure, declared-versus-observed load, available time, recovery context, missing evidence, confidence, strength guidance, connector truth, and any safety gate before a plan is created.
+On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Device delivery separately asks whether approved workouts should reach Garmin, Apple Watch, Android, or another destination and whether the agent may only guide setup or help with reviewed local steps. Draft answers save locally, and the final review shows starting stage, deadline pressure, declared-versus-observed load, available time, recovery context, missing evidence, confidence, strength guidance, connector truth, and any safety gate before a plan is created.
 
 After onboarding, **Training plan** opens a deterministic four-week proposal built around the athlete's stage, goal, availability, recovery context, and strength experience. Every session explains its duration and intensity, week four reduces load, missed sessions never create catch-up stacking, and named advanced methods remain behind a suitability-research gate. Previewing changes nothing; the exact plan becomes active only after the athlete approves its server-recorded decision.
 
@@ -144,7 +144,7 @@ sites/athlete-coach-demo  Unbound ChatGPT Sites mock for a 3:20 marathon runner 
 
 ### Optional Garmin bridge
 
-No Garmin integration is claimed by default. The interface reports **Garmin simulation**, and an approved workout records a simulated result without changing an external calendar. Deployers can set `GARMIN_BRIDGE_URL` (and optionally `GARMIN_BRIDGE_TOKEN`) to route approved workout writes through their own server-side adapter.
+No Garmin integration is claimed by default. The interface reports **Garmin simulation**, and an approved workout records a simulated result without changing an external calendar. Deployers can set `GARMIN_BRIDGE_URL` (and optionally `GARMIN_BRIDGE_TOKEN`) to route approved workout writes through their own official adapter. Personal users may instead opt into the included loopback-only wrapper for a Python community connector they have reviewed. It remains unofficial and self-hosted. See [Self-service device connections](docs/SELF_SERVICE_CONNECTORS.md).
 
 Decisions are persisted atomically in the operating system's temporary directory by default. Set `STRIDEOS_STATE_FILE` to choose a durable deployment path.
 

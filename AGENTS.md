@@ -71,6 +71,16 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Use `npm run brief -- --kind <morning_brief|pre_workout|post_workout|weekly_review>` as the read-only scheduled-task contract. Treat its JSON as authoritative and never substitute the synthetic fixture for missing personal state.
 - A scheduled task may summarize and ask questions. It may not modify files, activate or change a plan, log food, or write to Garmin/calendar/connectors. Return those actions to interactive approval.
 
+## Self-service connector setup
+
+- When device delivery is requested, read `delivery.workoutDeliveryTarget`, `delivery.connectorSetupMode`, `GET /api/connectors`, and `docs/SELF_SERVICE_CONNECTORS.md` before proposing setup.
+- Reading history, configuring an adapter, authenticating an athlete, and writing a workout are separate permissions and separate proof states.
+- Recommend official provider routes first. The optional Garmin community bridge is local, self-hosted, unofficial, user-selected, and may break; personal or non-commercial use does not make it official.
+- `guide_only` permits explanation only. `allow_local_setup_after_review` permits proposing exact local commands and file changes, but installation, authentication, and configuration still require review before execution. `not_now` stops setup.
+- Never ask a user to paste a vendor password, MFA code, refresh token, or token directory contents into chat. Keep connector tokens local/private and out of Git, Sites, logs, screenshots, and StrideOS state.
+- A configured URL, dependency, or healthy bridge is not proof of an authenticated athlete. Verify adapter health, authentication with the correct account, a dry-run, and then one exact separately approved test workout.
+- Keep the included community Garmin bridge on loopback. Do not weaken its host restriction or expose an unofficial connector publicly.
+
 ## Development commands
 
 ```bash

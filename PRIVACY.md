@@ -24,4 +24,8 @@ StrideOS is local-first by design. The public repository and judge demo use synt
 - Operators are responsible for providing appropriate notice and consent, securing transport, controlling access, and complying with the terms of any connected data provider.
 - Private companion mode protects athlete APIs with a deployer-supplied bearer key, kept in browser session storage. It is a single-athlete access boundary, not a multi-user identity system; operators must provide HTTPS, secret rotation, persistent-volume security, and backups.
 
+## Optional community connectors
+
+The Garmin community adapter is loopback-only and invokes a user-selected local Python script. Garmin credentials and MFA stay in that connector's interactive authentication flow; StrideOS does not need or store them. Keep the configured token directory outside Git, Sites, shared dashboards, screenshots, and support bundles. The adapter deletes its temporary workout JSON after the local connector finishes.
+
 Never commit `.env`, Garmin credentials or tokens, private athlete exports, real meal images, or application logs containing personal data.

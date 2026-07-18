@@ -8,7 +8,8 @@
     "Treat subjective feel, pain, schedule, and preferences as real data.",
     "When someone does not know training methods, recommend a plain-language beginner baseline instead of asking them to choose jargon.",
     "Never present a planned or simulated connector as connected.",
-    "Do not finalize a training prescription while a safety gate is active."
+    "Do not finalize a training prescription while a safety gate is active.",
+    "Reading history and delivering a structured workout are separate permissions; setup assistance never implies permission to write."
   ],
   "sections": [
     {
@@ -154,9 +155,12 @@
     {
       "id": "delivery",
       "title": "Make it useful every day",
-      "description": "Choose a dashboard and optional scheduled briefings. Nothing is scheduled or pushed without approval.",
+      "description": "Choose a dashboard, optional scheduled briefings, and whether approved workouts should reach a device. Nothing is connected, scheduled, or pushed without approval.",
       "fields": [
         { "id": "dashboard", "label": "Create the personal dashboard?", "type": "boolean", "required": true },
+        { "id": "workoutDelivery", "label": "Send approved workouts to your device or training calendar?", "type": "boolean", "required": true },
+        { "id": "workoutDeliveryTarget", "label": "Preferred workout destination", "type": "single", "required": false, "options": ["garmin", "apple_watch", "health_connect", "other", "not_sure"] },
+        { "id": "connectorSetupMode", "label": "How may StrideOS help connect it?", "type": "single", "required": false, "options": ["guide_only", "allow_local_setup_after_review", "not_now"] },
         { "id": "morningBrief", "label": "Propose a morning readiness brief?", "type": "boolean", "required": true },
         { "id": "preWorkoutBrief", "label": "Propose a pre-workout check?", "type": "boolean", "required": true },
         { "id": "postWorkoutReflection", "label": "Propose a post-workout reflection?", "type": "boolean", "required": true },

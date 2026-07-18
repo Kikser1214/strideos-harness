@@ -61,6 +61,8 @@
   },
   "delivery": {
     "dashboard": true,
+    "workoutDelivery": false,
+    "connectorSetupMode": "not_now",
     "morningBrief": true,
     "preWorkoutBrief": true,
     "postWorkoutReflection": true,
@@ -73,4 +75,3 @@
     "photoRetention": "do_not_retain"
   }
 }
-

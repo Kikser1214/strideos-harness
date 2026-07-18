@@ -70,3 +70,17 @@ test("completion validation reports missing required paths", () => {
   assert.ok(validation.missing.includes("strength.experience"));
   assert.ok(validation.missing.includes("data.primarySource"));
 });
+
+test("device workout delivery requires a target and preserves separate setup consent", () => {
+  const missingTarget = validateProfile(completeProfile({ delivery: { workoutDelivery: true, connectorSetupMode: "guide_only" } }), { complete: true });
+  assert.equal(missingTarget.valid, false);
+  assert.ok(missingTarget.missing.includes("delivery.workoutDeliveryTarget"));
+  assert.equal(missingTarget.missing.includes("delivery.connectorSetupMode"), false);
+
+  const profile = completeProfile({ delivery: { workoutDelivery: true, workoutDeliveryTarget: "garmin", connectorSetupMode: "allow_local_setup_after_review" } });
+  const analysis = buildOnboardingAnalysis(profile);
+  assert.equal(analysis.workoutDelivery.requested, true);
+  assert.equal(analysis.workoutDelivery.agentMayPerformLocalSetup, true);
+  assert.equal(analysis.workoutDelivery.canPushNow, false);
+  assert.match(analysis.workoutDelivery.approval, /every exact workout/i);
+});

@@ -10,11 +10,12 @@
     "setup": "npm install && npm run doctor && npm start",
     "doctor": "node src/doctor.mjs",
     "start": "node src/server.mjs",
+    "connector:garmin:bridge": "node src/community-garmin-bridge.mjs",
     "brief": "node src/automation-cli.mjs",
     "reset": "node src/reset.mjs",
     "test": "node --test test/*.test.mjs",
     "verify": "npm run doctor && npm run check && npm test",
-    "check": "node --check src/server.mjs && node --check src/onboarding.mjs && node --check src/athlete-analysis.mjs && node --check src/training-plan.mjs && node --check src/nutrition.mjs && node --check src/dashboard.mjs && node --check src/feedback.mjs && node --check src/automations.mjs && node --check src/automation-cli.mjs && node --check src/doctor.mjs && node --check src/connectors.mjs && node --check src/imports.mjs && node --check src/harness.mjs && node --check src/openai.mjs && node --check src/garmin.mjs && node --check src/store.mjs && node --check src/reset.mjs && node --check src/env.mjs && node --check public/app.js && node --check public/service-worker.js"
+    "check": "node --check src/server.mjs && node --check src/onboarding.mjs && node --check src/athlete-analysis.mjs && node --check src/training-plan.mjs && node --check src/nutrition.mjs && node --check src/dashboard.mjs && node --check src/feedback.mjs && node --check src/automations.mjs && node --check src/automation-cli.mjs && node --check src/doctor.mjs && node --check src/connectors.mjs && node --check src/community-garmin-bridge.mjs && node --check src/imports.mjs && node --check src/harness.mjs && node --check src/openai.mjs && node --check src/garmin.mjs && node --check src/store.mjs && node --check src/reset.mjs && node --check src/env.mjs && node --check public/app.js && node --check public/service-worker.js"
   },
   "engines": {
     "node": ">=20"

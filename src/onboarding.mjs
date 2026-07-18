@@ -87,6 +87,13 @@ export function validateProfile(input = {}, { complete = false } = {}) {
     }
   }
 
+  if (complete && profile.delivery?.workoutDelivery === true && isBlank(profile.delivery?.workoutDeliveryTarget)) {
+    missing.push("delivery.workoutDeliveryTarget");
+  }
+  if (complete && profile.delivery?.workoutDelivery === true && isBlank(profile.delivery?.connectorSetupMode)) {
+    missing.push("delivery.connectorSetupMode");
+  }
+
   return { profile, valid: errors.length === 0 && (!complete || missing.length === 0), errors, missing };
 }
 
@@ -207,6 +214,32 @@ function automationAnalysis(profile) {
   return { proposals, scheduled: false, note: "These are proposals only. Test each prompt manually before creating a scheduled task." };
 }
 
+function workoutDeliveryAnalysis(profile) {
+  const requested = profile.delivery?.workoutDelivery === true;
+  const target = profile.delivery?.workoutDeliveryTarget || null;
+  const setupMode = profile.delivery?.connectorSetupMode || "not_now";
+  const connectorId = target === "apple_watch" ? "apple_health" : target;
+  const connector = connectorCatalog().find((item) => item.id === connectorId) || null;
+  const adapterConfigured = connector?.workoutDelivery?.status === "adapter_configured";
+  return {
+    requested,
+    target,
+    setupMode,
+    agentMayGuide: setupMode !== "not_now",
+    agentMayPerformLocalSetup: setupMode === "allow_local_setup_after_review",
+    connector,
+    canPushNow: requested && adapterConfigured,
+    approval: requested ? "Every exact workout write still requires its own approval." : "Workout delivery is off.",
+    note: !requested
+      ? "Keep workouts inside StrideOS until the athlete enables device delivery."
+      : !connector
+        ? "Research the selected provider and keep a manual or file fallback; do not claim device delivery."
+        : adapterConfigured
+          ? "An adapter is configured, but connection and athlete authorization still need proof before the first write."
+          : "Guide the athlete through the selected connector route. Setup permission does not authorize credentials, account changes, or workout writes."
+  };
+}
+
 export function buildOnboardingAnalysis(input = {}, { imports = [], checkins = [], now } = {}) {
   const profile = normalizeProfile(input);
   const progress = completeness(profile);
@@ -218,6 +251,7 @@ export function buildOnboardingAnalysis(input = {}, { imports = [], checkins = [
   const training = trainingAnalysis(profile, stage, safety);
   const nutrition = nutritionAnalysis(profile);
   const automation = automationAnalysis(profile);
+  const workoutDelivery = workoutDeliveryAnalysis(profile);
 
   return {
     schemaVersion: loadOnboardingSchema().version,
@@ -230,6 +264,7 @@ export function buildOnboardingAnalysis(input = {}, { imports = [], checkins = [
     training,
     nutrition,
     automation,
+    workoutDelivery,
     dashboardRecommended: profile.delivery?.dashboard !== false,
     summary: safety.blocked
       ? "Profile saved. A safety review is needed before StrideOS creates the initial training week."

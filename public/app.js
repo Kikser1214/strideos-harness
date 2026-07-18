@@ -561,6 +561,9 @@ function fieldHint(section, field) {
   if (section.id === "preferences" && field.id === "trainingStyle") return "New to training methods? Keep Recommend for me. A starter will normally begin with three separated run / walk sessions, two short technique-first strength sessions, and optional easy cycling when it fits.";
   if (section.id === "nutrition" && field.id === "supplements") return "Include product, dose, and timing when known. StrideOS reviews context; it does not assume a supplement is needed.";
   if (section.id === "delivery" && ["morningBrief", "preWorkoutBrief", "postWorkoutReflection", "weeklyReview"].includes(field.id)) return "This proposes a schedule only. Nothing is created until you test the prompt and create it in Scheduled.";
+  if (section.id === "delivery" && field.id === "workoutDelivery") return "Reading completed activities and sending a structured workout are separate permissions.";
+  if (section.id === "delivery" && field.id === "workoutDeliveryTarget") return "Garmin can use an official adapter or an optional local community bridge. Apple Watch and Android require native companion apps.";
+  if (section.id === "delivery" && field.id === "connectorSetupMode") return "Allow local setup only if you want the agent to show every command and ask before installing, authenticating, or changing configuration. Passwords and MFA stay in your terminal or device.";
   return "";
 }
 
@@ -586,7 +589,19 @@ function fieldMarkup(section, field) {
     const type = field.type === "timezone" ? "text" : field.type;
     control = `<label for="${inputId}">${escapeHtml(field.label)}${required}</label><input id="${inputId}" name="${name}" type="${type}" value="${escapeHtml(value ?? "")}" ${field.min !== undefined ? `min="${field.min}"` : ""} ${field.max !== undefined ? `max="${field.max}"` : ""} ${field.maxLength ? `maxlength="${field.maxLength}"` : ""}>`;
   }
-  return `<div class="onboarding-field ${wide ? "wide" : ""}" data-field="${field.id}">${control}${hint ? `<p class="field-hint">${hint}</p>` : ""}</div>`;
+  const deliveryDependent = section.id === "delivery" && ["workoutDeliveryTarget", "connectorSetupMode"].includes(field.id);
+  const hidden = deliveryDependent && onboardingValue("delivery", "workoutDelivery") !== true;
+  return `<div class="onboarding-field ${wide ? "wide" : ""}" data-field="${field.id}" ${deliveryDependent ? "data-workout-delivery-dependent" : ""} ${hidden ? "hidden" : ""}>${control}${hint ? `<p class="field-hint">${hint}</p>` : ""}</div>`;
+}
+
+function updateWorkoutDeliveryFields() {
+  const selected = $("#onboardingFields").querySelector('input[name="delivery.workoutDelivery"]:checked');
+  if (!selected) return;
+  const enabled = selected.value === "true";
+  $("#onboardingFields").querySelectorAll("[data-workout-delivery-dependent]").forEach((wrapper) => {
+    wrapper.hidden = !enabled;
+    if (!enabled) wrapper.querySelectorAll("select, input, textarea").forEach((control) => { control.value = ""; });
+  });
 }
 
 function showOnboardingNotice(message) {
@@ -608,7 +623,10 @@ function renderOnboardingStep() {
   showOnboardingNotice("");
   renderOnboardingNav();
   if (review) renderOnboardingReview();
-  else $("#onboardingFields").innerHTML = step.fields.map((field) => fieldMarkup(step, field)).join("");
+  else {
+    $("#onboardingFields").innerHTML = step.fields.map((field) => fieldMarkup(step, field)).join("");
+    updateWorkoutDeliveryFields();
+  }
   $(".onboarding-stage").scrollTop = 0;
 }
 
@@ -635,6 +653,12 @@ function validateCurrentOnboardingStep() {
   if (!step || step.id === "review") return true;
   $("#onboardingFields").querySelectorAll(".field-error").forEach((node) => node.remove());
   const missing = step.fields.filter((field) => field.required && !answered(onboardingValue(step.id, field.id)));
+  if (step.id === "delivery" && onboardingValue("delivery", "workoutDelivery") === true) {
+    for (const fieldId of ["workoutDeliveryTarget", "connectorSetupMode"]) {
+      const field = step.fields.find((item) => item.id === fieldId);
+      if (field && !answered(onboardingValue("delivery", fieldId)) && !missing.includes(field)) missing.push(field);
+    }
+  }
   for (const field of missing) {
     const wrapper = $("#onboardingFields").querySelector(`[data-field="${field.id}"]`);
     if (wrapper) wrapper.insertAdjacentHTML("beforeend", '<p class="field-error">Choose or enter an answer before continuing.</p>');
@@ -674,6 +698,7 @@ async function renderOnboardingReview() {
       <article class="review-card"><small>Running frame</small><strong>${analysis.training.runSessionsPerWeek} sessions / week</strong><p>${escapeHtml(humanize(analysis.training.recommended))}. ${analysis.training.researchRequired ? "The requested method needs a suitability research pass." : "The method can be refined from your feedback."}</p></article>
       <article class="review-card"><small>Strength frame</small><strong>${analysis.strength.sessionsPerWeek} sessions / week</strong><p>${escapeHtml(analysis.strength.recommendation)}</p></article>
       <article class="review-card review-full"><small>Evidence route</small><strong>${escapeHtml(analysis.data.primary.label)}</strong><p>${escapeHtml(analysis.data.note)}</p><div class="connector-truth">${connectorChips}</div></article>
+      <article class="review-card review-full"><small>Workout delivery</small><strong>${analysis.workoutDelivery.requested ? escapeHtml(humanize(analysis.workoutDelivery.target || "target_needed")) : "Off"}</strong><p>${escapeHtml(analysis.workoutDelivery.note)} ${escapeHtml(analysis.workoutDelivery.approval)}</p><div class="connector-truth"><span>${escapeHtml(humanize(analysis.workoutDelivery.setupMode))}</span><span>${analysis.workoutDelivery.canPushNow ? "Adapter configured" : "No verified device write"}</span></div></article>
       <article class="review-card review-full"><small>What would improve confidence</small><strong>${escapeHtml(humanize(athlete.missingData.status))}</strong><ul>${gapList}</ul></article>
       <article class="review-card"><small>Fuel support</small><strong>${escapeHtml(humanize(analysis.nutrition.mode))}</strong><p>${escapeHtml(analysis.nutrition.recommendation)}</p></article>
       <article class="review-card"><small>Automation proposals</small><strong>${analysis.automation.proposals.length} selected</strong><ul>${automations}</ul></article>
@@ -761,6 +786,10 @@ $("#onboardingForm").addEventListener("submit", async (event) => {
   if (onboardingSteps()[state.onboardingStep]?.id === "review") await finishOnboarding();
   else await moveOnboarding(1);
 });
+$("#onboardingFields").addEventListener("change", (event) => {
+  if (event.target.name !== "delivery.workoutDelivery") return;
+  updateWorkoutDeliveryFields();
+});
 $("#onboardingBack").addEventListener("click", () => moveOnboarding(-1));
 $("#openOnboarding").addEventListener("click", () => openAthleteSetup());
 $("#exploreDemo").addEventListener("click", () => { captureOnboardingStep(); saveOnboardingDraft().catch(() => {}); $("#onboardingDialog").close(); toast("Synthetic demo opened. Athlete setup is still incomplete."); });
@@ -790,14 +819,20 @@ function connectorStatusClass(status) {
 }
 
 function connectorSetupMarkup(connector) {
+  const delivery = connector.workoutDelivery
+    ? `<p class="connector-capability">Workout delivery: ${escapeHtml(humanize(connector.workoutDelivery.status))}${connector.workoutDelivery.route ? ` · ${escapeHtml(connector.workoutDelivery.route)}` : ""}</p>`
+    : "";
+  const methods = connector.setup?.methods?.length
+    ? `<details><summary>Connection routes</summary><ul>${connector.setup.methods.map((method) => `<li><strong>${escapeHtml(method.label)}</strong>${method.recommended ? " · recommended" : ""}${method.unofficial ? " · unofficial/local" : ""}${method.status ? ` · ${escapeHtml(humanize(method.status))}` : ""}</li>`).join("")}</ul><p>StrideOS may guide setup. It never asks for a password in chat, and setup consent is not workout-write consent.</p></details>`
+    : "";
   if (connector.setup?.requiredEnvironment?.length) {
-    return `<details><summary>Setup contract</summary><p>Add server-side environment values: <code>${connector.setup.requiredEnvironment.map(escapeHtml).join(" · ")}</code>${connector.setup.optionalEnvironment?.length ? `<br>Optional: <code>${connector.setup.optionalEnvironment.map(escapeHtml).join(" · ")}</code>` : ""}. Secrets never go in the browser.</p></details>`;
+    return `${delivery}${methods}<details><summary>Setup contract</summary><p>Add server-side environment values: <code>${connector.setup.requiredEnvironment.map(escapeHtml).join(" · ")}</code>${connector.setup.optionalEnvironment?.length ? `<br>Optional: <code>${connector.setup.optionalEnvironment.map(escapeHtml).join(" · ")}</code>` : ""}. Secrets never go in the browser.</p></details>`;
   }
   if (connector.setup?.kind === "native_companion") {
-    return `<details><summary>Why a companion?</summary><p>${escapeHtml(connector.setup.platform)} health data requires system permission inside a native app. This web page cannot bypass that boundary.</p></details>`;
+    return `${delivery}${methods}<details><summary>Why a companion?</summary><p>${escapeHtml(connector.setup.platform)} health data requires system permission inside a native app. This web page cannot bypass that boundary.</p></details>`;
   }
-  if (connector.setup?.formats) return `<p class="connector-capability">Reads ${connector.setup.formats.map((format) => format.toUpperCase()).join(" · ")} locally</p>`;
-  return "";
+  if (connector.setup?.formats) return `${delivery}<p class="connector-capability">Reads ${connector.setup.formats.map((format) => format.toUpperCase()).join(" · ")} locally</p>`;
+  return delivery;
 }
 
 function relativeTime(value) {

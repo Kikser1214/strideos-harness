@@ -78,6 +78,12 @@ Copy-Item .env.example .env
 
 Set `OPENAI_API_KEY` in `.env`, keep `OPENAI_MODEL=gpt-5.6`, and restart. Personal context is sent only when the completed athlete profile also permits cloud processing. Never commit `.env`.
 
+## Optional device delivery
+
+Device setup is deliberately not part of the zero-account first run. Complete onboarding, choose whether approved workouts should reach a device, and choose whether the agent may guide only or help with reviewed local setup. Garmin official, Garmin local community, Apple Watch, Android, and fallback routes are documented in [Self-service device connections](SELF_SERVICE_CONNECTORS.md).
+
+Do not paste wearable passwords or MFA codes into chat or `.env`. The optional Garmin community adapter uses a separate user-selected Python script and local token directory; start it with `npm run connector:garmin:bridge` only after reviewing that script and its provider implications.
+
 ## Local state and reset
 
 By default StrideOS stores normalized local state in the operating system's temporary directory. For a durable path, set an absolute `STRIDEOS_STATE_FILE` in `.env`. The parent directory must be writable by the user running the server.

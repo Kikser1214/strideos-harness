@@ -101,7 +101,7 @@ test("personal demo coaching does not invent a Garmin workout without an active 
 }));
 
 test("personal approval is bound to the exact active-plan workout", () => withServer(async (base) => {
-  await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" } }), complete: true });
+  await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" }, delivery: { workoutDelivery: true, workoutDeliveryTarget: "garmin", connectorSetupMode: "allow_local_setup_after_review" } }), complete: true });
   activateTodaysRunningPlan();
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
   assert.equal(coached.decision.gate.action, "push_garmin_workout");
@@ -114,7 +114,7 @@ test("personal approval is bound to the exact active-plan workout", () => withSe
 }));
 
 test("new pain evidence invalidates a previously proposed Garmin write", () => withServer(async (base) => {
-  await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" } }), complete: true });
+  await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" }, delivery: { workoutDelivery: true, workoutDeliveryTarget: "garmin", connectorSetupMode: "allow_local_setup_after_review" } }), complete: true });
   activateTodaysRunningPlan({ id: "plan_stale_workout_test", sessionId: "stale_run_1", title: "Run before new evidence" });
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
   assert.equal(coached.decision.status, "awaiting_approval");
@@ -124,6 +124,14 @@ test("new pain evidence invalidates a previously proposed Garmin write", () => w
   assert.match((await approval.json()).error, /no longer current/i);
   const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
   assert.equal(bootstrap.decisions.find((item) => item.id === coached.decision.id).status, "stopped");
+}));
+
+test("a personal plan cannot create a Garmin write when device delivery is off", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  activateTodaysRunningPlan({ id: "plan_local_only", sessionId: "local_only_run", title: "Local-only run" });
+  const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
+  assert.equal(coached.decision.gate.action, "read_training_data");
+  assert.match(coached.decision.proposal, /device delivery is off/i);
 }));
 
 test("onboarding schema and connector truth are available", () => withServer(async (base) => {

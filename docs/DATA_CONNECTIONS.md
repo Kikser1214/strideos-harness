@@ -6,7 +6,7 @@ StrideOS uses one rule for every source: report what the software can prove, not
 
 | Source | Current label | What works in this release | What is still required |
 | --- | --- | --- | --- |
-| Garmin Connect | Setup needed, or adapter configured | Approval-gated workout writes can be simulated or sent to a deployer-provided bridge | An approved Garmin integration or private adapter, plus athlete authorization; a bridge URL alone is not proof of connection |
+| Garmin Connect | Setup needed, or adapter configured | Approval-gated workout writes can be simulated or sent to an official adapter or the optional local community bridge | An approved Garmin integration or user-selected private adapter, plus athlete authorization; a bridge URL alone is not proof of connection |
 | Strava | Setup needed, or OAuth setup ready | The environment contract and requested read scope are visible | Complete OAuth authorization, token storage/refresh, activity sync, webhooks, and revocation |
 | Apple Health / Watch | Native app required | Honest companion route and manual/file fallbacks | An iOS HealthKit companion with per-type permission |
 | Android Health Connect | Native app required | Honest companion route and manual/file fallbacks | An Android companion, declared record types, and user-granted permissions |
@@ -40,7 +40,9 @@ The onboarding primary source is first, followed by the other selected sources, 
 
 ### Garmin
 
-Set `GARMIN_BRIDGE_URL` and, when needed, `GARMIN_BRIDGE_TOKEN`. The bridge receives an approved, server-authored workout payload. Official Garmin cloud access is available through the Garmin Connect Developer Program and may require approval and commercial licensing. Production adapters must implement athlete consent, read freshness, write confirmation, token security, disconnect, and upstream deletion/revocation behavior.
+Set `GARMIN_BRIDGE_URL` and, when needed, `GARMIN_BRIDGE_TOKEN`. The bridge receives an approved, server-authored workout payload. Official Garmin cloud access is available through the Garmin Connect Developer Program and requires provider approval. Production adapters must implement athlete consent, read freshness, write confirmation, token security, disconnect, and upstream deletion/revocation behavior.
+
+For personal experiments, the optional loopback-only community adapter can call a user-supplied Python push script. It is unofficial, is not a hosted service, never makes a bridge publicly reachable, and does not turn setup consent into workout-write consent. See [Self-service device connections](SELF_SERVICE_CONNECTORS.md).
 
 The POST body is `{ decisionId, athleteId, workout }`. `workout` is copied from the exact scheduled running session attached to the persisted approval decision and includes its source, plan ID, session ID, name, sport, type, scheduled date, duration, target, intensity, and steps. Approval revalidates that exact resource against current plan, pain, recovery, and profile state. A missing or stale workout is rejected, and the synthetic judge fixture is always simulated even when a bridge URL is configured.
 
@@ -50,7 +52,7 @@ Set `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, and `STRAVA_REDIRECT_URI`. This 
 
 ### Apple and Android
 
-HealthKit and Health Connect are native platform permission systems. A browser-only page cannot request or bypass those permissions. A companion app must ask only for the data types needed for coaching, explain the purpose, handle partial or revoked access, and expose disconnect/delete behavior.
+HealthKit and Health Connect are native platform permission systems. A browser-only page cannot request or bypass those permissions. A companion app must ask only for the data types needed for coaching, explain the purpose, handle partial or revoked access, and expose disconnect/delete behavior. Reading completed work and delivering planned workouts use distinct permissions and must be represented separately.
 
 ## Primary technical sources
 

@@ -374,6 +374,21 @@ async function api(req, res, pathname) {
         resource: requestedGarminWrite ? exactWorkout : null
       });
     } else decision = demoCoachDecision(message, personal?.dashboard || null, athleteId);
+    const garminDeliveryAllowed = !personal || (
+      personal.profile.delivery?.workoutDelivery === true
+      && personal.profile.delivery?.workoutDeliveryTarget === "garmin"
+      && personal.profile.delivery?.approvalMode !== "read_only"
+    );
+    if (decision.gate.action === "push_garmin_workout" && !garminDeliveryAllowed) {
+      decision = buildDecision({
+        evidence: [...decision.evidence, "Garmin workout delivery is not enabled in the completed athlete profile."],
+        action: "read_training_data",
+        context: {},
+        proposal: personal.profile.delivery?.workoutDelivery
+          ? `Keep the workout in StrideOS. The selected destination is ${personal.profile.delivery.workoutDeliveryTarget.replaceAll("_", " ")}, not Garmin.`
+          : "Keep the workout in StrideOS. Device delivery is off and no external write was created."
+      });
+    }
     saveDecision(decision);
     return json(res, 200, { decision, mode: result ? "live" : "demo" });
   }
@@ -442,6 +457,12 @@ async function api(req, res, pathname) {
 
     let actionResult;
     if (decision.gate.action === "push_garmin_workout") {
+      const onboarding = getOnboarding();
+      if (decision.resource?.workout?.source === "approved_training_plan" && (
+        onboarding?.profile?.delivery?.workoutDelivery !== true
+        || onboarding.profile.delivery.workoutDeliveryTarget !== "garmin"
+        || onboarding.profile.delivery.approvalMode === "read_only"
+      )) throw new HttpError(403, "Enable Garmin workout delivery in Athlete setup before approving a Garmin write.");
       const source = decision.resource?.workout?.source;
       if (decision.resource?.type !== "workout" || !["approved_training_plan", "synthetic_judge_fixture"].includes(source)) {
         throw new HttpError(409, "The approved decision has no exact server-authored workout to send.");
