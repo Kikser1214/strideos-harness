@@ -32,6 +32,8 @@ The included judge mode needs no account, wearable, private data, or API key. Ju
 
 The project was created from scratch during OpenAI Build Week with Codex. It uses a small Node.js server, Garmin's official FIT JavaScript SDK, a responsive first-run wizard, a versioned onboarding schema, atomic local persistence, deterministic analysis and action gates, and the OpenAI Responses API. GPT-5.6 receives text and image inputs and returns strict schema-constrained outputs; the model never grants itself permission to act.
 
+A clean clone reaches onboarding with `npm run setup`: the command installs the locked dependency, runs a privacy-aware setup doctor, and starts the zero-account demo. Windows, macOS, and Linux instructions, a complete synthetic sample profile, reset flow, environment template, and local-state contract are checked into the repository.
+
 ## How we used Codex and GPT-5.6
 
 Codex was the primary implementation partner: product architecture, UI, server, rule engine, tests, documentation, hardening, and real-browser verification. GPT-5.6 is the runtime reasoning layer for coaching and food-image understanding. The README identifies the decisions made by the human and the work accelerated by Codex.
@@ -59,6 +61,7 @@ The hard part was not generating another training answer. It was defining the bo
 - Inspectable, versioned approval boundaries outside the model.
 - A deterministic zero-setup judge mode.
 - MIT-licensed StrideOS source with synthetic data and a documented third-party Garmin SDK license.
+- One-command clean-clone setup, a secret-safe doctor, and documented Windows/macOS/Linux paths.
 
 ## What we learned
 

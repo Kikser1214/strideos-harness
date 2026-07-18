@@ -69,3 +69,5 @@ npm run reset
 ```
 
 Run tests and syntax checks after behavior changes. Browser-check the clean first-run path on desktop and mobile for onboarding UI changes.
+
+For clean-install support, run `npm run doctor` before guessing about Node, dependencies, `.env`, state permissions, port conflicts, or missing repository artifacts. Never print secret values. `data/sample-profile.json` is synthetic documentation/test input and must not be silently loaded as a real athlete.

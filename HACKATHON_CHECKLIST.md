@@ -61,6 +61,8 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Dashboard behavior is covered by deterministic unit/API tests and real-browser desktop/mobile checks.
 - [x] Morning, pre-workout, post-workout, and weekly Scheduled proposals are timezone-aware, editable, copyable, and explicitly not auto-installed.
 - [x] Every scheduled prompt has a manual test path, read-only command contract, no-update behavior, safety override, and zero external writes.
+- [x] `npm run setup` installs, diagnoses, and starts a clean clone; `npm run doctor` checks Node, dependencies, env syntax, state permissions, port, privacy ignores, sample profile, and required docs.
+- [x] Windows, macOS, and Linux clean-install instructions, optional live mode, persistent state, reset, and a non-auto-loaded synthetic sample are documented.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 

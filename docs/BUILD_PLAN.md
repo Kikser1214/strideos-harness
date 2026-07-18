@@ -125,6 +125,8 @@ Done when automation setup is optional, previewable, editable, and documented fo
 
 ## Task 10 — Open-source install experience
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - one first-run command, setup doctor, environment example, privacy notes, and sample profile;

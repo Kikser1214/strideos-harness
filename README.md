@@ -19,14 +19,15 @@ The **decision ledger** makes this loop visible to the athlete and to judges.
 
 ## Run it
 
-Requires Node.js 20 or newer. Install the one runtime dependency, Garmin's official FIT JavaScript SDK, then start the local server.
+Requires Node.js 20 or newer. From a clean clone, one command installs the locked dependency, runs the setup doctor, and starts the local server:
 
 ```bash
-npm install
-npm start
+npm run setup
 ```
 
 Open <http://localhost:4173>. With no environment variables, the full interface runs in deterministic **judge demo mode** with synthetic data.
+
+Later starts use `npm start`. Windows users can run `npm.cmd run setup`; macOS and Linux use the same `npm run setup` command. See the complete [clean-clone install guide](docs/INSTALL.md), including port, environment, persistent-state, reset, and troubleshooting details. No watch, account, database, or API key is required.
 
 On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Draft answers save locally, and the final review shows starting stage, deadline pressure, declared-versus-observed load, available time, recovery context, missing evidence, confidence, strength guidance, connector truth, and any safety gate before a plan is created.
 
@@ -97,6 +98,7 @@ docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and appr
 docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
 docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
 docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
+docs/INSTALL.md        Clean-clone Windows, macOS, Linux, doctor, environment, and state guide
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
@@ -106,6 +108,7 @@ src/nutrition.mjs     Nutrition modes, protected contexts, fuel cues, and meal-d
 src/dashboard.mjs     Deterministic personal dashboard projection
 src/automations.mjs   Scheduled-brief proposals and deterministic manual previews
 src/automation-cli.mjs  Read-only command used by local scheduled prompts
+src/doctor.mjs        Read-only clean-install and privacy setup diagnostics
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
 src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
@@ -114,6 +117,7 @@ src/store.mjs          Atomic local decision and onboarding persistence
 src/reset.mjs          Clean first-run reset command
 src/server.mjs         Dependency-free Node HTTP server
 test/                  Rule-boundary and HTTP integration tests
+data/sample-profile.json  Complete synthetic contributor profile; never auto-loaded
 ```
 
 ### Optional Garmin bridge

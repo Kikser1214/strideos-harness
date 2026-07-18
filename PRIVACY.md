@@ -2,6 +2,8 @@
 
 StrideOS is local-first by design. The public repository and judge demo use synthetic athlete data only.
 
+`data/sample-profile.json` and `data/demo-athlete.json` are synthetic. Neither is silently imported as a completed personal athlete map.
+
 ## In the included demo
 
 - Before onboarding, the clearly labeled zero-setup judge trace can use `data/demo-athlete.json`. After onboarding, personal demo coaching uses the local athlete dashboard and does not send that context to OpenAI.
