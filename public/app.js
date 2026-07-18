@@ -449,7 +449,7 @@ function fieldHint(section, field) {
   if (section.id === "safety" && field.id === "parqStatus") return 'Use the current official form at <a href="https://eparmedx.com/" target="_blank" rel="noreferrer">ePARmed-X+ ↗</a>.';
   if (section.id === "strength" && field.id === "experience") return "Strength is part of the recommendation even when you have never lifted before.";
   if (section.id === "data" && field.id === "sources") return "Apple Health and Health Connect need native companion apps. Garmin needs bridge setup. Manual check-ins work now.";
-  if (section.id === "preferences" && field.id === "trainingStyle") return "A named style is a preference, not automatic permission to use an advanced method.";
+  if (section.id === "preferences" && field.id === "trainingStyle") return "New to training methods? Keep Recommend for me. A starter will normally begin with three separated run / walk sessions, two short technique-first strength sessions, and optional easy cycling when it fits.";
   if (section.id === "nutrition" && field.id === "supplements") return "Include product, dose, and timing when known. StrideOS reviews context; it does not assume a supplement is needed.";
   if (section.id === "delivery" && ["morningBrief", "preWorkoutBrief", "postWorkoutReflection", "weeklyReview"].includes(field.id)) return "This proposes a schedule only. Nothing is created until you test the prompt and create it in Scheduled.";
   return "";
@@ -639,6 +639,8 @@ async function initializeOnboarding(bootstrap) {
   state.onboardingSchema = result.schema;
   state.onboardingConnectors = result.connectors;
   state.onboardingProfile = bootstrap.onboarding?.profile || {};
+  state.onboardingProfile.strength = { preference: "recommend_for_me", ...(state.onboardingProfile.strength || {}) };
+  state.onboardingProfile.preferences = { trainingStyle: "recommend_for_me", intensityTolerance: "unknown", ...(state.onboardingProfile.preferences || {}) };
   if (!state.onboardingProfile.personal?.timezone) {
     state.onboardingProfile.personal = { ...(state.onboardingProfile.personal || {}), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Skopje", units: state.onboardingProfile.personal?.units || "metric" };
   }

@@ -1,11 +1,12 @@
 {
-  "version": "2026-07-18-automation",
+  "version": "2026-07-18-beginner-recommendation",
   "title": "Build your athlete map",
   "description": "A beginner-friendly intake that gives StrideOS enough context to recommend running, strength, recovery, data, and optional nutrition support safely.",
   "principles": [
     "Ask only for information that changes the recommendation or delivery.",
     "Keep sensitive body and health details optional unless a safety gate requires an answer.",
     "Treat subjective feel, pain, schedule, and preferences as real data.",
+    "When someone does not know training methods, recommend a plain-language beginner baseline instead of asking them to choose jargon.",
     "Never present a planned or simulated connector as connected.",
     "Do not finalize a training prescription while a safety gate is active."
   ],
@@ -118,9 +119,9 @@
     {
       "id": "preferences",
       "title": "How you want to be coached",
-      "description": "Choose a method or ask StrideOS to recommend one after analyzing your profile.",
+      "description": "StrideOS recommends the starting approach by default. Choose a named method only when you already want one researched.",
       "fields": [
-        { "id": "trainingStyle", "label": "Training approach", "type": "single", "required": true, "options": ["recommend_for_me", "easy_volume", "run_walk", "polarized", "threshold", "norwegian_inspired", "pace_based", "trail_hills", "custom_research"] },
+        { "id": "trainingStyle", "label": "Starting approach", "type": "single", "required": true, "default": "recommend_for_me", "options": ["recommend_for_me", "easy_volume", "run_walk", "polarized", "threshold", "norwegian_inspired", "pace_based", "trail_hills", "custom_research"] },
         { "id": "customStyle", "label": "Named coach, culture, system, or method to research", "type": "text", "required": false, "maxLength": 200 },
         { "id": "intensityTolerance", "label": "How do hard sessions usually feel?", "type": "single", "required": true, "options": ["unknown", "avoid_for_now", "manageable", "enjoy_them", "recover_poorly"] },
         { "id": "sessionPreference", "label": "Session preferences", "type": "multi", "required": false, "options": ["solo", "social", "outdoors", "indoors", "music", "no_metrics", "detailed_metrics", "variety", "routine"] },

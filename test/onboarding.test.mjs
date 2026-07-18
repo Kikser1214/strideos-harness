@@ -11,6 +11,14 @@ test("schema makes strength a first-class onboarding section", () => {
   assert.ok(strength.fields.some((field) => field.id === "equipment" && field.required));
 });
 
+test("schema defaults an unfamiliar athlete to a recommendation instead of method jargon", () => {
+  const schema = loadOnboardingSchema();
+  const preferences = schema.sections.find((section) => section.id === "preferences");
+  const trainingStyle = preferences.fields.find((field) => field.id === "trainingStyle");
+  assert.equal(trainingStyle.default, "recommend_for_me");
+  assert.match(preferences.description, /recommends the starting approach by default/i);
+});
+
 test("complete beginner profile validates and receives running plus strength guidance", () => {
   const validation = validateProfile(completeProfile(), { complete: true });
   assert.equal(validation.valid, true);
@@ -21,6 +29,8 @@ test("complete beginner profile validates and receives running plus strength gui
   assert.equal(analysis.training.runSessionsPerWeek, 3);
   assert.equal(analysis.strength.sessionsPerWeek, 2);
   assert.equal(analysis.strength.phase, "technique_first");
+  assert.match(analysis.training.note, /three separated run-walk-run sessions/i);
+  assert.match(analysis.training.note, /easy cycling is an optional/i);
 });
 
 test("safety signals pause both running and strength prescription", () => {

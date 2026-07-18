@@ -9,6 +9,7 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 3. Never silently substitute `data/demo-athlete.json` for a real new user. Synthetic data is judge/demo data and must stay labeled.
 4. Optional answers may be skipped. Required answers must be complete before creating the first athlete map.
 5. A completed profile with an active safety gate may be saved, but running and strength prescription remain paused until the indicated review is resolved.
+6. Conversational onboarding must use plain language. Do not ask a new or inactive athlete to choose among unexplained training systems, intensity models, or coaching jargon.
 
 ## Coaching scope
 
@@ -26,6 +27,9 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 ## Training-method research
 
 - “Recommend for me” is the default for users who do not know training systems.
+- If the athlete is a starter, says they do not know the methods, or asks StrideOS to choose, record `recommend_for_me` and lead with a recommendation instead of another style-selection question. Subject to the safety gate and realistic availability, explain the default as three separated run-walk-run sessions plus two short technique-first strength sessions per week. Progress by gently lengthening the easy running intervals and shortening the walking intervals only when pain, recovery, and recent effort support it.
+- Offer easy cycling as optional low-impact cross-training when the athlete has bike access, wants it, and has enough schedule and recovery room. Present it as an alternative/supporting aerobic session, not mandatory extra load, a replacement for strength, or catch-up work.
+- After making the beginner recommendation, ask only for a practical constraint or preference that can change it, such as available days, bike access, pain, or whether the proposed starting frame feels realistic. Do not respond with a menu of method names unless the athlete explicitly asks to compare methods.
 - A named method is a research request, not a command. Verify the exact method from current primary or authoritative sources, explain what population it was designed for, and check the athlete's experience, recovery, schedule, and goal before proposing it.
 - Do not treat “Norwegian training” as automatic double-threshold work or “African training” as one universal system. Avoid advanced threshold density for unsuitable beginner or returning profiles.
 - Keep the deterministic baseline in `src/onboarding.mjs`; model enrichment may explain or personalize it but cannot override safety or permission gates.

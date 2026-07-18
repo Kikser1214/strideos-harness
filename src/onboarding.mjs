@@ -174,7 +174,9 @@ function trainingAnalysis(profile, stage, safety) {
     researchRequired = true;
     note = "Threshold-heavy methods are not the starting default for this profile. Build consistency and tolerance first, then research and reassess the named method.";
   } else if (requested === "recommend_for_me") {
-    note = `StrideOS selected ${recommended.replaceAll("_", " ")} as the safest useful starting model for a ${stage} athlete.`;
+    note = stage === "starter"
+      ? "StrideOS recommends three separated run-walk-run sessions and two short technique-first strength sessions when schedule and safety allow. Easy running intervals grow gradually while walking intervals shrink only when pain, recovery, and recent effort support it; easy cycling is an optional low-impact alternative when bike access and recovery allow."
+      : `StrideOS selected ${recommended.replaceAll("_", " ")} as the safest useful starting model for a ${stage} athlete.`;
   }
 
   const availableDays = Number(profile.schedule?.daysPerWeek || 3);
