@@ -141,10 +141,12 @@ function weekView(planView, imports, today) {
   };
 }
 
-function sourceView(onboarding, imports, checkins, now) {
+function sourceView(onboarding, imports, checkins, workoutFeedback, now) {
   const latestActivity = imports[0] || null;
   const latestCheckin = checkins[0] || null;
+  const latestFeedback = workoutFeedback[0] || null;
   const signals = [
+    latestFeedback ? { id: "workout_feedback", label: "Workout annotation", capturedAt: latestFeedback.capturedAt, freshness: freshnessFor(latestFeedback.capturedAt, now), source: "athlete" } : null,
     latestCheckin ? { id: "subjective", label: "Manual check-in", capturedAt: latestCheckin.capturedAt, freshness: freshnessFor(latestCheckin.capturedAt, now), source: "athlete" } : null,
     latestActivity ? { id: "activity", label: latestActivity.name || "Imported activity", capturedAt: latestActivity.activityAt, freshness: freshnessFor(latestActivity.activityAt, now), source: latestActivity.source } : null,
     { id: "onboarding", label: "Athlete map", capturedAt: onboarding.updatedAt, freshness: freshnessFor(onboarding.updatedAt, now), source: "athlete" }
@@ -154,11 +156,11 @@ function sourceView(onboarding, imports, checkins, now) {
     primary: onboarding.analysis?.data?.primary?.label || onboarding.profile.data?.primarySource || "Onboarding",
     status: best?.freshness.status || "unknown",
     signals,
-    explanation: latestActivity || latestCheckin ? "Freshness is visible per signal. Missing wearable data does not become a fake readiness score." : "Onboarding is the only current evidence. Add a manual check-in or activity import to improve today's context."
+    explanation: latestActivity || latestCheckin || latestFeedback ? "Freshness is visible per signal. Missing wearable data does not become a fake readiness score." : "Onboarding is the only current evidence. Add a manual check-in or activity import to improve today's context."
   };
 }
 
-export function buildDashboard({ onboarding = null, analysis = null, activePlan = null, plans = [], imports = [], checkins = [], nutrition = null, connectors = null, decisions = [], now = new Date() } = {}) {
+export function buildDashboard({ onboarding = null, analysis = null, activePlan = null, plans = [], imports = [], checkins = [], workoutFeedback = [], nutrition = null, connectors = null, decisions = [], now = new Date() } = {}) {
   const reference = asDate(now);
   const today = day(reference);
   if (!onboarding?.completedAt || !onboarding.profile) return {
@@ -176,6 +178,7 @@ export function buildDashboard({ onboarding = null, analysis = null, activePlan 
     sources: { primary: "none", status: "unknown", signals: [], explanation: "No athlete evidence loaded." },
     goal: { label: "Goal", value: "Not set", eventDate: null, daysRemaining: null },
     connector: connectors?.garmin || null,
+    feedback: { latest: null, latestForSession: null, countForSession: 0, explanation: "Complete athlete setup before adding a workout note." },
     pendingDecision: decisions.find((decision) => decision.status === "awaiting_approval") || null
   };
 
@@ -196,6 +199,16 @@ export function buildDashboard({ onboarding = null, analysis = null, activePlan 
     explanation: analysis?.recovery?.explanation || "Add a manual check-in for current pain, effort, energy, and sleep feel."
   };
   const todayCard = todayView(plan);
+  const sessionFeedback = workoutFeedback.filter((item) => item.targetDate === todayCard.date && (!activePlan?.id || !item.planId || item.planId === activePlan.id));
+  const latestFeedback = workoutFeedback[0] || null;
+  const feedback = {
+    latest: latestFeedback,
+    latestForSession: sessionFeedback[0] || null,
+    countForSession: sessionFeedback.length,
+    explanation: sessionFeedback[0]
+      ? "The athlete note is fresh evidence. It has not changed, moved, or cancelled the approved session."
+      : todayCard.sessions.length ? "Add a note directly to this approved session if the dose, timing, or type does not fit." : "No approved session is available to annotate."
+  };
   const status = analysis?.recovery?.safetyBlocked ? "safety_stop" : plan.status === "review_required" ? "review_required" : plan.status === "awaiting_approval" ? "awaiting_approval" : "ready";
   return {
     version: DASHBOARD_VERSION,
@@ -215,9 +228,10 @@ export function buildDashboard({ onboarding = null, analysis = null, activePlan 
       numberFree: companion?.numberPolicy?.numberFree ?? true,
       explanation: companion?.status === "off" || !companion ? "Nutrition support is off and training continues without food logging." : companion.numberPolicy.explanation
     },
-    sources: sourceView(onboarding, imports, checkins, reference),
+    sources: sourceView(onboarding, imports, checkins, workoutFeedback, reference),
     goal: goalView(profile, today),
     connector: connectors?.garmin || null,
+    feedback,
     pendingDecision: decisions.find((decision) => decision.status === "awaiting_approval") || null
   };
 }

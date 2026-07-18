@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f2f4f6" />
     <meta name="description" content="StrideOS is a rule-governed personal running coach harness built with Codex and GPT-5.6." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="StrideOS" />
     <title>StrideOS — the coach with a control plane</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/stride-icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -22,6 +26,8 @@
         <span id="modelLabel">GPT-5.6</span>
       </div>
       <div class="topbar-actions">
+        <button class="lock-link" id="lockCompanion" hidden>Lock</button>
+        <button class="install-link" id="installCompanion" hidden>Install companion</button>
         <button class="automation-link" id="openAutomations">Automations</button>
         <button class="plan-link" id="openPlan">Training plan</button>
         <button class="data-link" id="openDataSources">Data sources</button>
@@ -29,6 +35,20 @@
         <a class="github-link" href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">Open source ↗</a>
       </div>
     </header>
+
+    <dialog class="access-dialog" id="accessDialog" aria-labelledby="accessTitle">
+      <form class="access-shell" id="accessForm">
+        <span class="access-mark" aria-hidden="true">S/</span>
+        <p class="eyebrow">Private web companion</p>
+        <h1 id="accessTitle">Your training stays behind one key.</h1>
+        <p>Enter the access key configured by the person hosting this StrideOS instance. It is kept only for this browser session.</p>
+        <label for="accessKey">Access key</label>
+        <input id="accessKey" name="accessKey" type="password" autocomplete="current-password" required />
+        <p class="access-error" id="accessError" role="alert" hidden></p>
+        <button class="primary" type="submit">Open my companion</button>
+        <small>Not a shared account. No key is included in the open-source repository.</small>
+      </form>
+    </dialog>
 
     <dialog class="onboarding-dialog" id="onboardingDialog" aria-labelledby="onboardingTitle">
       <form class="onboarding-shell" id="onboardingForm" novalidate>
@@ -137,6 +157,59 @@
             <h3 id="workoutName">Reading local plan</h3>
             <div class="workout-dose"><strong id="distanceValue">â€”</strong><span id="workoutUnit"></span></div>
             <p id="workoutTarget">No recommendation is shown before the evidence is loaded.</p>
+            <section class="workout-feedback" id="workoutFeedback" aria-labelledby="workoutFeedbackTitle">
+              <header>
+                <div><small>Coach's margin</small><strong id="workoutFeedbackTitle">Does this session fit today?</strong></div>
+                <button type="button" id="toggleWorkoutFeedback">Add note</button>
+              </header>
+              <p id="workoutFeedbackHint">Attach a note to the approved session. Nothing changes automatically.</p>
+              <form id="workoutFeedbackForm" hidden>
+                <fieldset>
+                  <legend>What do you want to do?</legend>
+                  <div class="feedback-dispositions">
+                    <label><input type="radio" name="disposition" value="keep" />Keep</label>
+                    <label><input type="radio" name="disposition" value="adjust" checked />Adjust</label>
+                    <label><input type="radio" name="disposition" value="move" />Move</label>
+                    <label><input type="radio" name="disposition" value="skip" />Can't do</label>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend>What is off?</legend>
+                  <div class="feedback-reasons">
+                    <label><input type="checkbox" name="reasons" value="too_hard" />Too hard</label>
+                    <label><input type="checkbox" name="reasons" value="too_easy" />Too easy</label>
+                    <label><input type="checkbox" name="reasons" value="pain" />Pain</label>
+                    <label><input type="checkbox" name="reasons" value="fatigue" />Fatigue</label>
+                    <label><input type="checkbox" name="reasons" value="schedule" />Schedule</label>
+                    <label><input type="checkbox" name="reasons" value="weather" />Weather</label>
+                    <label><input type="checkbox" name="reasons" value="equipment" />Equipment</label>
+                    <label><input type="checkbox" name="reasons" value="not_enjoyable" />Not a fit</label>
+                  </div>
+                </fieldset>
+                <label>What would help?
+                  <select name="requestedChange">
+                    <option value="coach_choose">Coach, recommend for me</option>
+                    <option value="shorter">Make it shorter</option>
+                    <option value="easier">Make it easier</option>
+                    <option value="move_day">Move it to another day</option>
+                    <option value="swap_session">Replace this session</option>
+                    <option value="cancel">Cancel this session</option>
+                    <option value="none">No change requested</option>
+                  </select>
+                </label>
+                <label>Pain right now (optional)
+                  <select name="pain"><option value="">Not reported</option><option value="0">0 / 10</option><option value="1">1 / 10</option><option value="2">2 / 10</option><option value="3">3 / 10</option><option value="4">4 / 10</option><option value="5">5 / 10</option><option value="6">6 / 10</option><option value="7">7 / 10</option><option value="8">8 / 10</option><option value="9">9 / 10</option><option value="10">10 / 10</option></select>
+                </label>
+                <label>Short note<textarea name="note" maxlength="700" rows="3" placeholder="e.g. I have only 25 minutes, and my calves still feel heavy"></textarea></label>
+                <button class="save-feedback" type="submit">Save as coaching evidence</button>
+              </form>
+              <div class="saved-feedback" id="savedWorkoutFeedback" hidden>
+                <span id="savedFeedbackState">Note saved</span>
+                <strong id="savedFeedbackTitle"></strong>
+                <p id="savedFeedbackNote"></p>
+                <div><button type="button" id="askCoachFromFeedback">Ask coach to revise →</button><button type="button" id="deleteWorkoutFeedback">Delete note</button></div>
+              </div>
+            </section>
             <div class="route-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <dl>
               <div><dt>Week</dt><dd id="weekPlanned">No approved block</dd></div>

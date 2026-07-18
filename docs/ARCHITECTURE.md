@@ -9,6 +9,7 @@ flowchart LR
     B[Manual pain · RPE · energy · sleep]
     C[FIT · GPX · TCX · CSV summaries]
     D[Optional meal image]
+    W[Workout annotation<br/>session · reason · request]
   end
 
   subgraph R[Reason]
@@ -36,6 +37,7 @@ flowchart LR
   A --> E
   B --> E
   C --> E
+  W --> E
   D --> G
   E --> F
   E --> G
@@ -51,6 +53,7 @@ flowchart LR
   O -->|current external workout| Q
   O -->|stale or unsafe| L
   P --> A
+  P --> W
 ```
 
 ## Trust boundaries
@@ -60,6 +63,7 @@ flowchart LR
 3. **Approval is revalidated.** New pain, safety, profile, or plan evidence invalidates an older workout proposal before any bridge request.
 4. **Judge data stays synthetic.** The no-setup fixture is labeled and is always simulated, even if a Garmin bridge URL exists.
 5. **Raw inputs are minimized.** Raw activity files and raw meal images are not retained by the included store. Normalized records are visible and deletable.
+6. **Feedback is not implicit permission.** A workout annotation preserves the exact approved session and athlete request. A derived shorter, easier, moved, swapped, or cancelled block is a new persisted resource that requires its own approval.
 
 ## Runtime modes
 
@@ -68,5 +72,6 @@ flowchart LR
 | Zero-setup judge trace | Off | Labeled synthetic fixture | Always simulated |
 | Personal local demo | Off | Completed local athlete map | Simulated unless an exact current workout and bridge are configured |
 | Live reasoning | On, after cloud opt-in | Completed local athlete map sent as bounded context | Still requires exact persisted approval and revalidation |
+| Private web companion | Optional | Single-athlete persistent state behind an access key | Same decision gates; HTTPS and durable storage are operator responsibilities |
 
 The dashboard, nutrition companion, automation previews, and decision ledger all read from the same server-authoritative state; the browser never activates a client-supplied resource.

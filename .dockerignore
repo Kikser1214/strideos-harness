@@ -1,0 +1,8 @@
+.git
+.env
+.env.*
+node_modules
+data/private
+output
+uploads
+*.log

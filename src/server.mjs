@@ -2,6 +2,7 @@ import "./env.mjs";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
@@ -14,7 +15,8 @@ import { applyMealPolicy, buildNutritionCompanion } from "./nutrition.mjs";
 import { buildDashboard } from "./dashboard.mjs";
 import { buildAutomationSetup, normalizeAutomationOverride, runAutomationPreview } from "./automations.mjs";
 import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
-import { activatePlan, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, findDecision, findPlan, getActivePlan, getAutomationState, getOnboarding, listCheckins, listImports, listMeals, listPlans, recentDecisions, resetOnboarding, saveAutomationOverride, saveAutomationTest, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, updateDecision } from "./store.mjs";
+import { buildWorkoutAdjustment, FeedbackError, normalizeWorkoutFeedback, workoutFeedbackCoachPrompt } from "./feedback.mjs";
+import { activatePlan, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, deleteWorkoutFeedback, findDecision, findPlan, findWorkoutFeedback, getActivePlan, getAutomationState, getOnboarding, listCheckins, listImports, listMeals, listPlans, listWorkoutFeedback, recentDecisions, resetOnboarding, saveAutomationOverride, saveAutomationTest, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, saveWorkoutFeedback, updateDecision } from "./store.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
@@ -22,7 +24,7 @@ const demoAthlete = JSON.parse(fs.readFileSync(new URL("../data/demo-athlete.jso
 
 const types = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png"
+  ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json"
 };
 
 function securityHeaders() {
@@ -34,9 +36,22 @@ function securityHeaders() {
   };
 }
 
-function json(res, status, data) {
-  res.writeHead(status, { ...securityHeaders(), "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+function json(res, status, data, headers = {}) {
+  res.writeHead(status, { ...securityHeaders(), "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
   res.end(JSON.stringify(data));
+}
+
+function accessRequired() {
+  return Boolean(process.env.STRIDEOS_ACCESS_TOKEN);
+}
+
+function accessAuthorized(req) {
+  const expected = process.env.STRIDEOS_ACCESS_TOKEN;
+  if (!expected) return true;
+  const supplied = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  const expectedBuffer = Buffer.from(expected);
+  const suppliedBuffer = Buffer.from(supplied);
+  return expectedBuffer.length === suppliedBuffer.length && crypto.timingSafeEqual(expectedBuffer, suppliedBuffer);
 }
 
 class HttpError extends Error {
@@ -101,6 +116,7 @@ function currentDashboard(onboarding = getOnboarding()) {
     plans: listPlans(),
     imports: listImports(),
     checkins: listCheckins(),
+    workoutFeedback: listWorkoutFeedback(),
     nutrition: currentNutritionData(onboarding),
     connectors: { garmin: garminStatus() },
     decisions: recentDecisions()
@@ -112,8 +128,12 @@ function currentAutomationSetup(onboarding = getOnboarding()) {
 }
 
 async function api(req, res, pathname) {
+  if (req.method === "GET" && pathname === "/api/access") {
+    return json(res, 200, { required: accessRequired(), mode: accessRequired() ? "private_companion" : "local" });
+  }
+
   if (req.method === "GET" && pathname === "/api/health") {
-    return json(res, 200, { ok: true, openai: Boolean(process.env.OPENAI_API_KEY), garmin: garminStatus() });
+    return json(res, 200, { ok: true });
   }
 
   if (req.method === "GET" && pathname === "/api/bootstrap") {
@@ -129,7 +149,9 @@ async function api(req, res, pathname) {
       training: { activePlan: getActivePlan(), proposals: listPlans(4) },
       nutrition: currentNutritionData(onboarding),
       dashboard: currentDashboard(onboarding),
+      workoutFeedback: listWorkoutFeedback(20),
       automations: currentAutomationSetup(onboarding),
+      companion: { protected: accessRequired(), publicUrl: process.env.STRIDEOS_PUBLIC_URL || null },
       needsOnboarding: !onboarding?.completedAt,
       decisions: recentDecisions()
     });
@@ -165,6 +187,50 @@ async function api(req, res, pathname) {
 
   if (req.method === "GET" && pathname === "/api/dashboard") {
     return json(res, 200, { dashboard: currentDashboard() });
+  }
+
+  if (req.method === "GET" && pathname === "/api/workout-feedback") {
+    return json(res, 200, { feedback: listWorkoutFeedback(), dashboard: currentDashboard() });
+  }
+
+  if (req.method === "POST" && pathname === "/api/workout-feedback") {
+    const onboarding = getOnboarding();
+    if (!onboarding?.completedAt) throw new HttpError(409, "Complete athlete onboarding before annotating a workout.");
+    const body = await readJson(req, 25_000);
+    const dashboard = currentDashboard(onboarding);
+    const feedback = saveWorkoutFeedback(normalizeWorkoutFeedback(body, dashboard));
+    return json(res, 201, { feedback, dashboard: currentDashboard(onboarding), coachPrompt: workoutFeedbackCoachPrompt(feedback) });
+  }
+
+  const feedbackProposal = /^\/api\/workout-feedback\/([a-f0-9-]+)\/proposal$/i.exec(pathname);
+  if (req.method === "POST" && feedbackProposal) {
+    const feedback = findWorkoutFeedback(feedbackProposal[1]);
+    if (!feedback) throw new HttpError(404, "Workout annotation not found.");
+    const plan = buildWorkoutAdjustment({ activePlan: getActivePlan(), feedback });
+    const existing = findPlan(plan.id);
+    if (existing?.status === "awaiting_approval") throw new HttpError(409, "This exact workout revision is already awaiting approval.");
+    if (existing?.status === "active") throw new HttpError(409, "This exact workout revision is already active.");
+    const decision = buildDecision({
+      evidence: [
+        `Athlete annotation: ${feedback.disposition.replaceAll("_", " ")}`,
+        `Reasons: ${feedback.reasons.map((item) => item.replaceAll("_", " ")).join(", ") || "athlete note"}`,
+        `Requested direction: ${feedback.requestedChange.replaceAll("_", " ")}`,
+        `Current block: ${plan.adjustment.sourcePlanId}`
+      ],
+      action: "change_training_plan",
+      context: { confidence: 0.86 },
+      proposal: `${plan.adjustment.explanation} Approve this revised block?`,
+      resource: { type: "training_plan", id: plan.id }
+    });
+    saveDecision(decision);
+    const savedPlan = savePlanProposal(plan, decision.id);
+    return json(res, 201, { plan: savedPlan, decision, feedback });
+  }
+
+  const feedbackDelete = /^\/api\/workout-feedback\/([a-f0-9-]+)$/i.exec(pathname);
+  if (req.method === "DELETE" && feedbackDelete) {
+    if (!deleteWorkoutFeedback(feedbackDelete[1])) throw new HttpError(404, "Workout annotation not found.");
+    return json(res, 200, { deleted: true, dashboard: currentDashboard() });
   }
 
   if (req.method === "GET" && pathname === "/api/automations") {
@@ -433,21 +499,35 @@ export function createServer() {
   return http.createServer(async (req, res) => {
     const pathname = new URL(req.url, `http://${req.headers.host || "localhost"}`).pathname;
     try {
-      if (pathname.startsWith("/api/")) return await api(req, res, pathname);
+      if (pathname.startsWith("/api/")) {
+        const publicEndpoint = req.method === "GET" && ["/api/access", "/api/health"].includes(pathname);
+        if (!publicEndpoint && !accessAuthorized(req)) return json(res, 401, { error: "Enter the private companion access key." }, { "www-authenticate": "Bearer realm=\"StrideOS\"" });
+        return await api(req, res, pathname);
+      }
       if (staticFile(res, pathname)) return;
       res.writeHead(404, { ...securityHeaders(), "content-type": "text/plain; charset=utf-8" });
       res.end("Not found");
     } catch (error) {
-      const status = error instanceof HttpError || error instanceof ImportError ? error.status : 500;
+      const status = error instanceof HttpError || error instanceof ImportError || error instanceof FeedbackError ? error.status : 500;
       if (status === 500) console.error(error);
       json(res, status, { error: status === 500 ? "The harness could not complete that request." : error.message });
     }
   });
 }
 
-export function startServer(port = Number(process.env.PORT || 4173)) {
+export function validateRuntimeAccess(host = "127.0.0.1", token = "") {
+  const local = ["127.0.0.1", "localhost", "::1"].includes(String(host).trim());
+  if (!local && String(token).length < 16) throw new Error("Refusing to expose StrideOS without STRIDEOS_ACCESS_TOKEN of at least 16 characters.");
+  return { local, protected: Boolean(token) };
+}
+
+export function startServer(port = Number(process.env.PORT || 4173), host = process.env.HOST || "127.0.0.1") {
+  validateRuntimeAccess(host, process.env.STRIDEOS_ACCESS_TOKEN || "");
   const server = createServer();
-  return server.listen(port, () => console.log(`StrideOS running at http://localhost:${server.address().port}`));
+  return server.listen(port, host, () => {
+    const address = process.env.STRIDEOS_PUBLIC_URL || `http://${host === "0.0.0.0" || host === "::" ? "localhost" : host}:${server.address().port}`;
+    console.log(`StrideOS running at ${address}${accessRequired() ? " (private companion access enabled)" : ""}`);
+  });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) startServer();

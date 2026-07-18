@@ -105,6 +105,15 @@ export function demoCoachDecision(message = "", dashboard = null, athleteId = "l
     });
   }
 
+  if (/review my (?:saved )?annotation/.test(normalized) && dashboard?.feedback?.latest) {
+    return buildDecision({
+      evidence: ["A server-stored workout annotation is available on the personal dashboard."],
+      action: "read_training_data",
+      context: {},
+      proposal: "Use Ask coach to revise in the Coach's margin to create an exact, approvable training-block revision from this annotation. The current plan remains unchanged."
+    });
+  }
+
   if (dashboard) {
     const running = dashboard.today?.sessions?.find((session) => ["run_walk", "easy_run", "long_easy", "controlled_quality"].includes(session.type));
     const evidence = [

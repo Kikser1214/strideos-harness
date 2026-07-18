@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createServer } from "../src/server.mjs";
+import { createServer, validateRuntimeAccess } from "../src/server.mjs";
 import { activatePlan, resetState, savePlanProposal } from "../src/store.mjs";
 import { completeProfile } from "./fixtures.mjs";
 
@@ -11,6 +11,7 @@ const stateFile = path.join(os.tmpdir(), `strideos-test-${process.pid}.json`);
 process.env.STRIDEOS_STATE_FILE = stateFile;
 delete process.env.OPENAI_API_KEY;
 delete process.env.GARMIN_BRIDGE_URL;
+delete process.env.STRIDEOS_ACCESS_TOKEN;
 
 async function withServer(run) {
   resetState();
@@ -35,6 +36,12 @@ function activateTodaysRunningPlan({ id = "plan_personal_bridge_test", sessionId
   activatePlan(plan.id);
   return plan;
 }
+
+test("runtime refuses an unprotected non-local host", () => {
+  assert.deepEqual(validateRuntimeAccess("127.0.0.1", ""), { local: true, protected: false });
+  assert.throws(() => validateRuntimeAccess("0.0.0.0", ""), /refusing to expose/i);
+  assert.deepEqual(validateRuntimeAccess("0.0.0.0", "a-long-private-key"), { local: false, protected: true });
+});
 
 test("bootstrap reports connector truthfully", () => withServer(async (base) => {
   const response = await fetch(`${base}/api/bootstrap`);
@@ -163,6 +170,49 @@ test("manual check-ins persist and can be deleted", () => withServer(async (base
   assert.equal(saved.pain, 1);
   assert.equal((await fetch(`${base}/api/checkins/${saved.id}`, { method: "DELETE" })).status, 200);
   assert.equal((await (await fetch(`${base}/api/connectors`)).json()).checkins.length, 0);
+}));
+
+test("today's workout can be annotated without silently changing the active plan", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const plan = activateTodaysRunningPlan({ id: "feedback_plan" });
+  const response = await post(base, "/api/workout-feedback", {
+    disposition: "adjust", reasons: ["schedule", "fatigue"], requestedChange: "shorter", pain: 2,
+    note: "I only have 25 minutes today."
+  });
+  assert.equal(response.status, 201);
+  const result = await response.json();
+  assert.equal(result.feedback.planId, plan.id);
+  assert.equal(result.dashboard.plan.status, "active");
+  assert.equal(result.dashboard.feedback.latestForSession.id, result.feedback.id);
+  assert.match(result.coachPrompt, /separate approval/i);
+
+  const revisionResponse = await post(base, `/api/workout-feedback/${result.feedback.id}/proposal`, {});
+  assert.equal(revisionResponse.status, 201);
+  const revision = await revisionResponse.json();
+  assert.equal(revision.plan.status, "awaiting_approval");
+  assert.equal(revision.plan.adjustment.sourcePlanId, plan.id);
+  assert.equal(revision.plan.weeks[0].days.find((day) => day.date === new Date().toISOString().slice(0, 10)).sessions[0].durationMinutes, 25);
+  let bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.training.activePlan.id, plan.id);
+  assert.equal((await post(base, `/api/workout-feedback/${result.feedback.id}/proposal`, {})).status, 409);
+  assert.equal((await post(base, "/api/decisions/approve", { id: revision.decision.id })).status, 200);
+  bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.training.activePlan.id, revision.plan.id);
+
+  const listed = await (await fetch(`${base}/api/workout-feedback`)).json();
+  assert.equal(listed.feedback.length, 1);
+  assert.equal((await fetch(`${base}/api/workout-feedback/${result.feedback.id}`, { method: "DELETE" })).status, 200);
+  assert.equal((await (await fetch(`${base}/api/workout-feedback`)).json()).feedback.length, 0);
+}));
+
+test("a high-pain workout annotation pauses the active block for review", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const plan = activateTodaysRunningPlan({ id: "feedback_safety_plan" });
+  const response = await post(base, "/api/workout-feedback", { disposition: "skip", reasons: ["pain"], requestedChange: "coach_choose", pain: 4 });
+  assert.equal(response.status, 201);
+  const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.training.activePlan, null);
+  assert.equal(bootstrap.training.proposals.find((item) => item.id === plan.id).status, "review_required");
 }));
 
 test("onboarding draft persists without marking first run complete", () => withServer(async (base) => {
@@ -359,5 +409,20 @@ test("HTTP boundary rejects malformed, mislabelled, oversized, and traversal req
   const oversized = await fetch(`${base}/api/checkins`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ note: "x".repeat(21_000) }) });
   assert.equal(oversized.status, 413);
 }));
+
+test("private companion mode protects athlete APIs with a server-side access key", async () => {
+  process.env.STRIDEOS_ACCESS_TOKEN = "test-private-key-123456789";
+  try {
+    await withServer(async (base) => {
+      const access = await (await fetch(`${base}/api/access`)).json();
+      assert.equal(access.required, true);
+      assert.equal((await fetch(`${base}/api/health`)).status, 200);
+      assert.equal((await fetch(`${base}/api/bootstrap`)).status, 401);
+      const authorized = await fetch(`${base}/api/bootstrap`, { headers: { authorization: `Bearer ${process.env.STRIDEOS_ACCESS_TOKEN}` } });
+      assert.equal(authorized.status, 200);
+      assert.equal((await authorized.json()).companion.protected, true);
+    });
+  } finally { delete process.env.STRIDEOS_ACCESS_TOKEN; }
+});
 
 test.after(() => { try { fs.rmSync(stateFile); } catch {} });

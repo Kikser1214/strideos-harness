@@ -11,17 +11,18 @@ function stateFile() {
 }
 
 function emptyState() {
-  return { version: 6, decisions: [], onboarding: null, imports: [], checkins: [], plans: [], activePlanId: null, meals: [], automations: { overrides: {}, tests: {} } };
+  return { version: 7, decisions: [], onboarding: null, imports: [], checkins: [], workoutFeedback: [], plans: [], activePlanId: null, meals: [], automations: { overrides: {}, tests: {} } };
 }
 
 function migrateState(value) {
   const state = value && typeof value === "object" && !Array.isArray(value) ? value : emptyState();
   return {
-    version: 6,
+    version: 7,
     decisions: Array.isArray(state.decisions) ? state.decisions : [],
     onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null,
     imports: Array.isArray(state.imports) ? state.imports : [],
     checkins: Array.isArray(state.checkins) ? state.checkins : [],
+    workoutFeedback: Array.isArray(state.workoutFeedback) ? state.workoutFeedback : [],
     plans: Array.isArray(state.plans) ? state.plans : [],
     activePlanId: typeof state.activePlanId === "string" ? state.activePlanId : null,
     meals: Array.isArray(state.meals) ? state.meals : [],
@@ -294,6 +295,37 @@ export function deleteCheckin(id) {
   const before = state.checkins.length;
   state.checkins = state.checkins.filter((checkin) => checkin.id !== id);
   if (state.checkins.length === before) return false;
+  writeState(state);
+  return true;
+}
+
+export function listWorkoutFeedback(limit = 100) {
+  return readState().workoutFeedback.slice(0, limit).map((item) => ({ ...item, freshness: freshnessFor(item.capturedAt) }));
+}
+
+export function findWorkoutFeedback(id) {
+  return readState().workoutFeedback.find((item) => item.id === id) || null;
+}
+
+export function saveWorkoutFeedback(feedback) {
+  const state = readState();
+  const saved = { ...feedback, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  state.workoutFeedback = [saved, ...state.workoutFeedback].slice(0, 200);
+  if (saved.requiresSafetyReview && state.activePlanId) {
+    state.plans = state.plans.map((plan) => plan.id === state.activePlanId
+      ? { ...plan, status: "review_required", reviewReason: `Workout annotation reported pain ${saved.pain}/10.`, reviewRequiredAt: saved.createdAt }
+      : plan);
+    state.activePlanId = null;
+  }
+  writeState(state);
+  return saved;
+}
+
+export function deleteWorkoutFeedback(id) {
+  const state = readState();
+  const before = state.workoutFeedback.length;
+  state.workoutFeedback = state.workoutFeedback.filter((item) => item.id !== id);
+  if (state.workoutFeedback.length === before) return false;
   writeState(state);
   return true;
 }

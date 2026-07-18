@@ -54,6 +54,14 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Keep planned sessions, observed activities, and confirmed completion as separate concepts. Until explicit matching exists, never infer plan completion from an import.
 - Do not calculate or display a synthetic personal readiness score. Unknown, stale, and missing evidence must stay visible.
 
+## Workout annotations
+
+- Treat the inline workout note as athlete-authored evidence attached to the exact server-authoritative session snapshot.
+- Saving a note is not permission to change, move, cancel, or push a workout. Any resulting plan change still requires its own server-stored `change_training_plan` decision and explicit approval.
+- Feed the latest annotation into the next coaching turn. Explain the proposed response in plain language and preserve the original note separately.
+- Pain of 4/10 or higher in a workout annotation pauses the active block for review, matching the manual check-in safety boundary.
+- Allow every workout annotation to be deleted. Never present a deleted note as current evidence.
+
 ## Actions and automations
 
 - Follow `rules/harness-policy.json`. Unknown actions stop by default.
@@ -73,5 +81,7 @@ npm run reset
 ```
 
 Run tests and syntax checks after behavior changes. Browser-check the clean first-run path on desktop and mobile for onboarding UI changes.
+
+Localhost is the default. A non-local `HOST` must use a long `STRIDEOS_ACCESS_TOKEN`; never commit or print that key. The browser keeps it in session storage only. See `docs/REMOTE_COMPANION.md` before describing the dashboard as remotely available.
 
 For clean-install support, run `npm run doctor` before guessing about Node, dependencies, `.env`, state permissions, port conflicts, or missing repository artifacts. Never print secret values. `data/sample-profile.json` is synthetic documentation/test input and must not be silently loaded as a real athlete.

@@ -73,6 +73,13 @@ export async function runDoctor({ root = path.resolve(path.dirname(new URL(impor
   }
   else add("port", "info", `Port check skipped; configured port is ${port}.`);
 
+  const host = String(env.HOST || "127.0.0.1").trim();
+  const localHost = ["127.0.0.1", "localhost", "::1"].includes(host);
+  const accessToken = String(env.STRIDEOS_ACCESS_TOKEN || "");
+  if (!localHost && accessToken.length < 16) add("companion-access", "fail", "A non-local HOST requires STRIDEOS_ACCESS_TOKEN with at least 16 characters.");
+  else if (!localHost) add("companion-access", "pass", "Private companion access is enabled for the non-local host; the key value was not printed.");
+  else add("companion-access", "info", "Local-only host selected. Set HOST=0.0.0.0 and a long STRIDEOS_ACCESS_TOKEN only when intentionally hosting the companion.");
+
   const ignoreFile = path.join(normalizedRoot, ".gitignore");
   const ignore = fs.existsSync(ignoreFile) ? fs.readFileSync(ignoreFile, "utf8") : "";
   const requiredIgnores = [".env", "node_modules/", "data/private/", "uploads/", "*.log", "output/"];

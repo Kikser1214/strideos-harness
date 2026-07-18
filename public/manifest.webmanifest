@@ -1,0 +1,12 @@
+{
+  "name": "StrideOS Private Training Companion",
+  "short_name": "StrideOS",
+  "description": "A rule-governed running coach and athlete feedback companion.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f4f6",
+  "theme_color": "#165dff",
+  "icons": [
+    { "src": "/stride-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

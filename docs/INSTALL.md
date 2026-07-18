@@ -96,3 +96,4 @@ This clears the configured local StrideOS state: onboarding, plan lifecycle, dec
 
 Use **Data sources** for a no-watch workflow: manual pain/RPE/energy/sleep check-ins work immediately, and FIT/GPX/TCX/CSV files receive a preview before normalized summaries are saved. Raw activity files and raw meal images are not retained by the included state store.
 
+To open the dashboard from a phone or another computer, do not expose the default local server directly. Follow the [private companion mode](REMOTE_COMPANION.md) contract for access-key protection, HTTPS, a persistent state volume, and the installable PWA.

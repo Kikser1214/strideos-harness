@@ -9,6 +9,12 @@
       "reason": "Reading authorized athlete data is reversible and does not alter the training plan."
     },
     {
+      "id": "record_workout_feedback",
+      "action": "record_workout_feedback",
+      "mode": "autonomous",
+      "reason": "The athlete explicitly submitted a local note. Saving it as evidence does not change the approved plan."
+    },
+    {
       "id": "analyze_food_photo",
       "action": "analyze_food_photo",
       "mode": "autonomous",

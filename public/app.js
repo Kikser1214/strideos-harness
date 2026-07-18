@@ -3,12 +3,26 @@ const state = {
   bootstrap: null, currentDecision: null, imageDataUrl: null, trace: 0, busy: false,
   onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null,
   dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null,
-  planData: null, planWeek: 0, nutrition: null, dashboard: null, automationData: null
+  planData: null, planWeek: 0, nutrition: null, dashboard: null, automationData: null,
+  accessToken: sessionStorage.getItem("strideos-access") || "", latestFeedbackPrompt: "", installPrompt: null
 };
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); window.setTimeout(() => el.classList.remove("show"), 3200); }
-async function request(url, options) { const response = await fetch(url, options); const data = await response.json().catch(() => ({})); if (!response.ok) { const error = new Error(data.error || "The request failed."); error.data = data; error.status = response.status; throw error; } return data; }
+async function request(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (state.accessToken) headers.set("authorization", `Bearer ${state.accessToken}`);
+  const response = await fetch(url, { ...options, headers });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || "The request failed.");
+    error.data = data;
+    error.status = response.status;
+    if (response.status === 401) showAccessDialog(error.message);
+    throw error;
+  }
+  return data;
+}
 function setBusy(busy) { state.busy = busy; $("#coachInput").disabled = busy; $("#sendCoach").disabled = busy; document.querySelectorAll("[data-prompt]").forEach((button) => { button.disabled = busy; }); }
 
 const dashboardStatusLabels = {
@@ -23,6 +37,36 @@ function formatDashboardDate(value) {
   if (!value) return "No session date";
   const date = new Date(`${value}T12:00:00`);
   return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(date) : value;
+}
+
+const feedbackLabels = { keep: "Keep this session", adjust: "Needs adjustment", move: "Move this session", skip: "Cannot do this session" };
+
+function feedbackPrompt(feedback) {
+  const reasons = feedback.reasons?.length ? feedback.reasons.map(humanize).join(", ") : "my note";
+  const pain = feedback.pain === null || feedback.pain === undefined ? "" : `Pain ${feedback.pain}/10.`;
+  return `Review my saved annotation for ${feedback.targetDate}: ${feedbackLabels[feedback.disposition] || humanize(feedback.disposition)} because of ${reasons}. ${feedback.note || "No extra note."} ${pain} I requested: ${humanize(feedback.requestedChange)}. Use the current approved plan and latest evidence, then propose the safest practical revision. Do not change the plan without my separate approval.`.replace(/\s+/g, " ").trim();
+}
+
+function renderWorkoutFeedback(dashboard) {
+  const available = Boolean(dashboard?.today?.date && dashboard.today.sessions?.length);
+  const latest = dashboard?.feedback?.latestForSession || (dashboard?.feedback?.latest?.targetDate === dashboard?.date ? dashboard.feedback.latest : null);
+  $("#workoutFeedback").dataset.disabled = String(!available && !latest);
+  $("#toggleWorkoutFeedback").disabled = !available;
+  $("#workoutFeedbackHint").textContent = dashboard?.feedback?.explanation || "Attach a note to the approved session. Nothing changes automatically.";
+  $("#savedWorkoutFeedback").hidden = !latest;
+  if (latest) {
+    $("#savedFeedbackState").textContent = `${feedbackLabels[latest.disposition] || humanize(latest.disposition)} · ${formatDashboardDate(latest.targetDate)}`;
+    $("#savedFeedbackTitle").textContent = latest.session?.title || "Workout annotation";
+    $("#savedFeedbackNote").textContent = latest.note || `${(latest.reasons || []).map(humanize).join(" · ") || "No extra note"}. Requested: ${humanize(latest.requestedChange)}.`;
+    state.latestFeedbackPrompt = feedbackPrompt(latest);
+    $("#deleteWorkoutFeedback").dataset.feedbackId = latest.id;
+    $("#askCoachFromFeedback").dataset.feedbackId = latest.id;
+  } else {
+    state.latestFeedbackPrompt = "";
+    $("#deleteWorkoutFeedback").dataset.feedbackId = "";
+    $("#askCoachFromFeedback").dataset.feedbackId = "";
+  }
+  if (!available) $("#workoutFeedbackForm").hidden = true;
 }
 
 function renderDashboard(dashboard) {
@@ -83,6 +127,7 @@ function renderDashboard(dashboard) {
     ? `${dashboard.connector.label}. External writes still require the rule gate and athlete approval.`
     : `${dashboard.connector?.label || "No wearable bridge"}. Files and manual check-ins remain available; no external write is implied.`;
   $("#sourceButtonNote").textContent = dashboard.sources?.signals?.length ? `${dashboard.sources.signals.length} visible signal${dashboard.sources.signals.length === 1 ? "" : "s"} / ${humanize(evidenceStatus)}` : "Files + manual check-ins available";
+  renderWorkoutFeedback(dashboard);
 }
 
 async function refreshDashboard() {
@@ -94,6 +139,7 @@ async function refreshDashboard() {
 
 function renderBootstrap(data) {
   state.bootstrap = data;
+  $("#lockCompanion").hidden = !data.companion?.protected;
   $("#modeLabel").textContent = data.mode === "live" ? "GPT-5.6 live reasoning" : "Transparent demo mode";
   $("#modelLabel").textContent = data.model;
   $("#traceMode").textContent = data.mode === "live" ? "● LIVE MODEL" : "● DEMO TRACE";
@@ -143,6 +189,69 @@ async function sendCoachMessage(message) {
 
 $("#coachForm").addEventListener("submit", (event) => { event.preventDefault(); const input = $("#coachInput"); const message = input.value.trim(); if (!message) return; input.value = ""; sendCoachMessage(message); });
 document.addEventListener("click", (event) => { const prompt = event.target.closest("[data-prompt]"); if (prompt) sendCoachMessage(prompt.dataset.prompt); const scroll = event.target.closest("[data-scroll]"); if (scroll) document.getElementById(scroll.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "center" }); });
+
+$("#toggleWorkoutFeedback").addEventListener("click", () => {
+  const form = $("#workoutFeedbackForm");
+  form.hidden = !form.hidden;
+  $("#toggleWorkoutFeedback").textContent = form.hidden ? "Add note" : "Close";
+  if (!form.hidden) form.querySelector("textarea").focus();
+});
+
+$("#workoutFeedbackForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const button = form.querySelector('button[type="submit"]');
+  const payload = {
+    disposition: data.get("disposition"), reasons: data.getAll("reasons"), requestedChange: data.get("requestedChange"),
+    pain: data.get("pain"), note: data.get("note")
+  };
+  button.disabled = true;
+  button.textContent = "Saving note…";
+  try {
+    const result = await request("/api/workout-feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    state.latestFeedbackPrompt = result.coachPrompt;
+    renderDashboard(result.dashboard);
+    form.hidden = true;
+    $("#toggleWorkoutFeedback").textContent = "Add note";
+    form.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = false; });
+    form.querySelector("textarea").value = "";
+    toast(result.feedback.requiresSafetyReview ? "Note saved · pain triggered plan review" : "Workout note saved · plan unchanged");
+  } catch (error) { toast(error.message); }
+  finally { button.disabled = false; button.textContent = "Save as coaching evidence"; }
+});
+
+$("#askCoachFromFeedback").addEventListener("click", async (event) => {
+  const id = event.currentTarget.dataset.feedbackId;
+  if (!id || !state.latestFeedbackPrompt) return toast("Save a workout note first.");
+  const button = event.currentTarget;
+  button.disabled = true;
+  addMessage("user", `<p>${escapeHtml(state.latestFeedbackPrompt)}</p>`);
+  const pending = addMessage("assistant", "<p>Building an exact revision and checking the approval boundary…</p>");
+  try {
+    const result = await request(`/api/workout-feedback/${encodeURIComponent(id)}/proposal`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+    pending.remove();
+    addMessage("assistant", `<small class="message-mode">Rule-bound workout revision</small><p>${escapeHtml(result.decision.proposal)}</p><button class="inline-action" data-scroll="ledger">Review before anything changes →</button>`);
+    renderLedger(result.decision);
+    await refreshPlanData(false);
+    $("#ledger").scrollIntoView({ behavior: "smooth", block: "center" });
+    toast("Revised block proposed · current plan unchanged");
+  } catch (error) {
+    pending.classList.add("error");
+    pending.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
+    toast(error.message);
+  } finally { button.disabled = false; }
+});
+
+$("#deleteWorkoutFeedback").addEventListener("click", async (event) => {
+  const id = event.currentTarget.dataset.feedbackId;
+  if (!id) return;
+  try {
+    const result = await request(`/api/workout-feedback/${encodeURIComponent(id)}`, { method: "DELETE" });
+    renderDashboard(result.dashboard);
+    toast("Workout note deleted");
+  } catch (error) { toast(error.message); }
+});
 
 $("#approveDecision").addEventListener("click", async () => {
   if (!state.currentDecision) return toast("Create a trace before approving an action.");
@@ -936,4 +1045,70 @@ $("#automationDialog").addEventListener("click", async (event) => {
   }
 });
 
-request("/api/bootstrap").then(async (data) => { renderBootstrap(data); await initializeOnboarding(data); }).catch((error) => toast(error.message));
+function showAccessDialog(message = "") {
+  $("#accessError").hidden = !message;
+  $("#accessError").textContent = message;
+  if (!$("#accessDialog").open) $("#accessDialog").showModal();
+  window.setTimeout(() => $("#accessKey").focus(), 0);
+}
+
+async function loadCompanion() {
+  const data = await request("/api/bootstrap");
+  renderBootstrap(data);
+  await initializeOnboarding(data);
+  if ($("#accessDialog").open) $("#accessDialog").close();
+  return data;
+}
+
+async function initializeApp() {
+  try {
+    const access = await request("/api/access");
+    if (access.required && !state.accessToken) return showAccessDialog();
+    await loadCompanion();
+  } catch (error) {
+    if (error.status !== 401) toast(error.message);
+  }
+}
+
+$("#accessDialog").addEventListener("cancel", (event) => event.preventDefault());
+$("#accessForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  state.accessToken = $("#accessKey").value.trim();
+  button.disabled = true;
+  button.textContent = "Checking key…";
+  $("#accessError").hidden = true;
+  try {
+    await loadCompanion();
+    sessionStorage.setItem("strideos-access", state.accessToken);
+    $("#accessKey").value = "";
+  } catch (error) {
+    sessionStorage.removeItem("strideos-access");
+    state.accessToken = "";
+    showAccessDialog(error.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Open my companion";
+  }
+});
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  state.installPrompt = event;
+  $("#installCompanion").hidden = false;
+});
+$("#installCompanion").addEventListener("click", async () => {
+  if (!state.installPrompt) return;
+  await state.installPrompt.prompt();
+  state.installPrompt = null;
+  $("#installCompanion").hidden = true;
+});
+$("#lockCompanion").addEventListener("click", () => {
+  sessionStorage.removeItem("strideos-access");
+  state.accessToken = "";
+  window.location.reload();
+});
+window.addEventListener("appinstalled", () => { $("#installCompanion").hidden = true; toast("StrideOS companion installed"); });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+
+initializeApp();

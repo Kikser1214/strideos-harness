@@ -37,6 +37,10 @@ After onboarding, **Training plan** opens a deterministic four-week proposal bui
 
 The **athlete dashboard** then projects only server-authoritative state: today's approved session or an honest empty/upcoming state, current-week running and strength load, recovery feedback, observed activity, goal window, optional fuel mode, and source freshness. Pending plans never masquerade as active workouts, and observed files never silently become claimed plan completion. No synthetic readiness score is substituted for a real athlete.
 
+The **Coach's margin** makes the dashboard two-way. Attach keep, adjust, move, or cannot-do feedback directly to the exact approved session, add the practical reason and optional pain score, then ask the coach for a revision. StrideOS creates an exact revised block—shorter, easier, moved, swapped, or cancelled—and puts it in the decision ledger. The current block remains active until that revision is separately approved. Pain at 4/10 or higher pauses normal progression for review.
+
+For a phone-accessible personal instance, the same interface is an installable PWA with optional server-side access-key protection. Localhost stays the default; private companion mode requires an intentional non-local host, HTTPS, a durable state volume, and a long secret. See [Open StrideOS anywhere](docs/REMOTE_COMPANION.md).
+
 The **Automations** screen prepares optional morning, pre-workout, post-workout, and weekly workflows for ChatGPT/Codex Scheduled. Each shows an editable local schedule and RRULE, an exact durable prompt, a manual read-only test, and its permission boundary. StrideOS never schedules merely because onboarding selected a workflow and never claims an external task is installed. After a successful test, copy the prompt into Scheduled or use the included `codex://automations` link.
 
 **Fuel companion** follows the nutrition mode chosen in onboarding: off, loose, guided, detailed, or number-free. It combines a food-first framework, training-day cues, declared allergy and medical-diet boundaries, and a supplement inventory without automatically prescribing a product. Meal or fridge photos remain estimates; number-free policy can remove all calorie and macro ranges before storage, and the athlete can correct, confirm, decline, or delete every local record.
@@ -99,6 +103,7 @@ docs/ATHLETE_ANALYSIS.md  Deterministic analysis rules and model boundary
 docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and approval lifecycle
 docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
 docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
+docs/REMOTE_COMPANION.md Private PWA hosting, access-key, HTTPS, and persistence contract
 docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
 docs/INSTALL.md        Clean-clone Windows, macOS, Linux, doctor, environment, and state guide
 docs/RELEASE_CHECKLIST.md  Automated gate and manual release rehearsal
@@ -112,6 +117,7 @@ src/athlete-analysis.mjs  Stage, goal, load, recovery, confidence, and permissio
 src/training-plan.mjs  Deterministic four-week running and strength proposals
 src/nutrition.mjs     Nutrition modes, protected contexts, fuel cues, and meal-display policy
 src/dashboard.mjs     Deterministic personal dashboard projection
+src/feedback.mjs      Workout annotation validation and approvable plan revisions
 src/automations.mjs   Scheduled-brief proposals and deterministic manual previews
 src/automation-cli.mjs  Read-only command used by local scheduled prompts
 src/doctor.mjs        Read-only clean-install and privacy setup diagnostics

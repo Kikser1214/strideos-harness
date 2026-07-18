@@ -36,6 +36,14 @@ No wearable is required. Manual check-ins and normalized activity files are vali
 
 The same screen links to the full plan, data-source setup, optional fuel companion, and decision ledger. Plan activation, food logging, and device writes still pass through their server-stored decisions. Refreshing the dashboard after a confirmation reflects the authoritative result rather than optimistic client state.
 
+The **Coach's margin** attaches a short athlete note to the exact approved session shown on the today card. Keep, adjust, move, and cannot-do states can include practical reasons, a requested direction, an optional pain score, and free text. The note becomes fresh evidence immediately because its Save action is explicit, but it never edits the plan. **Ask coach to revise** starts a new coaching turn with the note, session snapshot, and approval boundary included.
+
+Pain at 4/10 or higher pauses the active block for review. Other annotations leave the approved block intact until a separate plan proposal is explicitly approved.
+
+## Private web companion
+
+The same responsive interface is installable as a PWA. Localhost remains the default. A deployer may expose it through a persistent Node host by setting `HOST=0.0.0.0`, a durable `STRIDEOS_STATE_FILE`, and a long `STRIDEOS_ACCESS_TOKEN`. All non-health APIs then require the access key, which the browser retains only for that tab session. See `REMOTE_COMPANION.md` for the threat boundary and deployment contract.
+
 ## Failure and empty behavior
 
 The HTML begins in a truthful loading state. If onboarding is incomplete, it shows setup guidance and no personal numbers. Network/API failures preserve the last confirmed dashboard and surface a visible toast; they do not replace it with demo athlete data. Connector labels distinguish simulation, configured adapter, and connected account state.

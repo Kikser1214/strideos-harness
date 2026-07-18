@@ -61,6 +61,20 @@ test("manual recovery and source freshness are visible", () => {
   assert.equal(dashboard.sources.signals[0].label, "Manual check-in");
 });
 
+test("an athlete annotation is visible as fresh evidence without changing the plan", () => {
+  const { analysis, plan, onboarding, nutrition } = fixture();
+  const note = {
+    id: "feedback_1", capturedAt: "2026-07-22T05:30:00.000Z", targetDate: "2026-07-22", planId: plan.id,
+    disposition: "adjust", reasons: ["schedule"], requestedChange: "shorter", pain: 1, note: "Only 25 minutes today.",
+    session: { title: "Technique-first full body", items: [] }
+  };
+  const dashboard = buildDashboard({ onboarding, analysis, activePlan: plan, plans: [plan], nutrition, workoutFeedback: [note], now });
+  assert.equal(dashboard.plan.status, "active");
+  assert.equal(dashboard.feedback.latestForSession.id, "feedback_1");
+  assert.equal(dashboard.sources.signals[0].label, "Workout annotation");
+  assert.match(dashboard.feedback.explanation, /has not changed/i);
+});
+
 test("pending and review-required plans are never shown as active workouts", () => {
   const { analysis, plan, onboarding, nutrition } = fixture();
   const pending = { ...plan, status: "awaiting_approval" };

@@ -29,6 +29,8 @@ From there, StrideOS creates a deterministic four-week running and strength prop
 
 The dashboard projects that server-authoritative state into one screen: today's approved session or an honest recovery/upcoming/empty state, current-week running and strength load, fresh subjective feedback, observed activities, goal window, fuel mode, source labels, and the approval ledger. Pending plans never masquerade as workouts, observed files are not silently counted as completed sessions, and missing wearable data never becomes a synthetic personal readiness score.
 
+Its Coach's margin closes the daily loop. An athlete can annotate the exact workout from any phone or computer, say that it is too hard, too long, badly timed, or simply not a fit, and request a shorter, easier, moved, swapped, or cancelled session. StrideOS creates an exact revised block in the approval ledger while leaving the current plan untouched. The dashboard is installable as a PWA, and optional private companion hosting protects athlete APIs with a server-side access key.
+
 StrideOS also turns authorized training signals, pain and RPE feedback, and meal images into a single evidence-backed next move. GPT-5.6 handles multimodal understanding and reasoning. A deterministic policy outside the model then classifies the intended action as autonomous, approval-required, or stopped. The decision ledger shows the entire path: evidence → reason → rule gate → action.
 
 Its optional fuel companion respects off, loose, guided, detailed, and number-free modes. It combines ordinary food and training-day cues with allergy, medical-diet, budget, kitchen, hydration, and supplement context. A photo never proves ingredients or allergen safety. The harness can remove all calorie and macro ranges before storage, and every estimate must be corrected or confirmed before it becomes a local log.
@@ -61,6 +63,8 @@ The hard part was not generating another training answer. It was defining the bo
 - An athlete-controlled nutrition companion with number-free and protected contexts, food-first session cues, and no automatic supplement prescription.
 - A server-authoritative meal lifecycle: uncertain photo estimate, optional correction, explicit confirm or decline, local persistence without the raw image, and deletion.
 - A deterministic athlete dashboard that separates approved plans, observed activity, subjective recovery, source freshness, and confirmed meal records without inventing completion or readiness.
+- A two-way workout annotation loop that turns athlete feedback into an exact revised-plan proposal while preserving the current block until separate approval.
+- An installable private web companion mode with API access-key protection, localhost-by-default binding, durable-state guidance, and a container recipe.
 - Four preview-first scheduled-workflow proposals with editable RRULEs, exact prompts, manual tests, safety overrides, and no unattended external writes.
 - Transparent confidence and evidence-gap labels for stage, goal window, load, weekly room, and recovery; model enrichment cannot rewrite safety or permissions.
 - Multimodal meal analysis that exposes uncertainty, with an honest non-AI sample fallback.
@@ -71,7 +75,7 @@ The hard part was not generating another training answer. It was defining the bo
 - A deterministic zero-setup judge mode.
 - MIT-licensed StrideOS source with synthetic data and a documented third-party Garmin SDK license.
 - One-command clean-clone setup, a secret-safe doctor, and documented Windows/macOS/Linux paths.
-- A hardened release gate with 89 passing tests, zero production dependency vulnerabilities, corrupt-state recovery, HTTP input limits, static accessibility checks, and desktop/mobile rehearsal.
+- A hardened release gate with 100 passing tests, zero production dependency vulnerabilities, corrupt-state recovery, HTTP input limits, static accessibility checks, and desktop/mobile rehearsal.
 - Exact Garmin workout binding: approval revalidates the persisted plan/session against current pain, recovery, and profile evidence, while synthetic judge workouts can never reach a configured bridge.
 
 ## What we learned
