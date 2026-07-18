@@ -71,6 +71,8 @@ Done when the same profile always produces the same non-model baseline analysis 
 
 ## Task 6 — Training-plan engine
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - couch-to-active, general cardio, return-to-running, and race-distance paths;

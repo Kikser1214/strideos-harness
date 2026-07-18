@@ -33,7 +33,7 @@ export function gateAction(action, context = {}) {
   };
 }
 
-export function buildDecision({ evidence, action, context, proposal }) {
+export function buildDecision({ evidence, action, context, proposal, resource = null }) {
   const gate = gateAction(action, context);
   return {
     id: `decision_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -41,6 +41,7 @@ export function buildDecision({ evidence, action, context, proposal }) {
     evidence,
     gate,
     proposal,
+    resource,
     status: gate.mode === "autonomous" ? "completed" : gate.mode === "confirm" ? "awaiting_approval" : "stopped"
   };
 }

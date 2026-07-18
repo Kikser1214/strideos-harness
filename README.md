@@ -30,6 +30,8 @@ Open <http://localhost:4173>. With no environment variables, the full interface 
 
 On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Draft answers save locally, and the final review shows starting stage, deadline pressure, declared-versus-observed load, available time, recovery context, missing evidence, confidence, strength guidance, connector truth, and any safety gate before a plan is created.
 
+After onboarding, **Training plan** opens a deterministic four-week proposal built around the athlete's stage, goal, availability, recovery context, and strength experience. Every session explains its duration and intensity, week four reduces load, missed sessions never create catch-up stacking, and named advanced methods remain behind a suitability-research gate. Previewing changes nothing; the exact plan becomes active only after the athlete approves its server-recorded decision.
+
 Reset the local profile before recording or rehearsing a true first run:
 
 ```bash
@@ -79,10 +81,12 @@ rules/onboarding-schema.json  Versioned first-run question inventory
 docs/BUILD_PLAN.md     Delivery tasks and acceptance criteria
 docs/ONBOARDING_RESEARCH.md  Safety, strength, and connector sources
 docs/ATHLETE_ANALYSIS.md  Deterministic analysis rules and model boundary
+docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and approval lifecycle
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
 src/athlete-analysis.mjs  Stage, goal, load, recovery, confidence, and permission analysis
+src/training-plan.mjs  Deterministic four-week running and strength proposals
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
 src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
@@ -138,7 +142,7 @@ npm test
 npm run check
 ```
 
-The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method suitability, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
+The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, duplicate proposals, active-plan invalidation, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
 
 ## Build Week plan
 

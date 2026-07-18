@@ -11,17 +11,19 @@ function stateFile() {
 }
 
 function emptyState() {
-  return { version: 3, decisions: [], onboarding: null, imports: [], checkins: [] };
+  return { version: 4, decisions: [], onboarding: null, imports: [], checkins: [], plans: [], activePlanId: null };
 }
 
 function migrateState(value) {
   const state = value && typeof value === "object" && !Array.isArray(value) ? value : emptyState();
   return {
-    version: 3,
+    version: 4,
     decisions: Array.isArray(state.decisions) ? state.decisions : [],
     onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null,
     imports: Array.isArray(state.imports) ? state.imports : [],
-    checkins: Array.isArray(state.checkins) ? state.checkins : []
+    checkins: Array.isArray(state.checkins) ? state.checkins : [],
+    plans: Array.isArray(state.plans) ? state.plans : [],
+    activePlanId: typeof state.activePlanId === "string" ? state.activePlanId : null
   };
 }
 
@@ -75,6 +77,15 @@ export function getOnboarding() {
 export function saveOnboarding({ profile, analysis, complete = false }) {
   const state = readState();
   const now = new Date().toISOString();
+  const profileChanged = state.onboarding?.profile && JSON.stringify(state.onboarding.profile) !== JSON.stringify(profile);
+  if (profileChanged) {
+    state.plans = state.plans.map((plan) => {
+      if (plan.status === "active") return { ...plan, status: "review_required", reviewReason: "Athlete profile changed after activation.", reviewRequiredAt: now };
+      if (plan.status === "awaiting_approval") return { ...plan, status: "stale", reviewReason: "Athlete profile changed before approval.", reviewRequiredAt: now };
+      return plan;
+    });
+    state.activePlanId = null;
+  }
   state.onboarding = {
     profile,
     analysis,
@@ -89,7 +100,54 @@ export function saveOnboarding({ profile, analysis, complete = false }) {
 export function resetOnboarding() {
   const state = readState();
   state.onboarding = null;
+  state.plans = [];
+  state.activePlanId = null;
   writeState(state);
+}
+
+export function listPlans(limit = 12) {
+  return readState().plans.slice(0, limit);
+}
+
+export function findPlan(id) {
+  return readState().plans.find((plan) => plan.id === id) || null;
+}
+
+export function getActivePlan() {
+  const state = readState();
+  return state.plans.find((plan) => plan.id === state.activePlanId && plan.status === "active") || null;
+}
+
+export function savePlanProposal(plan, decisionId) {
+  const state = readState();
+  const saved = { ...plan, status: "awaiting_approval", decisionId, proposedAt: new Date().toISOString() };
+  state.plans = [saved, ...state.plans.filter((item) => item.id !== plan.id)].slice(0, 12);
+  writeState(state);
+  return saved;
+}
+
+export function activatePlan(id) {
+  const state = readState();
+  const target = state.plans.find((plan) => plan.id === id);
+  if (!target || target.status !== "awaiting_approval") return null;
+  const activatedAt = new Date().toISOString();
+  state.plans = state.plans.map((plan) => {
+    if (plan.id === id) return { ...plan, status: "active", activatedAt };
+    if (plan.status === "active") return { ...plan, status: "superseded", supersededAt: activatedAt };
+    return plan;
+  });
+  state.activePlanId = id;
+  writeState(state);
+  return state.plans.find((plan) => plan.id === id);
+}
+
+export function declinePlan(id) {
+  const state = readState();
+  const target = state.plans.find((plan) => plan.id === id);
+  if (!target || target.status !== "awaiting_approval") return null;
+  state.plans = state.plans.map((plan) => plan.id === id ? { ...plan, status: "declined", declinedAt: new Date().toISOString() } : plan);
+  writeState(state);
+  return state.plans.find((plan) => plan.id === id);
 }
 
 export function listImports(limit = 100) {
@@ -122,6 +180,12 @@ export function saveCheckin(checkin) {
   const state = readState();
   const saved = { ...checkin, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
   state.checkins = [saved, ...state.checkins].slice(0, 200);
+  if (saved.pain >= 4 && state.activePlanId) {
+    state.plans = state.plans.map((plan) => plan.id === state.activePlanId
+      ? { ...plan, status: "review_required", reviewReason: `Pain check-in ${saved.pain}/10 holds progression.`, reviewRequiredAt: saved.createdAt }
+      : plan);
+    state.activePlanId = null;
+  }
   writeState(state);
   return saved;
 }

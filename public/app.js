@@ -2,7 +2,8 @@ const $ = (selector) => document.querySelector(selector);
 const state = {
   bootstrap: null, currentDecision: null, imageDataUrl: null, trace: 0, busy: false,
   onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null,
-  dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null
+  dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null,
+  planData: null, planWeek: 0
 };
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -22,6 +23,7 @@ function renderBootstrap(data) {
   $("#connectorNote").textContent = data.connectors.garmin.configured ? "External writes go through your configured bridge after approval." : "No Garmin account is connected. Approved workout writes are safely simulated.";
   $("#sourceButtonNote").textContent = data.connectors.garmin.configured ? "Garmin adapter + local fallback" : "Files + manual check-ins available";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
+  updatePlanEntry(data.training);
   if (data.decisions.length) { state.trace = data.decisions.length; renderLedger(data.decisions[0], { restored: true }); } else renderEmptyLedger();
 }
 
@@ -49,8 +51,26 @@ async function sendCoachMessage(message) {
 $("#coachForm").addEventListener("submit", (event) => { event.preventDefault(); const input = $("#coachInput"); const message = input.value.trim(); if (!message) return; input.value = ""; sendCoachMessage(message); });
 document.addEventListener("click", (event) => { const prompt = event.target.closest("[data-prompt]"); if (prompt) sendCoachMessage(prompt.dataset.prompt); const scroll = event.target.closest("[data-scroll]"); if (scroll) document.getElementById(scroll.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "center" }); });
 
-$("#approveDecision").addEventListener("click", async () => { if (!state.currentDecision) return toast("Create a trace before approving an action."); try { const result = await request("/api/decisions/approve", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: state.currentDecision.id }) }); renderLedger(result.decision, { restored: true }); toast(result.result); } catch (error) { toast(error.message); } });
-$("#declineDecision").addEventListener("click", async () => { if (!state.currentDecision) return; try { const result = await request("/api/decisions/decline", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: state.currentDecision.id }) }); renderLedger(result.decision, { restored: true }); toast(result.result); } catch (error) { toast(error.message); } });
+$("#approveDecision").addEventListener("click", async () => {
+  if (!state.currentDecision) return toast("Create a trace before approving an action.");
+  try {
+    const action = state.currentDecision.gate.action;
+    const result = await request("/api/decisions/approve", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: state.currentDecision.id }) });
+    renderLedger(result.decision, { restored: true });
+    if (action === "change_training_plan") await refreshPlanData(false);
+    toast(result.result);
+  } catch (error) { toast(error.message); }
+});
+$("#declineDecision").addEventListener("click", async () => {
+  if (!state.currentDecision) return;
+  try {
+    const action = state.currentDecision.gate.action;
+    const result = await request("/api/decisions/decline", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: state.currentDecision.id }) });
+    renderLedger(result.decision, { restored: true });
+    if (action === "change_training_plan") await refreshPlanData(false);
+    toast(result.result);
+  } catch (error) { toast(error.message); }
+});
 
 function openFoodDialog() { $("#foodDialog").showModal(); } $("#openFood").addEventListener("click", openFoodDialog); $("#quickFood").addEventListener("click", openFoodDialog);
 $("#foodImage").addEventListener("change", (event) => { const file = event.target.files?.[0]; if (!file) return; if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast("Choose a PNG, JPG, or WEBP image."); if (file.size > 8_000_000) return toast("Choose an image smaller than 8 MB."); const reader = new FileReader(); reader.addEventListener("load", () => { state.imageDataUrl = reader.result; $("#foodPreview").src = reader.result; $("#dropZone").classList.add("has-image"); $("#mealResult").hidden = true; }); reader.readAsDataURL(file); });
@@ -90,6 +110,115 @@ function humanize(value) {
   if (optionLabels[value]) return optionLabels[value];
   return String(value).replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
+
+function updatePlanEntry(training = state.planData) {
+  const active = training?.activePlan;
+  const pending = training?.proposals?.find((plan) => plan.status === "awaiting_approval");
+  $("#planButtonTitle").textContent = active ? "Active training block" : pending ? "Plan awaiting approval" : "Training plan";
+  $("#planButtonNote").textContent = active
+    ? `${active.startDate} → ${active.endDate} · ${humanize(active.path)}`
+    : pending
+      ? `${pending.startDate} · decision ledger ready`
+      : state.bootstrap?.needsOnboarding ? "Complete setup to build a proposal" : "Four-week running + strength proposal";
+  $("#openPlan").textContent = active ? "Plan active ✓" : pending ? "Plan pending" : "Training plan";
+}
+
+function shortPlanDate(value) {
+  const [year, month, day] = String(value).split("-");
+  return year && month && day ? `${day}.${month}` : value;
+}
+
+function sessionSummary(session) {
+  const effort = session.intensity?.rpe ? ` · RPE ${session.intensity.rpe}` : "";
+  return `${session.durationMinutes ? `${session.durationMinutes} min` : "No session"}${effort}`;
+}
+
+function renderPlanWeek(index) {
+  const plan = state.planData?.preview;
+  const week = plan?.weeks?.[index];
+  if (!week) return;
+  state.planWeek = index;
+  document.querySelectorAll("[data-plan-week]").forEach((button) => button.classList.toggle("active", Number(button.dataset.planWeek) === index));
+  const days = week.days.map((day) => `<article class="plan-day">
+    <b>${escapeHtml(day.day.slice(0, 3))}</b>
+    <div><small>${escapeHtml(day.day)}</small><strong>${escapeHtml(shortPlanDate(day.date))}</strong></div>
+    <div class="day-sessions">${day.sessions.map((session) => `<div class="plan-session" data-type="${escapeHtml(session.type)}"><small>${escapeHtml(humanize(session.type))}</small><strong>${escapeHtml(session.title)}</strong><p>${escapeHtml(sessionSummary(session))}. ${escapeHtml(session.explanation)}</p></div>`).join("")}</div>
+  </article>`).join("");
+  $("#planWeek").innerHTML = `<header class="plan-week-head"><strong>Week ${week.week}${week.recoveryWeek ? " · recovery" : ""}</strong><p>${escapeHtml(week.explanation)}</p></header><div class="plan-days">${days}</div>`;
+}
+
+function renderTrainingPlan(data) {
+  state.planData = data;
+  updatePlanEntry(data);
+  const plan = data.preview;
+  if (plan.status === "blocked") {
+    $("#planState").hidden = false;
+    $("#planState").className = "plan-state error";
+    $("#planState").innerHTML = `<span>Plan held by the rules</span><strong>${escapeHtml(plan.explanation)}</strong>`;
+    $("#planOverview").hidden = true;
+    return;
+  }
+  $("#planState").hidden = true;
+  $("#planOverview").hidden = false;
+  const active = data.activePlan?.id === plan.id;
+  const pending = data.proposals?.find((item) => item.id === plan.id && item.status === "awaiting_approval");
+  $("#planSummary").innerHTML = `
+    <div><small>${active ? "Active block" : pending ? "Awaiting approval" : "Draft proposal"}</small><strong>${escapeHtml(humanize(plan.path))}</strong><p>${escapeHtml(plan.explanation)}</p></div>
+    <div><small>Window</small><strong>${escapeHtml(shortPlanDate(plan.startDate))} → ${escapeHtml(shortPlanDate(plan.endDate))}</strong><p>Four weeks</p></div>
+    <div><small>Starting stage</small><strong>${escapeHtml(humanize(plan.stage))}</strong><p>${escapeHtml(plan.confidence.label)} confidence</p></div>
+    <div><small>Weekly frame</small><strong>${plan.frequency.runs} run · ${plan.frequency.strength} strength</strong><p>${plan.frequency.availableDays} realistic days</p></div>
+    <div><small>Method baseline</small><strong>${escapeHtml(humanize(plan.method.selectedBaseline))}</strong><p>${plan.method.researchRequired ? "Research gate active" : "Deterministic baseline"}</p></div>`;
+  $("#planWeekTabs").innerHTML = plan.weeks.map((week, index) => `<button type="button" data-plan-week="${index}"><small>${week.recoveryWeek ? "Reduced load" : `${week.activeMinutes} active min`}</small><strong>Week ${week.week} · ${escapeHtml(shortPlanDate(week.startDate))}</strong></button>`).join("");
+  $("#progressionRules").innerHTML = plan.progressionRules.map((item) => `<li><strong>${escapeHtml(item.rule)}</strong><br />${escapeHtml(item.explanation)}</li>`).join("");
+  $("#adaptationRules").innerHTML = plan.adaptationRules.map((item) => `<li><strong>${escapeHtml(humanize(item.trigger))}:</strong> ${escapeHtml(item.action)}</li>`).join("");
+  $("#methodResearch").innerHTML = `<strong>${plan.method.researchRequired ? "Research gate active" : "Method baseline selected"}</strong><p>${escapeHtml(plan.method.explanation)}</p>`;
+  $("#planApprovalNote").textContent = active ? "This exact block is active." : pending ? "This exact block is waiting in the decision ledger." : plan.approval.explanation;
+  $("#proposePlan").disabled = active || Boolean(pending) || plan.approval.status !== "required";
+  $("#proposePlan").textContent = active ? "Plan is active" : pending ? "Awaiting approval" : plan.approval.status === "disabled" ? "Read-only mode" : "Send plan to approval";
+  renderPlanWeek(Math.min(state.planWeek, plan.weeks.length - 1));
+}
+
+async function refreshPlanData(render = true) {
+  const data = await request("/api/training-plan");
+  state.planData = data;
+  updatePlanEntry(data);
+  if (render) renderTrainingPlan(data);
+  return data;
+}
+
+async function openTrainingPlan() {
+  $("#planDialog").showModal();
+  $("#planState").hidden = false;
+  $("#planState").className = "plan-state";
+  $("#planState").innerHTML = "<span>Loading</span><strong>Building the conservative baseline…</strong>";
+  $("#planOverview").hidden = true;
+  try { await refreshPlanData(true); }
+  catch (error) {
+    $("#planDialog").close();
+    if (error.status === 409) { toast(error.message); openAthleteSetup({ firstRun: false }); }
+    else toast(error.message);
+  }
+}
+
+$("#openPlan").addEventListener("click", openTrainingPlan);
+$("#openPlanPanel").addEventListener("click", openTrainingPlan);
+$("#closePlanDialog").addEventListener("click", () => $("#planDialog").close());
+$("#planDialog").addEventListener("click", (event) => { if (event.target === $("#planDialog")) $("#planDialog").close(); });
+$("#planWeekTabs").addEventListener("click", (event) => { const button = event.target.closest("[data-plan-week]"); if (button) renderPlanWeek(Number(button.dataset.planWeek)); });
+$("#proposePlan").addEventListener("click", async () => {
+  const button = $("#proposePlan");
+  button.disabled = true;
+  button.textContent = "Creating approval trace…";
+  try {
+    const result = await request("/api/training-plan/proposals", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ startDate: state.planData.preview.startDate }) });
+    state.planData.proposals = [result.plan, ...(state.planData.proposals || []).filter((plan) => plan.id !== result.plan.id)];
+    renderLedger(result.decision);
+    updatePlanEntry(state.planData);
+    $("#planDialog").close();
+    $("#ledger").scrollIntoView({ behavior: "smooth", block: "center" });
+    toast("Plan proposal added to the approval ledger");
+  } catch (error) { toast(error.message); button.disabled = false; button.textContent = "Send plan to approval"; }
+});
 
 function onboardingSteps() {
   if (!state.onboardingSchema) return [];
@@ -268,6 +397,8 @@ async function finishOnboarding() {
     state.onboardingAnalysis = result.analysis;
     state.bootstrap.onboarding = result.onboarding;
     state.bootstrap.needsOnboarding = false;
+    state.bootstrap.training = { activePlan: null, proposals: [] };
+    updatePlanEntry(state.bootstrap.training);
     $("#openOnboarding").textContent = "Athlete setup ✓";
     $("#onboardingDialog").close();
     addMessage("assistant", `<small class="message-mode">Athlete map ready</small><p>${escapeHtml(result.analysis.summary)}</p>`);

@@ -46,6 +46,11 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Manual pain, RPE, energy, sleep-feel, and context check-ins work without a wearable and can be deleted.
 - [x] Deterministic athlete analysis covers stage, goal pressure, load evidence, weekly room, recovery, missing data, confidence, and permission boundaries.
 - [x] Model enrichment is restricted to explanatory text and cannot override safety, stage, or permissions.
+- [x] Deterministic four-week plans cover beginner run/walk, running, strength, mobility, rest, optional cross-training, and a reduced-load fourth week.
+- [x] Plan frequency and intensity are bounded by stage, availability, recovery, pain, and athlete-selected intensity tolerance.
+- [x] Named advanced or regional training methods trigger a suitability-research gate instead of becoming a universal template.
+- [x] Training-plan preview, proposal, decline, and activation use the persisted decision ledger; only explicit server-authorized approval activates a block.
+- [x] Missed sessions never create catch-up stacking, and new pain/profile evidence marks an active block for review.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 

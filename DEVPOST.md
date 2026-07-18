@@ -16,7 +16,9 @@ Training data is fragmented across a watch, a plan, meal photos, and the athlete
 
 StrideOS starts by building an athlete map for someone who may not know how to train. It asks about current movement, running history, safety, goals, real-life schedule, strength experience and equipment, data sources, coaching preferences, and optional nutrition. A deterministic analysis returns starting stage, deadline pressure, declared-versus-observed load, available time, recovery constraints, missing evidence, confidence, an explicit strength recommendation, connector truth, and any safety gate before a plan exists.
 
-From there, StrideOS turns authorized training signals, pain and RPE feedback, and meal images into a single evidence-backed next move. GPT-5.6 handles multimodal understanding and reasoning. A deterministic policy outside the model then classifies the intended action as autonomous, approval-required, or stopped. The decision ledger shows the entire path: evidence → reason → rule gate → action.
+From there, StrideOS creates a deterministic four-week running and strength proposal. It supports couch-to-active, general cardio, return-to-running, and race-distance paths; places sessions inside real availability; reduces load in week four; and explains how pain, poor recovery, or missed sessions change the block. Named methods trigger a suitability-research gate instead of being copied blindly. Previewing changes nothing: activation requires an explicit server-recorded approval.
+
+StrideOS also turns authorized training signals, pain and RPE feedback, and meal images into a single evidence-backed next move. GPT-5.6 handles multimodal understanding and reasoning. A deterministic policy outside the model then classifies the intended action as autonomous, approval-required, or stopped. The decision ledger shows the entire path: evidence → reason → rule gate → action.
 
 The included judge mode needs no account, wearable, private data, or API key. Judges can inspect the data-source truth matrix, import a FIT, GPX, TCX, or CSV activity through preview and explicit consent, or add a manual pain/RPE/energy/sleep check-in. They can then ask for today's workout, inspect why a Garmin write stops for approval, accept or decline a clearly labeled simulation, and test the meal approval flow with a disclosed fixed sample estimate. With an OpenAI key, the same meal flow analyzes the uploaded image with GPT-5.6.
 
@@ -37,6 +39,8 @@ The hard part was not generating another training answer. It was defining the bo
 - A complete, coherent experience rather than a chat proof of concept.
 - Beginner-first onboarding that includes strength, real-life constraints, manual data, and honest native/partner connector routes.
 - A deterministic starter analysis that refuses to assign an advanced named method blindly and pauses both running and strength prescription when a safety review is needed.
+- A deterministic four-week running and strength engine with beginner run/walk, stage-appropriate intensity, a recovery week, missed-session rules, and pain-aware invalidation.
+- A complete plan approval lifecycle: preview, persisted proposal, decision ledger, explicit activation or decline, and duplicate-action protection.
 - Transparent confidence and evidence-gap labels for stage, goal window, load, weekly room, and recovery; model enrichment cannot rewrite safety or permissions.
 - Multimodal meal analysis that exposes uncertainty, with an honest non-AI sample fallback.
 - Server-authoritative, persisted approvals and an optional Garmin bridge adapter.
@@ -63,8 +67,8 @@ Trust improves when the system shows both what it knows and what it is not autho
 - 0:00–0:15 — Problem and thesis: most beginners do not know what a training plan needs to know.
 - 0:15–0:55 — Clean first run: current activity, goal, strength experience, and data-source truth.
 - 0:55–1:15 — Athlete-map review: running frame, two strength sessions, manual fallback, and automation proposals.
-- 1:15–1:32 — Open Data sources; show truthful connector labels and a GPX preview/consent import or manual check-in.
-- 1:32–1:55 — Ask about today's run; inspect the decision ledger and approve the clearly simulated Garmin action.
-- 1:55–2:22 — Upload a meal photo; show estimates and confirmation before logging.
+- 1:15–1:38 — Open the four-week plan; show run/walk, strength, recovery week, and the named-method research brake. Send it to approval and activate it in the ledger.
+- 1:38–1:53 — Open Data sources; show truthful connector labels and a GPX preview/consent import or manual check-in.
+- 1:53–2:16 — Upload a meal photo; show estimates and confirmation before logging.
 - 2:22–2:42 — Trigger a safety stop and show that prescription pauses.
 - 2:42–2:58 — Show the open schema/policy, tests, MIT license, and how Codex and GPT-5.6 were used.

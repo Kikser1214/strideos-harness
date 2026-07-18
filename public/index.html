@@ -22,6 +22,7 @@
         <span id="modelLabel">GPT-5.6</span>
       </div>
       <div class="topbar-actions">
+        <button class="plan-link" id="openPlan">Training plan</button>
         <button class="data-link" id="openDataSources">Data sources</button>
         <button class="setup-link" id="openOnboarding">Athlete setup</button>
         <a class="github-link" href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">Open source ↗</a>
@@ -129,6 +130,10 @@
               <div><dt>Calendar</dt><dd id="calendarStatus">Checking connector</dd></div>
             </dl>
             <p class="connector-note" id="connectorNote">Checking whether an external calendar is connected.</p>
+            <button class="plan-button" id="openPlanPanel">
+              <span><strong id="planButtonTitle">Training plan</strong><small id="planButtonNote">Complete setup to build a proposal</small></span>
+              <b>VIEW →</b>
+            </button>
             <button class="source-button" id="openDataSourcesPanel">
               <span><strong>Data sources</strong><small id="sourceButtonNote">Files + manual check-ins available</small></span>
               <b>MANAGE →</b>
@@ -223,6 +228,34 @@
         <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with the harness</button>
         <div class="meal-result" id="mealResult" hidden></div>
       </form>
+    </dialog>
+
+    <dialog class="plan-dialog" id="planDialog" aria-labelledby="planTitle">
+      <section class="plan-shell">
+        <header class="plan-heading">
+          <div>
+            <p class="eyebrow">Four-week block / proposal first</p>
+            <h2 id="planTitle">Your plan has reasons.<br /><em>And a brake.</em></h2>
+            <p id="planIntro">Built from the athlete map, current evidence, recovery context, and real weekly availability.</p>
+          </div>
+          <button class="dialog-close plan-close" id="closePlanDialog" aria-label="Close training plan">×</button>
+        </header>
+        <div class="plan-state" id="planState"><span>Loading</span><strong>Building the conservative baseline…</strong></div>
+        <section class="plan-overview" id="planOverview" hidden>
+          <div class="plan-summary" id="planSummary"></div>
+          <nav class="week-tabs" id="planWeekTabs" aria-label="Training-plan weeks"></nav>
+          <div class="plan-week" id="planWeek"></div>
+          <div class="plan-rules-grid">
+            <article><p class="panel-kicker">Progression contract</p><ul id="progressionRules"></ul></article>
+            <article><p class="panel-kicker">When life changes</p><ul id="adaptationRules"></ul></article>
+          </div>
+          <div class="method-research" id="methodResearch"></div>
+          <footer class="plan-actions">
+            <p id="planApprovalNote">Previewing changes nothing.</p>
+            <button type="button" class="primary" id="proposePlan">Send plan to approval</button>
+          </footer>
+        </section>
+      </section>
     </dialog>
 
     <dialog class="data-dialog" id="dataDialog" aria-labelledby="dataTitle">

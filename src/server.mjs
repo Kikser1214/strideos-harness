@@ -9,8 +9,9 @@ import { buildDecision, demoCoachDecision, loadPolicy } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
 import { connectorFreshnessPolicy, sourcePriority } from "./connectors.mjs";
 import { analyzeAthlete } from "./athlete-analysis.mjs";
+import { buildTrainingPlan } from "./training-plan.mjs";
 import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
-import { deleteCheckin, deleteImport, findDecision, getOnboarding, listCheckins, listImports, recentDecisions, resetOnboarding, saveCheckin, saveDecision, saveImportedActivities, saveOnboarding, updateDecision } from "./store.mjs";
+import { activatePlan, declinePlan, deleteCheckin, deleteImport, findDecision, findPlan, getActivePlan, getOnboarding, listCheckins, listImports, listPlans, recentDecisions, resetOnboarding, saveCheckin, saveDecision, saveImportedActivities, saveOnboarding, savePlanProposal, updateDecision } from "./store.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
@@ -80,6 +81,7 @@ async function api(req, res, pathname) {
       connectors: { garmin: garminStatus(), catalog: listConnectors() },
       onboarding,
       athleteAnalysis: currentAthleteAnalysis(onboarding),
+      training: { activePlan: getActivePlan(), proposals: listPlans(4) },
       needsOnboarding: !onboarding?.completedAt,
       decisions: recentDecisions()
     });
@@ -105,6 +107,44 @@ async function api(req, res, pathname) {
     const analysis = currentAthleteAnalysis();
     if (!analysis) throw new HttpError(409, "Start athlete onboarding before requesting analysis.");
     return json(res, 200, { analysis });
+  }
+
+  if (req.method === "GET" && pathname === "/api/training-plan") {
+    const onboarding = getOnboarding();
+    if (!onboarding?.completedAt) throw new HttpError(409, "Complete athlete onboarding before creating a training plan.");
+    const analysis = currentAthleteAnalysis(onboarding);
+    const preview = buildTrainingPlan({ profile: onboarding.profile, analysis });
+    return json(res, 200, { preview, activePlan: getActivePlan(), proposals: listPlans(4) });
+  }
+
+  if (req.method === "POST" && pathname === "/api/training-plan/proposals") {
+    const onboarding = getOnboarding();
+    if (!onboarding?.completedAt) throw new HttpError(409, "Complete athlete onboarding before creating a training plan.");
+    const body = await readJson(req, 20_000);
+    const startDate = body.startDate === undefined ? undefined : String(body.startDate).slice(0, 10);
+    const analysis = currentAthleteAnalysis(onboarding);
+    const plan = buildTrainingPlan({ profile: onboarding.profile, analysis, startDate });
+    if (plan.status === "blocked") return json(res, 409, { error: plan.explanation, plan });
+    if (plan.approval.status === "disabled") return json(res, 403, { error: plan.approval.explanation, plan });
+    const existing = findPlan(plan.id);
+    if (existing?.status === "active") return json(res, 409, { error: "This exact training block is already active.", plan: existing });
+    if (existing?.status === "awaiting_approval") return json(res, 409, { error: "This exact training block is already awaiting approval.", plan: existing });
+    const decision = buildDecision({
+      evidence: [
+        `${analysis.stage.value} starting stage · ${analysis.stage.confidence.label} confidence`,
+        `${analysis.goal.feasibility} goal window · ${analysis.goal.confidence.label} confidence`,
+        `${analysis.load.basis} load basis · ${analysis.load.planningWeeklyKm} km/week`,
+        `${analysis.recovery.status} recovery posture · ${analysis.recovery.confidence.label} confidence`,
+        `${plan.frequency.runs} running and ${plan.frequency.strength} strength sessions per week`
+      ],
+      action: "change_training_plan",
+      context: { confidence: plan.confidence.score },
+      proposal: `Activate the ${plan.startDate} to ${plan.endDate} ${plan.path.replaceAll("_", " ")} block?`,
+      resource: { type: "training_plan", id: plan.id }
+    });
+    saveDecision(decision);
+    const savedPlan = savePlanProposal(plan, decision.id);
+    return json(res, 201, { plan: savedPlan, decision });
   }
 
   if (req.method === "POST" && pathname === "/api/onboarding") {
@@ -203,7 +243,11 @@ async function api(req, res, pathname) {
 
     let actionResult;
     if (decision.gate.action === "push_garmin_workout") actionResult = await pushWorkout({ decision, athlete: demoAthlete });
-    else actionResult = { performed: true, simulated: !process.env.OPENAI_API_KEY, message: "Estimate added to the local fuel log." };
+    else if (decision.gate.action === "change_training_plan") {
+      const plan = decision.resource?.type === "training_plan" ? activatePlan(decision.resource.id) : null;
+      if (!plan) throw new HttpError(409, "This training-plan proposal is no longer available for activation.");
+      actionResult = { performed: true, simulated: false, planId: plan.id, message: `Training block starting ${plan.startDate} is now active.` };
+    } else actionResult = { performed: true, simulated: !process.env.OPENAI_API_KEY, message: "Estimate added to the local fuel log." };
 
     const updated = updateDecision(decision.id, { status: "approved", result: actionResult });
     return json(res, 200, { decision: updated, result: actionResult.message, simulated: actionResult.simulated });
@@ -214,6 +258,7 @@ async function api(req, res, pathname) {
     const decision = findDecision(body.id);
     if (!decision) throw new HttpError(404, "Decision not found.");
     if (decision.status !== "awaiting_approval") throw new HttpError(409, "This decision is no longer awaiting approval.");
+    if (decision.gate.action === "change_training_plan" && decision.resource?.type === "training_plan") declinePlan(decision.resource.id);
     const updated = updateDecision(decision.id, { status: "declined", result: { performed: false, message: "Action declined. Nothing changed." } });
     return json(res, 200, { decision: updated, result: updated.result.message });
   }

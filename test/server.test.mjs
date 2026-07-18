@@ -107,6 +107,52 @@ test("completed onboarding survives bootstrap", () => withServer(async (base) =>
   assert.equal(analysis.analysis.guardrails.modelCanOverrideSafety, false);
 }));
 
+test("training plans remain proposals until a server-authoritative approval", () => withServer(async (base) => {
+  assert.equal((await fetch(`${base}/api/training-plan`)).status, 409);
+  assert.equal((await post(base, "/api/onboarding", { profile: completeProfile(), complete: true })).status, 201);
+
+  const previewResponse = await fetch(`${base}/api/training-plan`);
+  const preview = await previewResponse.json();
+  assert.equal(previewResponse.status, 200);
+  assert.equal(preview.preview.status, "proposal");
+  assert.equal(preview.activePlan, null);
+
+  const proposedResponse = await post(base, "/api/training-plan/proposals", { startDate: "2026-07-20" });
+  const proposed = await proposedResponse.json();
+  assert.equal(proposedResponse.status, 201);
+  assert.equal(proposed.plan.status, "awaiting_approval");
+  assert.equal(proposed.decision.status, "awaiting_approval");
+  assert.equal(proposed.decision.resource.id, proposed.plan.id);
+  assert.equal((await post(base, "/api/training-plan/proposals", { startDate: "2026-07-20" })).status, 409);
+
+  const approvedResponse = await post(base, "/api/decisions/approve", { id: proposed.decision.id, action: "different_plan" });
+  const approved = await approvedResponse.json();
+  assert.equal(approvedResponse.status, 200);
+  assert.match(approved.result, /now active/i);
+  const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.training.activePlan.id, proposed.plan.id);
+  assert.equal(bootstrap.training.activePlan.status, "active");
+}));
+
+test("declining a plan leaves no active plan", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const proposed = await (await post(base, "/api/training-plan/proposals", { startDate: "2026-07-20" })).json();
+  assert.equal((await post(base, "/api/decisions/decline", { id: proposed.decision.id })).status, 200);
+  const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.training.activePlan, null);
+  assert.equal(bootstrap.training.proposals.find((plan) => plan.id === proposed.plan.id).status, "declined");
+}));
+
+test("a high-pain check-in removes an active plan from the normal path", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const proposed = await (await post(base, "/api/training-plan/proposals", { startDate: "2026-07-20" })).json();
+  await post(base, "/api/decisions/approve", { id: proposed.decision.id });
+  assert.equal((await post(base, "/api/checkins", { pain: 5, rpe: 7, energy: 2, sleepFeel: 2, note: "Pain changed the day" })).status, 201);
+  const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.training.activePlan, null);
+  assert.equal(bootstrap.training.proposals.find((plan) => plan.id === proposed.plan.id).status, "review_required");
+}));
+
 test("decision approval is server-authoritative and survives bootstrap", () => withServer(async (base) => {
   const coached = await post(base, "/api/coach", { message: "Should I run today?" });
   const { decision } = await coached.json();

@@ -25,6 +25,16 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Do not treat “Norwegian training” as automatic double-threshold work or “African training” as one universal system. Avoid advanced threshold density for unsuitable beginner or returning profiles.
 - Keep the deterministic baseline in `src/onboarding.mjs`; model enrichment may explain or personalize it but cannot override safety or permission gates.
 
+## Training plans
+
+- Read `GET /api/training-plan` after onboarding and athlete analysis. Treat its preview as a proposal, never as an active prescription.
+- Preserve the deterministic baseline in `src/training-plan.mjs`: stage, available days, recovery, pain, and intensity tolerance bound frequency and intensity.
+- Strength remains part of each eligible block. Week four reduces load before the next block is proposed.
+- A missed session never authorizes doubling the next day. Two or more missed sessions lead to repeating or simplifying the week.
+- Named advanced or regional methods stay on the conservative baseline until their research gate is completed and suitability is reviewed.
+- Only the server-stored `change_training_plan` decision can activate its linked plan. Never infer approval from chat language or replace the stored plan with client content.
+- New safety or pain evidence wins over an active plan. A plan marked `review_required` is not active and must be reassessed.
+
 ## Data truth
 
 - Use `docs/ONBOARDING_RESEARCH.md` and `listConnectors()` for connector language.
@@ -49,4 +59,3 @@ npm run reset
 ```
 
 Run tests and syntax checks after behavior changes. Browser-check the clean first-run path on desktop and mobile for onboarding UI changes.
-
