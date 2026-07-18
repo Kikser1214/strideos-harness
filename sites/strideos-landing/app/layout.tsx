@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description:
     "A rule-governed AI coaching harness that connects training, recovery, nutrition, and real life into one explainable plan.",
   openGraph: {
-    title: "StrideOS — Your training, finally connected.",
+    title: "StrideOS — Your whole training life. One adaptive coach.",
     description:
       "Open-source agentic coaching for runners, with every important decision under athlete control.",
     type: "website",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrideOS — Your training, finally connected.",
+    title: "StrideOS — Your whole training life. One adaptive coach.",
     description: "Open-source agentic coaching for runners.",
     images: ["/og.png"],
   },

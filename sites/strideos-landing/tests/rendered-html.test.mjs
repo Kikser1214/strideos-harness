@@ -20,8 +20,11 @@ test("server-renders the StrideOS landing page", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>StrideOS — Open-source agentic coaching<\/title>/i);
-  assert.match(html, /Your training,/);
-  assert.match(html, /finally connected\./);
+  assert.match(html, /Your whole training life\./);
+  assert.match(html, /One adaptive coach\./);
+  assert.match(html, /Human coach review/);
+  assert.match(html, /dashboard-plan\.png/);
+  assert.match(html, /REAL PRODUCT VIEW/);
   assert.match(html, /Open the live coach/);
   assert.match(html, /Explore on GitHub/);
   assert.match(html, /Coach Mode/);
@@ -31,5 +34,6 @@ test("server-renders the StrideOS landing page", async () => {
   assert.match(html, /The agent can propose/);
   assert.match(html, /Only you can approve/);
   assert.match(html, /Built for the OpenAI Buildathon/);
+  assert.doesNotMatch(html, /Threshold intervals/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
 });

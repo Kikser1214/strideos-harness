@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const dashboardUrl =
   "https://strideos-coach-demo.gogov-nikola22.chatgpt.site/";
 const githubUrl = "https://github.com/Kikser1214/strideos-harness";
@@ -29,7 +31,7 @@ const capabilities = [
   ["Adaptive training", "Plans respond to readiness, pain, schedule, and completed work—not a rigid calendar."],
   ["Strength included", "Running and strength live in one plan, with beginner-safe progressions and clear intent."],
   ["Loose nutrition", "Use meal photos and simple preferences for practical guidance without turning life into a spreadsheet."],
-  ["Coach review", "Share a readable dashboard, collect feedback, and keep the athlete in charge of the final decision."],
+  ["Human coach review", "Invite a real coach or experienced friend to review the plan, suggest precise edits, and keep the athlete in charge of the final decision."],
 ];
 
 export default function Home() {
@@ -54,7 +56,7 @@ export default function Home() {
       <section className="hero" id="top">
         <div className="hero-copy">
           <p className="eyebrow"><span /> Open-source agentic coaching</p>
-          <h1>Your training,<br />finally connected.</h1>
+          <h1>Your whole training life.<br />One adaptive coach.</h1>
           <p className="hero-lede">
             StrideOS is a rule-governed AI coaching harness that turns your
             training, recovery, nutrition, and real life into one explainable
@@ -71,48 +73,12 @@ export default function Home() {
           <p className="hero-note">Built for Codex and ChatGPT · Watch optional · Athlete approved</p>
         </div>
 
-        <div className="hero-visual" aria-label="StrideOS training dashboard preview">
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <div className="dash-shell">
-            <div className="dash-topbar">
-              <div className="mini-brand"><span>S/</span> Athlete room</div>
-              <div className="live-pill"><span /> Synced</div>
-            </div>
-            <div className="readiness-row">
-              <div>
-                <p>Today · Tuesday</p>
-                <strong>Ready to build</strong>
-              </div>
-              <div className="readiness-score">84<span>/100</span></div>
-            </div>
-            <div className="workout-card">
-              <div className="workout-head">
-                <div><span className="label">KEY SESSION</span><h2>Threshold intervals</h2></div>
-                <span className="duration">58 min</span>
-              </div>
-              <div className="workout-chart" aria-hidden="true">
-                <span className="warmup" />
-                <span className="rep tall" />
-                <span className="rest" />
-                <span className="rep taller" />
-                <span className="rest" />
-                <span className="rep tall" />
-                <span className="cooldown" />
-              </div>
-              <div className="workout-meta"><span>3 × 10 min</span><span>Controlled threshold</span></div>
-            </div>
-            <div className="coach-note">
-              <span className="coach-avatar">AI</span>
-              <p><strong>Why this session?</strong><br />Your recovery is stable and the last two quality sessions were controlled. Keep the final rep honest, not heroic.</p>
-            </div>
-            <div className="approval-row">
-              <span>Plan change requires your approval</span>
-              <button type="button">Review proposal</button>
-            </div>
-          </div>
-          <div className="signal-card signal-top"><span>↗</span><div><strong>Durability</strong><small>Trending up</small></div></div>
-          <div className="signal-card signal-bottom"><span>✓</span><div><strong>Coach reviewed</strong><small>2 notes resolved</small></div></div>
+        <div className="hero-visual">
+          <a className="real-dashboard" href={dashboardUrl} target="_blank" rel="noreferrer" aria-label="Open the real StrideOS personal training site">
+            <Image src="/dashboard-plan.png" width={2747} height={1951} priority sizes="(max-width: 1100px) 92vw, 52vw" alt="Real StrideOS personal site showing a four-week training plan and detailed threshold session" />
+            <span className="real-dashboard-label"><b>REAL PRODUCT VIEW</b><small>Training plan · weekly details · full block · history</small></span>
+            <span className="open-dashboard-badge">Open personal site <b>↗</b></span>
+          </a>
         </div>
       </section>
 
