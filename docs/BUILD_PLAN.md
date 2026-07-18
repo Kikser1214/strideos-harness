@@ -150,6 +150,8 @@ Done when all automated checks pass and the primary first-run path is rehearsed 
 
 ## Task 12 — Hackathon submission pack
 
+Status: **in progress**. Final English copy, the public repository, MIT license, screenshot set, architecture, judging notes, release evidence, and asset captions are ready. Live GPT-5.6 evidence, the `/feedback` session ID, YouTube URL, eligibility confirmations, hackathon registration confirmation, and accepted submission screen remain external checkpoints.
+
 Deliverables:
 
 - final English Devpost copy, public repository, license, screenshots, architecture diagram, and judging notes;
@@ -160,6 +162,8 @@ Deliverables:
 Done only when the submission form is accepted before the deadline.
 
 ## Task 13 — First-run demo video
+
+Status: **recording pack ready**. The founder still needs to record the real first run and live GPT-5.6 segment, then publish the final public YouTube cut.
 
 The founder records the real first run. StrideOS provides:
 

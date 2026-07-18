@@ -1,4 +1,13 @@
-# Devpost submission working draft
+# Devpost submission copy
+
+## Submission fields
+
+- **Project:** StrideOS
+- **Category:** Apps for Your Life
+- **Repository:** https://github.com/Kikser1214/strideos-harness
+- **Demo video:** add the public YouTube URL after the final cut
+- **Codex feedback session:** add the `/feedback` session ID from the primary build task
+- **Architecture and judge path:** `docs/ARCHITECTURE.md` and `docs/JUDGING_GUIDE.md`
 
 ## Category
 
@@ -62,6 +71,8 @@ The hard part was not generating another training answer. It was defining the bo
 - A deterministic zero-setup judge mode.
 - MIT-licensed StrideOS source with synthetic data and a documented third-party Garmin SDK license.
 - One-command clean-clone setup, a secret-safe doctor, and documented Windows/macOS/Linux paths.
+- A hardened release gate with 89 passing tests, zero production dependency vulnerabilities, corrupt-state recovery, HTTP input limits, static accessibility checks, and desktop/mobile rehearsal.
+- Exact Garmin workout binding: approval revalidates the persisted plan/session against current pain, recovery, and profile evidence, while synthetic judge workouts can never reach a configured bridge.
 
 ## What we learned
 
@@ -75,13 +86,6 @@ Trust improves when the system shows both what it knows and what it is not autho
 - Evaluate recommendations against retrospective training blocks.
 - Let runners share rules and coaching protocols without sharing personal data.
 
-## Three-minute demo outline
+## Demo production
 
-- 0:00–0:15 — Problem and thesis: most beginners do not know what a training plan needs to know.
-- 0:15–0:55 — Clean first run: current activity, goal, strength experience, and data-source truth.
-- 0:55–1:15 — Athlete-map review: running frame, two strength sessions, manual fallback, and automation proposals.
-- 1:15–1:38 — Open the four-week plan; show run/walk, strength, recovery week, and the named-method research brake. Send it to approval and activate it in the ledger.
-- 1:38–1:53 — Open Data sources; show truthful connector labels and a GPX preview/consent import or manual check-in.
-- 1:53–2:20 — Open Fuel companion, show number policy and supplement boundaries, then upload a meal photo and correct/confirm it in the ledger.
-- 2:22–2:42 — Trigger a safety stop and show that prescription pauses.
-- 2:42–2:58 — Show the open schema/policy, tests, MIT license, and how Codex and GPT-5.6 were used.
+The exact under-three-minute shot list, narration, edit plan, captions, and title card are in `docs/VIDEO_SCRIPT.md`. Do not replace the live GPT-5.6 segment with judge-mode footage; the mode label must be visible when recording the live evidence.

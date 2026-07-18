@@ -4,6 +4,8 @@
 
 StrideOS is an open-source, rule-governed personal coaching harness for runners and people who want to become active. It begins with a real athlete onboarding, combines training signals, strength experience, subjective feedback, schedule constraints, and optional meal images into evidence-backed recommendations, then checks every intended action against an inspectable policy before anything changes.
 
+![StrideOS server-authoritative dashboard](docs/assets/dashboard-hero.png)
+
 Built from scratch for **OpenAI Build Week 2026** with Codex and GPT-5.6.
 
 ## Why this is a harness
@@ -100,6 +102,9 @@ docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empt
 docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
 docs/INSTALL.md        Clean-clone Windows, macOS, Linux, doctor, environment, and state guide
 docs/RELEASE_CHECKLIST.md  Automated gate and manual release rehearsal
+docs/ARCHITECTURE.md   Control loop, trust boundaries, and runtime modes
+docs/JUDGING_GUIDE.md  Fast judge path and claim-to-evidence map
+docs/VIDEO_SCRIPT.md   Under-three-minute recording and edit plan
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
@@ -172,6 +177,14 @@ The release gate runs the setup doctor, syntax checks, and the full test suite. 
 ## Build Week plan
 
 The rebuild is intentionally split into auditable tasks. See [the delivery plan](docs/BUILD_PLAN.md) for the onboarding, connector, analysis, plan, nutrition, dashboard, automation, open-source, hardening, submission, and demo-video checkpoints.
+
+## Submission screenshots
+
+| Athlete map | Training block | Fuel rules |
+| --- | --- | --- |
+| ![First-run athlete map](docs/assets/first-run-desktop.png) | ![Four-week training plan](docs/assets/training-plan.png) | ![Athlete-controlled fuel companion](docs/assets/fuel-companion.png) |
+
+The full caption set and recommended Devpost order are in [submission assets](docs/assets/README.md). The [architecture](docs/ARCHITECTURE.md) and [judge guide](docs/JUDGING_GUIDE.md) map every major claim to an inspectable path.
 
 ## Open source
 

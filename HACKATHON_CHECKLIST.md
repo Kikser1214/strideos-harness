@@ -28,7 +28,8 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] README includes setup, demo data, testing, and Codex collaboration details.
 - [x] Judges can run the project without a Garmin device, account, or API key.
 - [ ] Run `/feedback` in the Codex task where the majority of the core functionality was built; add that session ID to Devpost.
-- [ ] Add screenshots and the public demo URL to the submission.
+- [x] Capture repository-ready desktop, mobile, dashboard, plan, and fuel screenshots with honest demo labels.
+- [ ] Add the screenshot set and public demo URL to the Devpost submission.
 - [ ] Submit before the deadline and verify the Devpost confirmation screen.
 
 ## Current engineering status
@@ -68,6 +69,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Security headers, content type, malformed JSON, oversized input, traversal, duplicate action, static accessibility, persistence, and bridge-payload boundaries have automated coverage.
 - [x] Task 11 release gate passes: setup doctor, syntax checks, 89 tests, and the production dependency audit report zero vulnerabilities.
 - [x] The isolated clean-state browser rehearsal completed all 11 onboarding steps, plan proposal/approval, active dashboard, desktop/mobile layouts, and a read-only automation preview.
+- [x] Architecture, judging guide, final English copy, screenshot captions, and the under-three-minute video script are checked into the public repository.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 
