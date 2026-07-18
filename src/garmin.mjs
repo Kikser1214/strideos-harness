@@ -3,7 +3,8 @@ export function garminStatus() {
   return {
     mode: configured ? "bridge" : "simulation",
     configured,
-    label: configured ? "Garmin bridge connected" : "Garmin simulation"
+    label: configured ? "Garmin bridge configured" : "Garmin simulation",
+    connectionState: configured ? "adapter_configured" : "not_connected"
   };
 }
 

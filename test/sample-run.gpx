@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="StrideOS browser test">
+  <trk>
+    <name>Browser test easy run</name>
+    <type>running</type>
+    <trkseg>
+      <trkpt lat="41.9981" lon="21.4254"><time>2026-07-18T05:00:00Z</time><extensions><hr>132</hr></extensions></trkpt>
+      <trkpt lat="42.0031" lon="21.4254"><time>2026-07-18T05:05:00Z</time><extensions><hr>142</hr></extensions></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

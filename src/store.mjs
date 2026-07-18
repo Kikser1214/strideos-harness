@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import crypto from "node:crypto";
+import { freshnessFor } from "./imports.mjs";
 
 const defaultFile = path.join(os.tmpdir(), "strideos-harness-state.json");
 
@@ -9,15 +11,17 @@ function stateFile() {
 }
 
 function emptyState() {
-  return { version: 2, decisions: [], onboarding: null };
+  return { version: 3, decisions: [], onboarding: null, imports: [], checkins: [] };
 }
 
 function migrateState(value) {
   const state = value && typeof value === "object" && !Array.isArray(value) ? value : emptyState();
   return {
-    version: 2,
+    version: 3,
     decisions: Array.isArray(state.decisions) ? state.decisions : [],
-    onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null
+    onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null,
+    imports: Array.isArray(state.imports) ? state.imports : [],
+    checkins: Array.isArray(state.checkins) ? state.checkins : []
   };
 }
 
@@ -86,6 +90,49 @@ export function resetOnboarding() {
   const state = readState();
   state.onboarding = null;
   writeState(state);
+}
+
+export function listImports(limit = 100) {
+  return readState().imports.slice(0, limit).map((activity) => ({ ...activity, freshness: freshnessFor(activity.activityAt) }));
+}
+
+export function saveImportedActivities(activities) {
+  const state = readState();
+  const importedAt = new Date().toISOString();
+  const saved = activities.map((activity) => ({ ...activity, id: crypto.randomUUID(), importedAt }));
+  state.imports = [...saved, ...state.imports].slice(0, 200);
+  writeState(state);
+  return saved;
+}
+
+export function deleteImport(id) {
+  const state = readState();
+  const before = state.imports.length;
+  state.imports = state.imports.filter((activity) => activity.id !== id);
+  if (state.imports.length === before) return false;
+  writeState(state);
+  return true;
+}
+
+export function listCheckins(limit = 100) {
+  return readState().checkins.slice(0, limit).map((checkin) => ({ ...checkin, freshness: freshnessFor(checkin.capturedAt) }));
+}
+
+export function saveCheckin(checkin) {
+  const state = readState();
+  const saved = { ...checkin, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  state.checkins = [saved, ...state.checkins].slice(0, 200);
+  writeState(state);
+  return saved;
+}
+
+export function deleteCheckin(id) {
+  const state = readState();
+  const before = state.checkins.length;
+  state.checkins = state.checkins.filter((checkin) => checkin.id !== id);
+  if (state.checkins.length === before) return false;
+  writeState(state);
+  return true;
 }
 
 export function resetState() {

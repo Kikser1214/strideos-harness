@@ -19,9 +19,10 @@ The **decision ledger** makes this loop visible to the athlete and to judges.
 
 ## Run it
 
-Requires Node.js 20 or newer. There are no runtime dependencies.
+Requires Node.js 20 or newer. Install the one runtime dependency, Garmin's official FIT JavaScript SDK, then start the local server.
 
 ```bash
+npm install
 npm start
 ```
 
@@ -46,6 +47,7 @@ npm start
 On Windows PowerShell:
 
 ```powershell
+npm.cmd install
 Copy-Item .env.example .env
 # Add OPENAI_API_KEY to .env
 npm.cmd start
@@ -81,6 +83,8 @@ src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
+src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
+src/imports.mjs        FIT, GPX, TCX, CSV, and manual check-in normalization
 src/store.mjs          Atomic local decision and onboarding persistence
 src/reset.mjs          Clean first-run reset command
 src/server.mjs         Dependency-free Node HTTP server
@@ -95,7 +99,9 @@ Decisions are persisted atomically in the operating system's temporary directory
 
 ### Wearables and files
 
-The onboarding lists more than Garmin without pretending those connectors already exist. Garmin can use the documented bridge contract; Apple Health requires an iOS companion or export/relay; Android Health Connect requires an Android companion; Strava and other vendor OAuth routes are planned; manual check-ins remain available now. See [the connector truth matrix](docs/ONBOARDING_RESEARCH.md).
+Open **Data sources** to see the runtime truth matrix. FIT, GPX, TCX, and CSV import works now; FIT decoding uses Garmin's official SDK. Every file receives a server-side preview before the athlete explicitly confirms storage. Only normalized activity summaries are kept in local state, and each summary has a delete control. Manual pain, RPE, energy, sleep-feel, and context check-ins are also available now.
+
+Garmin can use the documented bridge contract, but a configured adapter is never presented as proof that an athlete account is connected. Strava exposes its required OAuth environment contract without claiming the OAuth flow is live. Apple Health requires an iOS HealthKit companion, and Android Health Connect requires an Android companion. Fitbit, Oura, WHOOP, Polar, COROS, and Suunto stay visibly labeled **planned**. See [Data connections](docs/DATA_CONNECTIONS.md) and [the onboarding research pack](docs/ONBOARDING_RESEARCH.md).
 
 ## Safety and privacy
 
@@ -130,7 +136,7 @@ npm test
 npm run check
 ```
 
-The current suite covers action boundaries, onboarding validation, beginner strength recommendations, safety stops, advanced-method suitability, connector truth, draft persistence, and completed first-run restoration.
+The current suite covers action boundaries, onboarding validation, beginner strength recommendations, safety stops, advanced-method suitability, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
 
 ## Build Week plan
 
@@ -138,4 +144,4 @@ The rebuild is intentionally split into auditable tasks. See [the delivery plan]
 
 ## Open source
 
-Licensed under the [MIT License](LICENSE). Contributions, experiments, and integration adapters are welcome.
+StrideOS source is licensed under the [MIT License](LICENSE). Garmin's runtime FIT SDK remains under Garmin's own SDK license; it is installed from npm and is not relicensed by this project. See [Third-party notices](THIRD_PARTY_NOTICES.md). Contributions, experiments, and integration adapters are welcome.

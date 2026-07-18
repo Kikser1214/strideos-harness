@@ -43,6 +43,44 @@ test("onboarding schema and connector truth are available", () => withServer(asy
   assert.equal(data.connectors.find((connector) => connector.id === "apple_health").route, "ios_companion");
 }));
 
+test("data setup reports usable fallbacks without fake connected states", () => withServer(async (base) => {
+  const response = await fetch(`${base}/api/connectors`);
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.connectors.find((connector) => connector.id === "garmin").status, "setup_required");
+  assert.equal(data.connectors.find((connector) => connector.id === "file_import").status, "available");
+  assert.equal(data.connectors.find((connector) => connector.id === "apple_health").status, "companion_required");
+  assert.ok(data.connectors.every((connector) => connector.status !== "connected"));
+  assert.equal(data.storage.rawActivityFilesStored, false);
+}));
+
+test("activity import previews before explicit local-summary consent", () => withServer(async (base) => {
+  const gpx = `<?xml version="1.0"?><gpx><trk><name>Test run</name><trkseg><trkpt lat="41.99" lon="21.42"><time>2026-07-18T05:00:00Z</time></trkpt><trkpt lat="42.00" lon="21.42"><time>2026-07-18T05:10:00Z</time></trkpt></trkseg></trk></gpx>`;
+  const payload = { fileName: "test.gpx", dataBase64: Buffer.from(gpx).toString("base64") };
+  const preview = await post(base, "/api/imports/preview", payload);
+  assert.equal(preview.status, 200);
+  assert.equal((await preview.json()).file.rawStored, false);
+  assert.equal((await post(base, "/api/imports", payload)).status, 422);
+
+  const saved = await post(base, "/api/imports", { ...payload, consent: true });
+  assert.equal(saved.status, 201);
+  const savedBody = await saved.json();
+  assert.equal(savedBody.rawStored, false);
+  const setup = await (await fetch(`${base}/api/connectors`)).json();
+  assert.equal(setup.imports.length, 1);
+  assert.equal((await fetch(`${base}/api/imports/${setup.imports[0].id}`, { method: "DELETE" })).status, 200);
+  assert.equal((await (await fetch(`${base}/api/connectors`)).json()).imports.length, 0);
+}));
+
+test("manual check-ins persist and can be deleted", () => withServer(async (base) => {
+  const response = await post(base, "/api/checkins", { pain: 1, rpe: 4, energy: 3, sleepFeel: 4, note: "Easy day" });
+  assert.equal(response.status, 201);
+  const saved = (await response.json()).checkin;
+  assert.equal(saved.pain, 1);
+  assert.equal((await fetch(`${base}/api/checkins/${saved.id}`, { method: "DELETE" })).status, 200);
+  assert.equal((await (await fetch(`${base}/api/connectors`)).json()).checkins.length, 0);
+}));
+
 test("onboarding draft persists without marking first run complete", () => withServer(async (base) => {
   const saved = await post(base, "/api/onboarding", { profile: { personal: { preferredName: "Mia" } }, complete: false });
   assert.equal(saved.status, 200);

@@ -22,6 +22,7 @@
         <span id="modelLabel">GPT-5.6</span>
       </div>
       <div class="topbar-actions">
+        <button class="data-link" id="openDataSources">Data sources</button>
         <button class="setup-link" id="openOnboarding">Athlete setup</button>
         <a class="github-link" href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">Open source ↗</a>
       </div>
@@ -128,6 +129,10 @@
               <div><dt>Calendar</dt><dd id="calendarStatus">Checking connector</dd></div>
             </dl>
             <p class="connector-note" id="connectorNote">Checking whether an external calendar is connected.</p>
+            <button class="source-button" id="openDataSourcesPanel">
+              <span><strong>Data sources</strong><small id="sourceButtonNote">Files + manual check-ins available</small></span>
+              <b>MANAGE →</b>
+            </button>
             <button class="food-button" id="openFood">
               <span class="food-icon">◫</span>
               <span><strong>Scan a meal</strong><small>Photo → estimate → confirm</small></span>
@@ -218,6 +223,70 @@
         <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with the harness</button>
         <div class="meal-result" id="mealResult" hidden></div>
       </form>
+    </dialog>
+
+    <dialog class="data-dialog" id="dataDialog" aria-labelledby="dataTitle">
+      <section class="data-shell">
+        <header class="data-heading">
+          <div>
+            <p class="eyebrow">Evidence bay / local-first</p>
+            <h2 id="dataTitle">Connect what you use.<br /><em>Never fake a signal.</em></h2>
+            <p>StrideOS labels every source by what works now, what needs setup, and what is only planned. No watch is required.</p>
+          </div>
+          <button class="dialog-close data-close" id="closeDataDialog" aria-label="Close data sources">×</button>
+        </header>
+
+        <div class="source-rail" aria-label="Coaching source priority">
+          <span>COACHING PRIORITY</span>
+          <ol id="sourcePriority"><li>Loading your source order…</li></ol>
+          <p><i></i> Current manual feedback can override an old wearable signal.</p>
+        </div>
+
+        <div class="data-workbench">
+          <section class="connector-section">
+            <div class="workbench-heading">
+              <div><p class="panel-kicker">Connector truth</p><h3>Every route, exactly as it is.</h3></div>
+              <span id="connectorCount">Checking</span>
+            </div>
+            <div class="connector-grid" id="connectorGrid"></div>
+          </section>
+
+          <section class="local-inputs">
+            <article class="import-console">
+              <div class="workbench-heading compact">
+                <div><p class="panel-kicker">01 / Activity import</p><h3>Bring one file.</h3></div>
+                <span>RAW FILE DISCARDED</span>
+              </div>
+              <label class="activity-drop" for="activityFile">
+                <input id="activityFile" type="file" accept=".fit,.gpx,.tcx,.csv" />
+                <b>FIT</b><b>GPX</b><b>TCX</b><b>CSV</b>
+                <span><strong id="activityFileName">Choose an activity export</strong><small>Maximum 8 MB · preview before saving</small></span>
+              </label>
+              <button type="button" class="primary preview-import" id="previewImport">Preview normalized data</button>
+              <div class="import-preview" id="importPreview" hidden></div>
+              <label class="consent-check" id="importConsentLabel" hidden><input id="importConsent" type="checkbox" /> Store only these normalized summaries in my local StrideOS state. The raw file is discarded.</label>
+              <button type="button" class="approve confirm-import" id="confirmImport" hidden disabled>Confirm local import</button>
+              <div class="saved-data" id="importedActivities"></div>
+            </article>
+
+            <article class="checkin-console">
+              <div class="workbench-heading compact">
+                <div><p class="panel-kicker">02 / No-watch fallback</p><h3>How are you, now?</h3></div>
+                <span>MANUAL · FIRST-CLASS</span>
+              </div>
+              <form id="checkinForm" class="checkin-form">
+                <label>Pain now <span>0–10</span><input name="pain" type="number" min="0" max="10" step="1" required value="0" /></label>
+                <label>Last-session RPE <span>1–10 · optional</span><input name="rpe" type="number" min="1" max="10" step="1" /></label>
+                <label>Energy <span>1 low · 5 high</span><input name="energy" type="number" min="1" max="5" step="1" required value="3" /></label>
+                <label>Sleep feel <span>1 poor · 5 great</span><input name="sleepFeel" type="number" min="1" max="5" step="1" required value="3" /></label>
+                <label class="checkin-note">Context <span>optional</span><textarea name="note" maxlength="500" placeholder="Heavy legs, sore left calf, stressful day, changed schedule…"></textarea></label>
+                <button type="submit" class="primary">Save check-in</button>
+              </form>
+              <div class="saved-data" id="manualCheckins"></div>
+            </article>
+          </section>
+        </div>
+      </section>
     </dialog>
 
     <div class="toast" id="toast" role="status"></div>

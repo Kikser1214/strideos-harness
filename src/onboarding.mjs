@@ -1,22 +1,7 @@
 import fs from "node:fs";
+import { listConnectors as connectorCatalog } from "./connectors.mjs";
 
 const schemaUrl = new URL("../rules/onboarding-schema.json", import.meta.url);
-
-const connectorCatalog = [
-  { id: "garmin", label: "Garmin Connect", route: "bridge", status: "available_with_setup", canRead: true, canWrite: true, note: "Production cloud access needs an approved Garmin integration. Workout writes remain approval-gated." },
-  { id: "strava", label: "Strava", route: "oauth", status: "planned", canRead: true, canWrite: false, note: "Useful cross-device activity source; not a complete recovery record." },
-  { id: "apple_health", label: "Apple Health / Watch", route: "ios_companion", status: "planned_native_app", canRead: true, canWrite: false, note: "HealthKit access must run through an authorized iOS app, export, or relay such as Strava." },
-  { id: "health_connect", label: "Android Health Connect", route: "android_companion", status: "planned_native_app", canRead: true, canWrite: false, note: "Requires an Android app and per-type permissions." },
-  { id: "fitbit", label: "Fitbit", route: "oauth", status: "planned", canRead: true, canWrite: false, note: "Planned connector; not active in the first local release." },
-  { id: "oura", label: "Oura", route: "oauth", status: "planned", canRead: true, canWrite: false, note: "Planned recovery source; not a full training record by itself." },
-  { id: "whoop", label: "WHOOP", route: "oauth", status: "planned", canRead: true, canWrite: false, note: "Planned recovery and workout source." },
-  { id: "polar", label: "Polar", route: "oauth", status: "planned", canRead: true, canWrite: false, note: "Planned AccessLink connector." },
-  { id: "coros", label: "COROS", route: "partner_or_relay", status: "planned", canRead: true, canWrite: false, note: "May require partner access; Strava or file import is the current fallback." },
-  { id: "suunto", label: "Suunto", route: "partner_or_relay", status: "planned", canRead: true, canWrite: false, note: "May require partner access; Strava or file import is the current fallback." },
-  { id: "file_import", label: "FIT / GPX / TCX / CSV", route: "local_import", status: "planned", canRead: true, canWrite: false, note: "Point-in-time import that the athlete refreshes." },
-  { id: "manual", label: "Manual check-ins", route: "built_in", status: "available", canRead: true, canWrite: false, note: "Pain, effort, energy, sleep feel, schedule, and context remain first-class data." },
-  { id: "none", label: "No device", route: "manual", status: "available", canRead: true, canWrite: false, note: "A safe starter plan can use answers and short manual check-ins." }
-];
 
 const safetyLabels = {
   currentPain: "pain that changes movement",
@@ -33,7 +18,7 @@ export function loadOnboardingSchema() {
 }
 
 export function listConnectors() {
-  return connectorCatalog.map((connector) => ({ ...connector }));
+  return connectorCatalog();
 }
 
 function isBlank(value) {
@@ -135,16 +120,17 @@ function safetyAnalysis(profile) {
 }
 
 function dataAnalysis(profile) {
+  const connectors = connectorCatalog();
   const requested = Array.isArray(profile.data?.sources) ? profile.data.sources : [];
   const primaryId = profile.data?.primarySource || requested[0] || "manual";
-  const primary = connectorCatalog.find((connector) => connector.id === primaryId) || connectorCatalog.find((connector) => connector.id === "manual");
-  const selected = requested.map((id) => connectorCatalog.find((connector) => connector.id === id)).filter(Boolean);
-  const activeNow = selected.filter((connector) => ["available", "available_with_setup"].includes(connector.status));
+  const primary = connectors.find((connector) => connector.id === primaryId) || connectors.find((connector) => connector.id === "manual");
+  const selected = requested.map((id) => connectors.find((connector) => connector.id === id)).filter(Boolean);
+  const activeNow = selected.filter((connector) => connector.canRead && connector.status === "available");
   return {
     primary,
     selected,
     activeNow,
-    needsFallback: !["manual", "none"].includes(primary.id) && !["available", "available_with_setup"].includes(primary.status),
+    needsFallback: !["manual", "none"].includes(primary.id) && !(primary.canRead && primary.status === "available"),
     fallback: primary.id === "manual" || primary.id === "none" ? "manual" : "manual_or_file_import",
     note: ["apple_health", "health_connect"].includes(primary.id)
       ? "This source needs a native companion app. Start with manual check-ins, file import, or Strava while that connector is unavailable."

@@ -1,7 +1,8 @@
 const $ = (selector) => document.querySelector(selector);
 const state = {
   bootstrap: null, currentDecision: null, imageDataUrl: null, trace: 0, busy: false,
-  onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null
+  onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null,
+  dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null
 };
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -19,6 +20,7 @@ function renderBootstrap(data) {
   $("#workoutName").textContent = workout.name; $("#distanceValue").textContent = workout.distanceKm.toFixed(1); $("#workoutTarget").textContent = workout.target; $("#weekCompleted").textContent = week.completedKm; $("#weekPlanned").textContent = week.plannedKm; $("#daysToRace").textContent = `${athlete.daysToRace} days`;
   $("#calendarStatus").textContent = data.connectors.garmin.label;
   $("#connectorNote").textContent = data.connectors.garmin.configured ? "External writes go through your configured bridge after approval." : "No Garmin account is connected. Approved workout writes are safely simulated.";
+  $("#sourceButtonNote").textContent = data.connectors.garmin.configured ? "Garmin adapter + local fallback" : "Files + manual check-ins available";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
   if (data.decisions.length) { state.trace = data.decisions.length; renderLedger(data.decisions[0], { restored: true }); } else renderEmptyLedger();
 }
@@ -326,6 +328,176 @@ $("#onboardingNav").addEventListener("click", async (event) => {
   try { await saveOnboardingDraft(); } catch {}
   state.onboardingStep = Number(button.dataset.onboardingStep);
   renderOnboardingStep();
+});
+
+const connectorStatusLabels = {
+  available: "Available now",
+  adapter_configured: "Adapter configured",
+  oauth_setup_ready: "OAuth setup ready",
+  setup_required: "Setup needed",
+  companion_required: "Native app required",
+  planned: "Planned"
+};
+
+function connectorStatusClass(status) {
+  if (status === "available") return "ready";
+  if (["adapter_configured", "oauth_setup_ready"].includes(status)) return "configured";
+  if (["setup_required", "companion_required"].includes(status)) return "setup";
+  return "planned";
+}
+
+function connectorSetupMarkup(connector) {
+  if (connector.setup?.requiredEnvironment?.length) {
+    return `<details><summary>Setup contract</summary><p>Add server-side environment values: <code>${connector.setup.requiredEnvironment.map(escapeHtml).join(" · ")}</code>${connector.setup.optionalEnvironment?.length ? `<br>Optional: <code>${connector.setup.optionalEnvironment.map(escapeHtml).join(" · ")}</code>` : ""}. Secrets never go in the browser.</p></details>`;
+  }
+  if (connector.setup?.kind === "native_companion") {
+    return `<details><summary>Why a companion?</summary><p>${escapeHtml(connector.setup.platform)} health data requires system permission inside a native app. This web page cannot bypass that boundary.</p></details>`;
+  }
+  if (connector.setup?.formats) return `<p class="connector-capability">Reads ${connector.setup.formats.map((format) => format.toUpperCase()).join(" · ")} locally</p>`;
+  return "";
+}
+
+function relativeTime(value) {
+  if (!value) return "time unknown";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "time unknown";
+  const hours = Math.max(0, (Date.now() - date.getTime()) / 3_600_000);
+  if (hours < 1) return "less than an hour ago";
+  if (hours < 48) return `${Math.round(hours)}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
+
+function renderSavedImports(imports) {
+  $("#importedActivities").innerHTML = imports.length ? `<div class="saved-heading"><strong>Saved activity summaries</strong><span>${imports.length} local</span></div>${imports.map((activity) => `<article class="saved-row">
+    <i class="freshness ${escapeHtml(activity.freshness?.status || "unknown")}"></i>
+    <div><strong>${escapeHtml(activity.name)}</strong><p>${escapeHtml(activity.summary)} · ${escapeHtml(activity.format)} · ${escapeHtml(relativeTime(activity.activityAt))}</p></div>
+    <button type="button" data-delete-import="${escapeHtml(activity.id)}" aria-label="Delete ${escapeHtml(activity.name)}">Delete</button>
+  </article>`).join("")}` : '<div class="empty-data"><strong>No saved activity files.</strong><p>Previewing never stores a file. Confirm only the summaries you want.</p></div>';
+}
+
+function renderManualCheckins(checkins) {
+  $("#manualCheckins").innerHTML = checkins.length ? `<div class="saved-heading"><strong>Recent manual signals</strong><span>${checkins.length} local</span></div>${checkins.map((checkin) => `<article class="saved-row">
+    <i class="freshness ${escapeHtml(checkin.freshness?.status || "fresh")}"></i>
+    <div><strong>Pain ${escapeHtml(checkin.pain)}/10 · Energy ${escapeHtml(checkin.energy)}/5 · Sleep ${escapeHtml(checkin.sleepFeel)}/5</strong><p>${checkin.rpe ? `RPE ${escapeHtml(checkin.rpe)} · ` : ""}${escapeHtml(checkin.note || "No extra context")} · ${escapeHtml(relativeTime(checkin.capturedAt))}</p></div>
+    <button type="button" data-delete-checkin="${escapeHtml(checkin.id)}" aria-label="Delete manual check-in">Delete</button>
+  </article>`).join("")}` : '<div class="empty-data"><strong>No manual check-ins yet.</strong><p>This is the complete fallback when no wearable is available.</p></div>';
+}
+
+function renderDataSetup(data) {
+  state.dataSetup = data;
+  const byId = new Map(data.connectors.map((connector) => [connector.id, connector]));
+  $("#sourcePriority").innerHTML = data.sourcePriority.map((id, index) => `<li><b>${String(index + 1).padStart(2, "0")}</b><span>${escapeHtml(byId.get(id)?.label || humanize(id))}</span></li>`).join("");
+  const visibleConnectors = data.connectors.filter((connector) => connector.id !== "none");
+  const active = visibleConnectors.filter((connector) => connector.status === "available").length;
+  $("#connectorCount").textContent = `${active} usable now · ${visibleConnectors.length} routes`;
+  $("#connectorGrid").innerHTML = visibleConnectors.map((connector) => `<article class="connector-card ${connectorStatusClass(connector.status)}">
+    <header><span>${escapeHtml(connector.label)}</span><b>${escapeHtml(connectorStatusLabels[connector.status] || humanize(connector.status))}</b></header>
+    <p>${escapeHtml(connector.truth || connector.note)}</p>
+    ${connector.truth ? `<small>${escapeHtml(connector.note)}</small>` : ""}
+    ${connectorSetupMarkup(connector)}
+  </article>`).join("");
+  renderSavedImports(data.imports);
+  renderManualCheckins(data.checkins);
+}
+
+async function refreshDataSetup() {
+  const data = await request("/api/connectors");
+  renderDataSetup(data);
+  return data;
+}
+
+async function openDataSetup() {
+  if (!$("#dataDialog").open) $("#dataDialog").showModal();
+  try { await refreshDataSetup(); }
+  catch (error) { toast(error.message); }
+}
+
+$("#openDataSources").addEventListener("click", openDataSetup);
+$("#openDataSourcesPanel").addEventListener("click", openDataSetup);
+$("#closeDataDialog").addEventListener("click", () => $("#dataDialog").close());
+
+$("#activityFile").addEventListener("change", (event) => {
+  const file = event.target.files?.[0];
+  state.activityFile = null;
+  state.activityFileBase64 = null;
+  state.importPreview = null;
+  $("#importPreview").hidden = true;
+  $("#importConsentLabel").hidden = true;
+  $("#confirmImport").hidden = true;
+  $("#importConsent").checked = false;
+  if (!file) return;
+  if (!/\.(fit|gpx|tcx|csv)$/i.test(file.name)) return toast("Choose a FIT, GPX, TCX, or CSV file.");
+  if (file.size > 8_000_000) return toast("Choose an activity file smaller than 8 MB.");
+  state.activityFile = file;
+  $("#activityFileName").textContent = `${file.name} · ${(file.size / 1024).toFixed(1)} KB`;
+  const reader = new FileReader();
+  reader.addEventListener("load", () => { state.activityFileBase64 = String(reader.result).split(",")[1] || ""; });
+  reader.readAsDataURL(file);
+});
+
+$("#previewImport").addEventListener("click", async () => {
+  if (!state.activityFile || !state.activityFileBase64) return toast("Choose an activity file first.");
+  const button = $("#previewImport");
+  button.disabled = true;
+  button.textContent = "Parsing on this server…";
+  try {
+    const preview = await request("/api/imports/preview", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fileName: state.activityFile.name, dataBase64: state.activityFileBase64 }) });
+    state.importPreview = preview;
+    $("#importPreview").hidden = false;
+    $("#importPreview").innerHTML = `<div class="preview-head"><span>${escapeHtml(preview.file.format)} · ${preview.activityCount} activit${preview.activityCount === 1 ? "y" : "ies"}</span><b>RAW STORED: NO</b></div>${preview.activities.map((activity) => `<article><strong>${escapeHtml(activity.name)}</strong><p>${escapeHtml(activity.summary)} · ${escapeHtml(activity.activityAt ? new Date(activity.activityAt).toLocaleString() : "date unknown")}</p>${activity.warnings.length ? `<small>${activity.warnings.map(escapeHtml).join(" ")}</small>` : ""}</article>`).join("")}`;
+    $("#importConsentLabel").hidden = false;
+    $("#confirmImport").hidden = false;
+    $("#confirmImport").disabled = true;
+  } catch (error) { toast(error.message); }
+  finally { button.disabled = false; button.textContent = "Preview normalized data"; }
+});
+
+$("#importConsent").addEventListener("change", (event) => { $("#confirmImport").disabled = !event.target.checked || !state.importPreview; });
+
+$("#confirmImport").addEventListener("click", async () => {
+  if (!state.activityFile || !state.activityFileBase64 || !$("#importConsent").checked) return;
+  const button = $("#confirmImport");
+  button.disabled = true;
+  button.textContent = "Saving summaries…";
+  try {
+    const result = await request("/api/imports", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ fileName: state.activityFile.name, dataBase64: state.activityFileBase64, consent: true }) });
+    toast(`${result.activities.length} activity summar${result.activities.length === 1 ? "y" : "ies"} saved locally`);
+    state.activityFile = null; state.activityFileBase64 = null; state.importPreview = null;
+    $("#activityFile").value = ""; $("#activityFileName").textContent = "Choose an activity export"; $("#importPreview").hidden = true; $("#importConsentLabel").hidden = true; button.hidden = true;
+    await refreshDataSetup();
+  } catch (error) { toast(error.message); button.disabled = false; button.textContent = "Confirm local import"; }
+});
+
+$("#checkinForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const values = Object.fromEntries(new FormData(form));
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  try {
+    await request("/api/checkins", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(values) });
+    form.elements.rpe.value = ""; form.elements.note.value = "";
+    toast("Manual check-in saved locally");
+    await refreshDataSetup();
+  } catch (error) { toast(error.message); }
+  finally { button.disabled = false; }
+});
+
+$("#dataDialog").addEventListener("click", async (event) => {
+  const importButton = event.target.closest("[data-delete-import]");
+  const checkinButton = event.target.closest("[data-delete-checkin]");
+  try {
+    if (importButton) {
+      await request(`/api/imports/${encodeURIComponent(importButton.dataset.deleteImport)}`, { method: "DELETE" });
+      toast("Imported summary deleted");
+      await refreshDataSetup();
+    }
+    if (checkinButton) {
+      await request(`/api/checkins/${encodeURIComponent(checkinButton.dataset.deleteCheckin)}`, { method: "DELETE" });
+      toast("Manual check-in deleted");
+      await refreshDataSetup();
+    }
+  } catch (error) { toast(error.message); }
 });
 
 request("/api/bootstrap").then(async (data) => { renderBootstrap(data); await initializeOnboarding(data); }).catch((error) => toast(error.message));

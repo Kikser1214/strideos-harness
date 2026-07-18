@@ -44,6 +44,8 @@ Done when a clean GitHub install opens the wizard before the dashboard and a beg
 
 ## Task 4 — Data connection setup
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - Garmin and Strava setup contracts;
@@ -153,4 +155,3 @@ The founder records the real first run. StrideOS provides:
 - an edit plan, captions, title card, and screenshot assets.
 
 Done when the public YouTube video clearly shows the product working and the narration explains how both Codex and GPT-5.6 were used.
-

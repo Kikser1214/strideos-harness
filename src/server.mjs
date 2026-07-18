@@ -7,7 +7,9 @@ import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
 import { buildDecision, demoCoachDecision, loadPolicy } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
-import { findDecision, getOnboarding, recentDecisions, resetOnboarding, saveDecision, saveOnboarding, updateDecision } from "./store.mjs";
+import { connectorFreshnessPolicy, sourcePriority } from "./connectors.mjs";
+import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
+import { deleteCheckin, deleteImport, findDecision, getOnboarding, listCheckins, listImports, recentDecisions, resetOnboarding, saveCheckin, saveDecision, saveImportedActivities, saveOnboarding, updateDecision } from "./store.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
@@ -76,6 +78,18 @@ async function api(req, res, pathname) {
     });
   }
 
+  if (req.method === "GET" && pathname === "/api/connectors") {
+    const onboarding = getOnboarding();
+    return json(res, 200, {
+      connectors: listConnectors(),
+      sourcePriority: sourcePriority(onboarding),
+      freshnessPolicy: connectorFreshnessPolicy(),
+      imports: listImports(),
+      checkins: listCheckins(),
+      storage: { mode: "local_state", rawActivityFilesStored: false, deleteAvailable: true }
+    });
+  }
+
   if (req.method === "GET" && pathname === "/api/onboarding/schema") {
     return json(res, 200, { schema: loadOnboardingSchema(), connectors: listConnectors() });
   }
@@ -96,6 +110,36 @@ async function api(req, res, pathname) {
   if (req.method === "DELETE" && pathname === "/api/onboarding") {
     resetOnboarding();
     return json(res, 200, { reset: true });
+  }
+
+  if (req.method === "POST" && pathname === "/api/imports/preview") {
+    const body = await readJson(req);
+    return json(res, 200, parseActivityFile({ fileName: body.fileName, dataBase64: body.dataBase64 }));
+  }
+
+  if (req.method === "POST" && pathname === "/api/imports") {
+    const body = await readJson(req);
+    if (body.consent !== true) throw new HttpError(422, "Confirm local summary storage before importing.");
+    const preview = parseActivityFile({ fileName: body.fileName, dataBase64: body.dataBase64 });
+    const activities = saveImportedActivities(preview.activities);
+    return json(res, 201, { activities, file: preview.file, rawStored: false });
+  }
+
+  const importDelete = /^\/api\/imports\/([a-z0-9-]+)$/i.exec(pathname);
+  if (req.method === "DELETE" && importDelete) {
+    if (!deleteImport(importDelete[1])) throw new HttpError(404, "Imported activity not found.");
+    return json(res, 200, { deleted: true });
+  }
+
+  if (req.method === "POST" && pathname === "/api/checkins") {
+    const body = await readJson(req, 20_000);
+    return json(res, 201, { checkin: saveCheckin(normalizeCheckin(body)) });
+  }
+
+  const checkinDelete = /^\/api\/checkins\/([a-z0-9-]+)$/i.exec(pathname);
+  if (req.method === "DELETE" && checkinDelete) {
+    if (!deleteCheckin(checkinDelete[1])) throw new HttpError(404, "Manual check-in not found.");
+    return json(res, 200, { deleted: true });
   }
 
   if (req.method === "POST" && pathname === "/api/coach") {
@@ -182,7 +226,7 @@ export function createServer() {
       res.writeHead(404, { ...securityHeaders(), "content-type": "text/plain; charset=utf-8" });
       res.end("Not found");
     } catch (error) {
-      const status = error instanceof HttpError ? error.status : 500;
+      const status = error instanceof HttpError || error instanceof ImportError ? error.status : 500;
       if (status === 500) console.error(error);
       json(res, status, { error: status === 500 ? "The harness could not complete that request." : error.message });
     }
