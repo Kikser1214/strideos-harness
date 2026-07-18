@@ -29,6 +29,14 @@ npm run setup
 
 Open <http://localhost:4173>. With no environment variables, the full interface runs in deterministic **judge demo mode** with synthetic data.
 
+### ChatGPT Work + Sites path
+
+The intended everyday user does not need to live in Codex or configure Vercel. Codex is the build surface; the runner uses StrideOS in **ChatGPT Work**. The conversation performs onboarding, explains the evidence, proposes a plan, collects subjective feedback, and asks for approvals. **ChatGPT Sites** is the optional visual companion: a private, shareable athlete dashboard that can be opened on phone or desktop and invited to a human coach.
+
+The open-source [Sites athlete-and-coach demo](sites/athlete-coach-demo) shows that target experience with an explicitly synthetic 3:20 marathon runner. It includes a first-run replay, current-day card, weekly plan, athlete annotation, coach feedback, an exact revision diff, athlete-only approval, and responsive navigation. It is an unbound template: every installer creates their own Site rather than inheriting the project author's deployment.
+
+The current Sites template is a product mock, not yet the durable multi-user backend. Its role switch, comments, and approval interaction reset on refresh. Real shared comments require Sites identity, a private coach allowlist, and D1 persistence; the permission contract is specified in [ChatGPT Work and Sites](docs/CHATGPT_SITES.md). The local server remains the authoritative reference implementation for policy, approval, nutrition, connectors, and external-action boundaries.
+
 Later starts use `npm start`. Windows users can run `npm.cmd run setup`; macOS and Linux use the same `npm run setup` command. See the complete [clean-clone install guide](docs/INSTALL.md), including port, environment, persistent-state, reset, and troubleshooting details. No watch, account, database, or API key is required.
 
 On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Draft answers save locally, and the final review shows starting stage, deadline pressure, declared-versus-observed load, available time, recovery context, missing evidence, confidence, strength guidance, connector truth, and any safety gate before a plan is created.
@@ -104,6 +112,7 @@ docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and appr
 docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
 docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
 docs/REMOTE_COMPANION.md Private PWA hosting, access-key, HTTPS, and persistence contract
+docs/CHATGPT_SITES.md ChatGPT Work flow, per-athlete Sites companion, coach roles, and open-source template
 docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
 docs/INSTALL.md        Clean-clone Windows, macOS, Linux, doctor, environment, and state guide
 docs/RELEASE_CHECKLIST.md  Automated gate and manual release rehearsal
@@ -130,6 +139,7 @@ src/reset.mjs          Clean first-run reset command
 src/server.mjs         Dependency-free Node HTTP server
 test/                  Rule-boundary and HTTP integration tests
 data/sample-profile.json  Complete synthetic contributor profile; never auto-loaded
+sites/athlete-coach-demo  Unbound ChatGPT Sites mock for a 3:20 marathon runner and human coach
 ```
 
 ### Optional Garmin bridge
