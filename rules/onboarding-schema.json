@@ -139,6 +139,7 @@
         { "id": "allergiesIntolerances", "label": "Allergies or intolerances", "type": "textarea", "required": false, "maxLength": 500 },
         { "id": "medicalDiet", "label": "Clinician-prescribed dietary constraints?", "type": "boolean", "required": false },
         { "id": "numberFreePreferred", "label": "Avoid calories, weight targets, and macro numbers?", "type": "boolean", "required": true },
+        { "id": "trackingRelationship", "label": "How should food and body numbers be handled?", "type": "single", "required": false, "options": ["comfortable_with_numbers", "prefer_no_numbers", "previous_or_current_concern", "clinician_guided", "prefer_not_to_say"] },
         { "id": "cookingAccess", "label": "Cooking access", "type": "single", "required": false, "options": ["full_kitchen", "basic", "limited", "mostly_prepared_food"] },
         { "id": "budget", "label": "Food budget style", "type": "single", "required": false, "options": ["tight", "moderate", "flexible", "prefer_not_to_say"] },
         { "id": "hydration", "label": "Hydration routine", "type": "single", "required": false, "options": ["rarely_track", "inconsistent", "consistent", "not_sure"] },

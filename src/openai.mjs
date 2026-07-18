@@ -43,11 +43,13 @@ async function createResponse({ input, instructions, schema, schemaName }) {
   return JSON.parse(data.output_text || "{}");
 }
 
-export async function analyzeMeal({ imageDataUrl, note = "" }) {
+export async function analyzeMeal({ imageDataUrl, note = "", nutritionContext = {} }) {
   return createResponse({
     instructions: [
       "You are the food-sensing component of a personal running coach harness.",
       "Estimate ordinary foods and portions conservatively. Never claim certainty from an image.",
+      "Never declare a meal safe for an allergy or intolerance from an image. Ask the athlete to verify ingredients and cross-contact.",
+      "Do not prescribe restriction, supplements, or medical nutrition treatment.",
       "Estimate summary, foods, useful ranges, and clarifying questions using the required response schema.",
       "This is wellness information, not medical or dietary treatment."
     ].join("\n"),
@@ -81,7 +83,7 @@ export async function analyzeMeal({ imageDataUrl, note = "" }) {
     input: [{
       role: "user",
       content: [
-        { type: "input_text", text: `Analyze this meal for a runner. Athlete note: ${note || "none"}` },
+        { type: "input_text", text: `Analyze this meal for a runner. Athlete note: ${note || "none"}\nNutrition display context: ${JSON.stringify(nutritionContext)}` },
         { type: "input_image", image_url: imageDataUrl, detail: "high" }
       ]
     }]

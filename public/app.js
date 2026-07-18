@@ -3,7 +3,7 @@ const state = {
   bootstrap: null, currentDecision: null, imageDataUrl: null, trace: 0, busy: false,
   onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null,
   dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null,
-  planData: null, planWeek: 0
+  planData: null, planWeek: 0, nutrition: null
 };
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -24,11 +24,13 @@ function renderBootstrap(data) {
   $("#sourceButtonNote").textContent = data.connectors.garmin.configured ? "Garmin adapter + local fallback" : "Files + manual check-ins available";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
   updatePlanEntry(data.training);
+  state.nutrition = data.nutrition;
+  updateFuelEntry(data.nutrition);
   if (data.decisions.length) { state.trace = data.decisions.length; renderLedger(data.decisions[0], { restored: true }); } else renderEmptyLedger();
 }
 
 function addMessage(role, html, extraClass = "") { const article = document.createElement("div"); article.className = `message ${role} ${extraClass}`; article.innerHTML = html; $("#conversation").append(article); $("#conversation").scrollTop = $("#conversation").scrollHeight; return article; }
-function renderEmptyLedger() { state.currentDecision = null; $("#traceId").textContent = "NO TRACE"; $("#ledger").innerHTML = `<div class="empty-ledger"><strong>Ask the coach to create a trace.</strong><p>Evidence, the rule gate, and any proposed action will appear here.</p></div>`; $("#approvalCard").hidden = true; }
+function renderEmptyLedger() { state.currentDecision = null; $("#traceId").textContent = "NO TRACE"; $("#ledger").innerHTML = `<div class="empty-ledger"><strong>Ask the coach to create a trace.</strong><p>Evidence, the rule gate, and any proposed action will appear here.</p></div>`; $("#approvalCard").hidden = true; $("#mealConfirmation").hidden = true; }
 
 function renderLedger(decision, { restored = false } = {}) {
   state.currentDecision = decision; if (!restored) state.trace += 1; $("#traceId").textContent = `TRACE ${String(state.trace || 1).padStart(3, "0")}`;
@@ -39,7 +41,10 @@ function renderLedger(decision, { restored = false } = {}) {
   if (decision.status === "declined") { actionTitle = "Action declined"; actionDetail = "Nothing changed."; }
   $("#ledger").innerHTML = `<article class="ledger-step complete"><span>1</span><div><small>EVIDENCE</small><strong>${decision.evidence.length} signal${decision.evidence.length === 1 ? "" : "s"} loaded</strong><p>${evidence}</p></div><b>✓</b></article><article class="ledger-step complete"><span>2</span><div><small>REASON</small><strong>Proposal grounded in athlete data</strong><p>No unsupported metric was introduced.</p></div><b>✓</b></article><article class="ledger-step ${isAuto || isResolved ? "complete" : "active"}"><span>3</span><div><small>RULE GATE</small><strong>${gateLabel}</strong><p>${escapeHtml(decision.gate.reason)}</p></div><b>${isStop ? "×" : isAuto || isResolved ? "✓" : "!"}</b></article><article class="ledger-step ${isAuto || isResolved ? "complete" : "waiting"}"><span>4</span><div><small>ACTION</small><strong>${escapeHtml(actionTitle)}</strong><p>${escapeHtml(actionDetail)}</p></div><b>${isAuto || decision.status === "approved" ? "✓" : decision.status === "declined" || isStop ? "×" : "…"}</b></article>`;
   $("#proposalText").textContent = decision.proposal; $("#approvalCard").hidden = decision.status !== "awaiting_approval";
-  if (decision.status === "awaiting_approval") $("#approveDecision").textContent = state.bootstrap?.connectors.garmin.configured || decision.gate.action !== "push_garmin_workout" ? "Approve action" : "Approve simulation";
+  const mealApproval = decision.status === "awaiting_approval" && decision.gate.action === "log_food" && decision.resource?.type === "meal_draft";
+  $("#mealConfirmation").hidden = !mealApproval;
+  if (!mealApproval) $("#mealCorrections").value = "";
+  if (decision.status === "awaiting_approval") $("#approveDecision").textContent = mealApproval ? "Confirm and log" : state.bootstrap?.connectors.garmin.configured || decision.gate.action !== "push_garmin_workout" ? "Approve action" : "Approve simulation";
 }
 
 async function sendCoachMessage(message) {
@@ -55,9 +60,12 @@ $("#approveDecision").addEventListener("click", async () => {
   if (!state.currentDecision) return toast("Create a trace before approving an action.");
   try {
     const action = state.currentDecision.gate.action;
-    const result = await request("/api/decisions/approve", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: state.currentDecision.id }) });
+    const approval = { id: state.currentDecision.id };
+    if (action === "log_food" && state.currentDecision.resource?.type === "meal_draft") approval.mealConfirmation = { confirmed: true, corrections: $("#mealCorrections").value };
+    const result = await request("/api/decisions/approve", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(approval) });
     renderLedger(result.decision, { restored: true });
     if (action === "change_training_plan") await refreshPlanData(false);
+    if (action === "log_food") await refreshNutrition(false);
     toast(result.result);
   } catch (error) { toast(error.message); }
 });
@@ -68,16 +76,102 @@ $("#declineDecision").addEventListener("click", async () => {
     const result = await request("/api/decisions/decline", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: state.currentDecision.id }) });
     renderLedger(result.decision, { restored: true });
     if (action === "change_training_plan") await refreshPlanData(false);
+    if (action === "log_food") await refreshNutrition(false);
     toast(result.result);
   } catch (error) { toast(error.message); }
 });
 
-function openFoodDialog() { $("#foodDialog").showModal(); } $("#openFood").addEventListener("click", openFoodDialog); $("#quickFood").addEventListener("click", openFoodDialog);
+function updateFuelEntry(data = state.nutrition) {
+  const companion = data?.companion;
+  const logged = data?.meals?.filter((meal) => meal.status === "logged").length || 0;
+  $("#fuelButtonTitle").textContent = companion?.status === "off" ? "Fuel support off" : companion?.effectiveMode === "number_free" ? "Number-free fuel" : "Fuel companion";
+  $("#fuelButtonNote").textContent = state.bootstrap?.needsOnboarding
+    ? "Complete setup to choose support"
+    : !companion
+      ? "Optional guidance + meal photos"
+      : companion.status === "off"
+        ? "Enable later in Athlete setup"
+        : `${humanize(companion.effectiveMode)} · ${logged} confirmed estimate${logged === 1 ? "" : "s"}`;
+}
+
+function renderMealHistory(meals = []) {
+  const visible = meals.filter((meal) => ["logged", "awaiting_confirmation", "declined", "stale"].includes(meal.status));
+  $("#mealHistory").innerHTML = visible.length ? visible.map((meal) => `<article class="meal-record ${escapeHtml(meal.status)}">
+    <i></i><div><strong>${escapeHtml(meal.estimate?.summary || "Meal estimate")}</strong><p>${escapeHtml(humanize(meal.status))} · ${escapeHtml(new Date(meal.confirmedAt || meal.createdAt).toLocaleDateString())}${meal.corrections ? ` · ${escapeHtml(meal.corrections)}` : ""}</p></div>
+    <button type="button" data-delete-meal="${escapeHtml(meal.id)}">Delete</button>
+  </article>`).join("") : `<div class="empty-data"><strong>No local fuel records</strong><p>A photo estimate appears here only after analysis; it becomes logged athlete data only after confirmation.</p></div>`;
+}
+
+function renderNutrition(data) {
+  state.nutrition = data;
+  updateFuelEntry(data);
+  const companion = data.companion;
+  if (companion.status === "off") {
+    $("#fuelState").hidden = false;
+    $("#fuelState").className = "fuel-state error";
+    $("#fuelState").innerHTML = `<span>Nutrition support is off</span><strong>Your training plan works without food tracking.</strong><p>Enable loose, guided, detailed, or number-free support later in Athlete setup.</p>`;
+    $("#fuelOverview").hidden = true;
+    return;
+  }
+  $("#fuelState").hidden = true;
+  $("#fuelOverview").hidden = false;
+  const target = companion.target.protein?.range || (companion.numberPolicy.numberFree ? "No numeric target" : "Food-first baseline");
+  $("#fuelSummary").innerHTML = `
+    <div><small>Support mode</small><strong>${escapeHtml(humanize(companion.effectiveMode))}</strong><p>${escapeHtml(humanize(companion.goal))}</p></div>
+    <div><small>Numbers</small><strong>${companion.numberPolicy.showMacros ? "Visible ranges" : "Hidden"}</strong><p>${escapeHtml(companion.numberPolicy.explanation)}</p></div>
+    <div><small>Planning anchor</small><strong>${escapeHtml(target)}</strong><p>${companion.target.protein ? escapeHtml(companion.target.protein.basis) : "No generic calorie target is calculated."}</p></div>
+    <div><small>Meal photos</small><strong>${companion.photo.enabled ? "Optional" : "Disabled"}</strong><p>Raw image stored: no · ${escapeHtml(humanize(companion.photo.retention))}</p></div>`;
+  $("#fuelFramework").innerHTML = companion.framework.map((item) => `<div class="fuel-card"><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.cue)}</p>${item.examples.length ? `<small>${item.examples.map(escapeHtml).join(" · ")}</small>` : ""}</div>`).join("");
+  $("#fuelSessionCues").innerHTML = companion.sessionFuel.map((item) => `<div class="fuel-card"><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.cue)}</p></div>`).join("");
+  $("#supplementReview").innerHTML = companion.supplements.map((item) => `<div class="supplement-item"><span>No automatic prescription</span><strong>${escapeHtml(humanize(item.id))} · ${escapeHtml(humanize(item.reportedUse))}</strong><p>${escapeHtml(item.guidance)}</p></div>`).join("");
+  $("#fuelBoundaries").innerHTML = companion.boundaries.map((boundary) => `<li>${escapeHtml(boundary)}</li>`).join("");
+  $("#photoAnalyzer").hidden = !companion.photo.enabled;
+  $("#photoPolicy").textContent = companion.photo.explanation;
+  renderMealHistory(data.meals);
+}
+
+async function refreshNutrition(render = true) {
+  const data = await request("/api/nutrition");
+  state.nutrition = data;
+  updateFuelEntry(data);
+  if (render) renderNutrition(data);
+  return data;
+}
+
+async function openFoodDialog() {
+  if (state.bootstrap?.needsOnboarding) return openAthleteSetup({ firstRun: false });
+  $("#foodDialog").showModal();
+  $("#fuelState").hidden = false;
+  $("#fuelState").className = "fuel-state";
+  $("#fuelState").innerHTML = "<span>Loading</span><strong>Reading your nutrition choices…</strong>";
+  $("#fuelOverview").hidden = true;
+  try { await refreshNutrition(true); }
+  catch (error) { $("#fuelState").className = "fuel-state error"; $("#fuelState").innerHTML = `<span>Could not load</span><strong>${escapeHtml(error.message)}</strong>`; }
+}
+$("#openFood").addEventListener("click", openFoodDialog); $("#quickFood").addEventListener("click", openFoodDialog);
 $("#foodImage").addEventListener("change", (event) => { const file = event.target.files?.[0]; if (!file) return; if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast("Choose a PNG, JPG, or WEBP image."); if (file.size > 8_000_000) return toast("Choose an image smaller than 8 MB."); const reader = new FileReader(); reader.addEventListener("load", () => { state.imageDataUrl = reader.result; $("#foodPreview").src = reader.result; $("#dropZone").classList.add("has-image"); $("#mealResult").hidden = true; }); reader.readAsDataURL(file); });
 $("#analyzeFood").addEventListener("click", async () => {
   if (!state.imageDataUrl) return toast("Choose a meal photo first."); const button = $("#analyzeFood"); button.disabled = true; button.textContent = "Checking image + rules…";
-  try { const result = await request("/api/food", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ imageDataUrl: state.imageDataUrl, note: $("#foodNote").value }) }); const meal = result.meal; $("#mealResult").hidden = false; $("#mealResult").innerHTML = `${result.disclosure ? `<p class="demo-disclosure"><strong>Demo disclosure:</strong> ${escapeHtml(result.disclosure)}</p>` : ""}<h3>${escapeHtml(meal.summary)}</h3><p>${meal.items.map((item) => `${escapeHtml(item.name)} — ${escapeHtml(item.portion)}`).join(" · ")}</p><div class="meal-macros"><div><span>Energy</span><strong>${escapeHtml(meal.caloriesRange)}</strong></div><div><span>Protein</span><strong>${escapeHtml(meal.proteinRange)}</strong></div><div><span>Carbs</span><strong>${escapeHtml(meal.carbsRange)}</strong></div></div><p><strong>Before logging:</strong> ${meal.questions.map(escapeHtml).join(" ")}</p><button type="button" class="approve" id="reviewMeal">Review in the decision ledger →</button>`; $("#reviewMeal").addEventListener("click", () => { renderLedger(result.decision); $("#foodDialog").close(); $("#ledger").scrollIntoView({ behavior: "smooth", block: "center" }); }); toast(result.mode === "live" ? "Meal analyzed by GPT-5.6" : "Demo sample ready — image not inspected"); }
+  try {
+    const result = await request("/api/food", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ imageDataUrl: state.imageDataUrl, note: $("#foodNote").value }) });
+    const meal = result.meal;
+    state.nutrition = { companion: result.companion, meals: [result.draft, ...(state.nutrition?.meals || []).filter((item) => item.id !== result.draft.id)] };
+    updateFuelEntry(state.nutrition);
+    renderMealHistory(state.nutrition.meals);
+    const ranges = meal.caloriesRange ? `<div class="meal-macros"><div><span>Energy</span><strong>${escapeHtml(meal.caloriesRange)}</strong></div><div><span>Protein</span><strong>${escapeHtml(meal.proteinRange)}</strong></div><div><span>Carbs</span><strong>${escapeHtml(meal.carbsRange)}</strong></div></div>` : `<p class="estimate-warning"><strong>Number-free display:</strong> foods, portions, uncertainty, and questions are shown without calorie or macro ranges.</p>`;
+    $("#mealResult").hidden = false;
+    $("#mealResult").innerHTML = `${result.disclosure ? `<p class="demo-disclosure"><strong>Demo disclosure:</strong> ${escapeHtml(result.disclosure)}</p>` : ""}<h3>${escapeHtml(meal.summary)}</h3><p>${meal.items.map((item) => `${escapeHtml(item.name)} — ${escapeHtml(item.portion)}`).join(" · ")}</p>${ranges}<ul>${meal.warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul><p><strong>Confirm before logging:</strong> ${meal.questions.map(escapeHtml).join(" ")}</p><button type="button" class="approve" id="reviewMeal">Review and correct in the decision ledger →</button>`;
+    $("#reviewMeal").addEventListener("click", () => { renderLedger(result.decision); $("#foodDialog").close(); $("#ledger").scrollIntoView({ behavior: "smooth", block: "center" }); });
+    toast(result.mode === "live" ? "Meal analyzed by GPT-5.6" : "Demo sample ready — image not inspected");
+  }
   catch (error) { toast(error.message); } finally { button.disabled = false; button.textContent = "Analyze with the harness"; }
+});
+
+$("#mealHistory").addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-delete-meal]");
+  if (!button) return;
+  try { await request(`/api/meals/${encodeURIComponent(button.dataset.deleteMeal)}`, { method: "DELETE" }); await refreshNutrition(true); toast("Local meal record deleted"); }
+  catch (error) { toast(error.message); }
 });
 
 const optionLabels = {
@@ -89,6 +183,7 @@ const optionLabels = {
   couch_to_active: "Couch to active", body_composition_support: "Body-composition support", return_to_running: "Return to running",
   prefer_not_to_say: "Prefer not to say", do_not_use: "Do not use it", context_only: "Context only", track_trend: "Track the trend",
   support_change: "Support a change", not_applicable: "Not applicable", not_needed: "Not needed", not_sure: "Not sure",
+  comfortable_with_numbers: "Comfortable with numbers", prefer_no_numbers: "Prefer no numbers", previous_or_current_concern: "Past or current concern", clinician_guided: "Clinician-guided",
   completed_no_followup: "Completed — no follow-up", followup_indicated: "Follow-up indicated", prefer_later: "Prefer to do it later",
   fixed_event: "Fixed event", no_deadline: "No deadline", currentPain: "Current pain", full_gym: "Full gym",
   need_guidance: "I need guidance", some_confidence: "Some confidence", coach_supervised: "Coach supervised",
@@ -398,7 +493,10 @@ async function finishOnboarding() {
     state.bootstrap.onboarding = result.onboarding;
     state.bootstrap.needsOnboarding = false;
     state.bootstrap.training = { activePlan: null, proposals: [] };
+    state.bootstrap.nutrition = null;
+    state.nutrition = null;
     updatePlanEntry(state.bootstrap.training);
+    updateFuelEntry(null);
     $("#openOnboarding").textContent = "Athlete setup ✓";
     $("#onboardingDialog").close();
     addMessage("assistant", `<small class="message-mode">Athlete map ready</small><p>${escapeHtml(result.analysis.summary)}</p>`);

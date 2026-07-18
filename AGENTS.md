@@ -17,6 +17,11 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Include schedule, sleep, stress, work pattern, terrain, climate/access, motivation, recurring barriers, pain, and subjective effort in decisions.
 - Nutrition is opt-in. Support loose, guided, detailed, or number-free modes. Meal/fridge image outputs are estimates and require confirmation before logging.
 - Inventory protein powder, creatine, caffeine, other supplements, medications, allergies, medically prescribed diets, and number-free preference. Do not assume a supplement is needed or replace qualified medical/dietetic advice.
+- Read `GET /api/nutrition` before showing fuel guidance. The effective mode and number policy are deterministic and cannot be relaxed by model output.
+- Number-free preference, a relevant tracking concern, an under-18 profile, “do not use” weight context, or clinician-prescribed constraints win over detailed tracking.
+- Never claim an image is safe for a declared allergy or cross-contact risk. Ask the athlete to verify ingredients, preparation, sauces, cooking fats, and portions.
+- A meal estimate becomes logged data only through its linked server-stored `log_food` decision and explicit confirmation. Preserve corrections separately; never replace the estimate with client-supplied content.
+- Never persist raw meal or fridge images in the included state file. Allow deletion of every normalized meal record.
 
 ## Training-method research
 

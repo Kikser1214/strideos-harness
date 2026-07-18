@@ -85,6 +85,8 @@ Done when each plan explains why its frequency and intensity fit the athlete and
 
 ## Task 7 — Nutrition companion
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - opt-out, loose guidance, guided portions, and detailed tracking modes;

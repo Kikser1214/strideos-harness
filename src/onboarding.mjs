@@ -189,9 +189,10 @@ function trainingAnalysis(profile, stage, safety) {
 }
 
 function nutritionAnalysis(profile) {
-  const mode = profile.nutrition?.numberFreePreferred ? "number_free" : profile.nutrition?.mode || "off";
+  const protectedTracking = ["previous_or_current_concern", "clinician_guided"].includes(profile.nutrition?.trackingRelationship) || profile.personal?.ageGroup === "under_18";
+  const mode = profile.nutrition?.numberFreePreferred || profile.nutrition?.trackingRelationship === "prefer_no_numbers" || protectedTracking ? "number_free" : profile.nutrition?.mode || "off";
   if (mode === "off") return { mode, recommendation: "Nutrition coaching stays off. The athlete can enable it later." };
-  if (mode === "number_free") return { mode, recommendation: "Use meal rhythm, food variety, hydration, and training-fuel cues without calorie, weight-target, or macro numbers." };
+  if (mode === "number_free") return { mode, recommendation: "Use meal rhythm, food variety, hydration, and training-fuel cues without calorie, weight-target, or macro numbers. Relevant tracking concerns stay outside automated diet targets." };
   return { mode, recommendation: "Start with normal meals, hydration, and training context. Treat photo and macro outputs as estimates that require confirmation, and review supplements rather than assuming they are needed." };
 }
 

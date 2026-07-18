@@ -181,9 +181,79 @@ test("safety decisions cannot be approved", () => withServer(async (base) => {
   assert.equal((await post(base, "/api/decisions/approve", { id: coached.decision.id })).status, 409);
 }));
 
+test("nutrition companion is opt-in and reflects the completed athlete profile", () => withServer(async (base) => {
+  assert.equal((await fetch(`${base}/api/nutrition`)).status, 409);
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const response = await fetch(`${base}/api/nutrition`);
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.companion.effectiveMode, "loose");
+  assert.equal(data.companion.numberPolicy.showMacros, false);
+  assert.equal(data.companion.photo.rawImageStored, false);
+}));
+
+test("nutrition and photo opt-outs are enforced by the server", () => withServer(async (base) => {
+  const imageDataUrl = "data:image/png;base64,iVBORw0KGgo=";
+  await post(base, "/api/onboarding", { profile: completeProfile({ nutrition: { mode: "off", photoMode: true } }), complete: true });
+  assert.equal((await post(base, "/api/food", { imageDataUrl })).status, 403);
+
+  await post(base, "/api/onboarding", { profile: completeProfile({ nutrition: { mode: "guided", photoMode: false } }), complete: true });
+  assert.equal((await post(base, "/api/food", { imageDataUrl })).status, 403);
+}));
+
+test("meal estimates require explicit confirmation and persist no raw image", () => withServer(async (base) => {
+  const profile = completeProfile({
+    personal: { weight: 70, weightContext: "context_only" },
+    nutrition: { mode: "detailed", numberFreePreferred: false, trackingRelationship: "comfortable_with_numbers", photoMode: true }
+  });
+  await post(base, "/api/onboarding", { profile, complete: true });
+  const analyzedResponse = await post(base, "/api/food", { imageDataUrl: "data:image/png;base64,iVBORw0KGgo=", note: "Sauce on the side" });
+  const analyzed = await analyzedResponse.json();
+  assert.equal(analyzedResponse.status, 200);
+  assert.equal(analyzed.draft.status, "awaiting_confirmation");
+  assert.equal(analyzed.draft.imageStored, false);
+  assert.equal(analyzed.meal.rawImageStored, false);
+  assert.match(analyzed.meal.caloriesRange, /kcal/);
+
+  assert.equal((await post(base, "/api/decisions/approve", { id: analyzed.decision.id })).status, 422);
+  const approved = await post(base, "/api/decisions/approve", {
+    id: analyzed.decision.id,
+    mealConfirmation: { confirmed: true, corrections: "Rice portion was closer to one cup." }
+  });
+  assert.equal(approved.status, 200);
+
+  const nutrition = await (await fetch(`${base}/api/nutrition`)).json();
+  const logged = nutrition.meals.find((meal) => meal.id === analyzed.draft.id);
+  assert.equal(logged.status, "logged");
+  assert.equal(logged.corrections, "Rice portion was closer to one cup.");
+  assert.equal(logged.imageStored, false);
+
+  const removed = await fetch(`${base}/api/meals/${logged.id}`, { method: "DELETE" });
+  assert.equal(removed.status, 200);
+  assert.equal((await (await fetch(`${base}/api/nutrition`)).json()).meals.length, 0);
+}));
+
+test("number-free meal support strips calorie and macro ranges before storage", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile({ nutrition: { mode: "detailed", numberFreePreferred: true, photoMode: true } }), complete: true });
+  const analyzed = await (await post(base, "/api/food", { imageDataUrl: "data:image/png;base64,iVBORw0KGgo=" })).json();
+  assert.equal(analyzed.meal.caloriesRange, null);
+  assert.equal(analyzed.meal.proteinRange, null);
+  assert.equal(analyzed.draft.estimate.carbsRange, null);
+}));
+
+test("declining a meal decision leaves an explicit declined draft", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const analyzed = await (await post(base, "/api/food", { imageDataUrl: "data:image/png;base64,iVBORw0KGgo=" })).json();
+  assert.equal((await post(base, "/api/decisions/decline", { id: analyzed.decision.id })).status, 200);
+  const nutrition = await (await fetch(`${base}/api/nutrition`)).json();
+  assert.equal(nutrition.meals.find((meal) => meal.id === analyzed.draft.id).status, "declined");
+}));
+
 test("meal upload rejects non-image data", () => withServer(async (base) => {
   const response = await post(base, "/api/food", { imageDataUrl: "data:text/plain;base64,SGVsbG8=" });
   assert.equal(response.status, 400);
+  const fakePng = await post(base, "/api/food", { imageDataUrl: "data:image/png;base64,SGVsbG8=" });
+  assert.equal(fakePng.status, 400);
 }));
 
 test.after(() => { try { fs.rmSync(stateFile); } catch {} });

@@ -32,6 +32,8 @@ On the first launch, StrideOS opens the athlete-map onboarding. It asks about cu
 
 After onboarding, **Training plan** opens a deterministic four-week proposal built around the athlete's stage, goal, availability, recovery context, and strength experience. Every session explains its duration and intensity, week four reduces load, missed sessions never create catch-up stacking, and named advanced methods remain behind a suitability-research gate. Previewing changes nothing; the exact plan becomes active only after the athlete approves its server-recorded decision.
 
+**Fuel companion** follows the nutrition mode chosen in onboarding: off, loose, guided, detailed, or number-free. It combines a food-first framework, training-day cues, declared allergy and medical-diet boundaries, and a supplement inventory without automatically prescribing a product. Meal or fridge photos remain estimates; number-free policy can remove all calorie and macro ranges before storage, and the athlete can correct, confirm, decline, or delete every local record.
+
 Reset the local profile before recording or rehearsing a true first run:
 
 ```bash
@@ -65,7 +67,7 @@ No account, Garmin device, private athlete data, or API key is required.
 2. Watch the decision ledger cite four synthetic athlete signals.
 3. See the Garmin write stop at the approval boundary.
 4. Approve or decline it.
-5. Select **Scan a meal**, choose a local image, and review the clearly labeled fixed sample estimate. Add an OpenAI key for real image analysis.
+5. Open **Fuel companion**, inspect the athlete-selected number policy, then choose a local meal or fridge image. Review the clearly labeled fixed demo estimate, correct it, and explicitly confirm or decline logging. Add an OpenAI key and enable cloud processing for real image analysis.
 6. Try a message mentioning chest pain or dizziness to see the safety stop.
 7. Run `npm run reset`, refresh, and inspect the complete first-run athlete map, including the strength and data-source steps.
 
@@ -82,11 +84,13 @@ docs/BUILD_PLAN.md     Delivery tasks and acceptance criteria
 docs/ONBOARDING_RESEARCH.md  Safety, strength, and connector sources
 docs/ATHLETE_ANALYSIS.md  Deterministic analysis rules and model boundary
 docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and approval lifecycle
+docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
 src/athlete-analysis.mjs  Stage, goal, load, recovery, confidence, and permission analysis
 src/training-plan.mjs  Deterministic four-week running and strength proposals
+src/nutrition.mjs     Nutrition modes, protected contexts, fuel cues, and meal-display policy
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
 src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
@@ -116,6 +120,8 @@ Garmin can use the documented bridge contract, but a configured adapter is never
 - A positive onboarding safety signal can save the profile but pauses automated running and strength prescription until the indicated review is resolved.
 - Strength is always considered; the starting dose adapts to experience, technique confidence, equipment, schedule, and recovery.
 - Food-image nutrition values are explicitly estimates and require confirmation before logging.
+- Number-free preference, relevant tracking concerns, under-18 profiles, and clinician-prescribed diets prevent automated calorie or macro targeting.
+- A meal photo never establishes allergen or cross-contact safety, and supplement use is inventoried rather than automatically prescribed.
 - Plan changes and external writes require athlete approval.
 - Unknown actions stop by default.
 - The repository contains synthetic athlete data only.
@@ -142,7 +148,7 @@ npm test
 npm run check
 ```
 
-The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, duplicate proposals, active-plan invalidation, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
+The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, deterministic nutrition modes, number-free and protected contexts, allergen warnings, supplement non-prescription, meal confirmation/correction/decline/deletion, raw-image non-retention, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
 
 ## Build Week plan
 

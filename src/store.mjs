@@ -11,19 +11,20 @@ function stateFile() {
 }
 
 function emptyState() {
-  return { version: 4, decisions: [], onboarding: null, imports: [], checkins: [], plans: [], activePlanId: null };
+  return { version: 5, decisions: [], onboarding: null, imports: [], checkins: [], plans: [], activePlanId: null, meals: [] };
 }
 
 function migrateState(value) {
   const state = value && typeof value === "object" && !Array.isArray(value) ? value : emptyState();
   return {
-    version: 4,
+    version: 5,
     decisions: Array.isArray(state.decisions) ? state.decisions : [],
     onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null,
     imports: Array.isArray(state.imports) ? state.imports : [],
     checkins: Array.isArray(state.checkins) ? state.checkins : [],
     plans: Array.isArray(state.plans) ? state.plans : [],
-    activePlanId: typeof state.activePlanId === "string" ? state.activePlanId : null
+    activePlanId: typeof state.activePlanId === "string" ? state.activePlanId : null,
+    meals: Array.isArray(state.meals) ? state.meals : []
   };
 }
 
@@ -85,6 +86,9 @@ export function saveOnboarding({ profile, analysis, complete = false }) {
       return plan;
     });
     state.activePlanId = null;
+    state.meals = state.meals.map((meal) => meal.status === "awaiting_confirmation"
+      ? { ...meal, status: "stale", staleAt: now, staleReason: "Athlete profile changed before meal confirmation." }
+      : meal);
   }
   state.onboarding = {
     profile,
@@ -102,6 +106,7 @@ export function resetOnboarding() {
   state.onboarding = null;
   state.plans = [];
   state.activePlanId = null;
+  state.meals = [];
   writeState(state);
 }
 
@@ -148,6 +153,64 @@ export function declinePlan(id) {
   state.plans = state.plans.map((plan) => plan.id === id ? { ...plan, status: "declined", declinedAt: new Date().toISOString() } : plan);
   writeState(state);
   return state.plans.find((plan) => plan.id === id);
+}
+
+export function listMeals(limit = 50) {
+  return readState().meals.slice(0, limit);
+}
+
+export function findMeal(id) {
+  return readState().meals.find((meal) => meal.id === id) || null;
+}
+
+export function saveMealDraft({ estimate, note = "", mode = "loose", source = "meal_photo" }) {
+  const state = readState();
+  const saved = {
+    id: crypto.randomUUID(),
+    status: "awaiting_confirmation",
+    source,
+    mode,
+    estimate,
+    athleteNote: String(note).trim().slice(0, 500),
+    imageStored: false,
+    createdAt: new Date().toISOString()
+  };
+  state.meals = [saved, ...state.meals].slice(0, 100);
+  writeState(state);
+  return saved;
+}
+
+export function confirmMeal(id, { corrections = "" } = {}) {
+  const state = readState();
+  const target = state.meals.find((meal) => meal.id === id);
+  if (!target || target.status !== "awaiting_confirmation") return null;
+  const confirmedAt = new Date().toISOString();
+  state.meals = state.meals.map((meal) => meal.id === id ? {
+    ...meal,
+    status: "logged",
+    corrections: String(corrections).trim().slice(0, 500),
+    confirmedAt
+  } : meal);
+  writeState(state);
+  return state.meals.find((meal) => meal.id === id);
+}
+
+export function declineMeal(id) {
+  const state = readState();
+  const target = state.meals.find((meal) => meal.id === id);
+  if (!target || target.status !== "awaiting_confirmation") return null;
+  state.meals = state.meals.map((meal) => meal.id === id ? { ...meal, status: "declined", declinedAt: new Date().toISOString() } : meal);
+  writeState(state);
+  return state.meals.find((meal) => meal.id === id);
+}
+
+export function deleteMeal(id) {
+  const state = readState();
+  const before = state.meals.length;
+  state.meals = state.meals.filter((meal) => meal.id !== id);
+  if (state.meals.length === before) return false;
+  writeState(state);
+  return true;
 }
 
 export function listImports(limit = 100) {

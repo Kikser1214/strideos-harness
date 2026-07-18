@@ -10,6 +10,9 @@ This document records the sources behind the first-run questions and prevents th
 - The [WHO physical activity guidelines](https://www.who.int/publications/i/item/9789240015128) state that some activity is better than none and that inactive adults should start with small amounts and gradually increase frequency, intensity, and duration.
 - The [CDC adult activity guidance](https://www.cdc.gov/physical-activity-basics/guidelines/adults.html) recommends aerobic activity plus muscle-strengthening work for all major muscle groups on two or more days per week. StrideOS treats strength as a core plan component and adapts the dose to experience, equipment, recovery, and running load.
 - The [NIH Office of Dietary Supplements](https://ods.od.nih.gov/factsheets/ExerciseAndAthleticPerformance-Consumer/) emphasizes adequate diet, fluids, training, and qualified guidance before performance supplements. StrideOS inventories supplement use and interactions/concerns instead of automatically prescribing products.
+- The [2025–2030 Dietary Guidelines for Americans](https://cdn.realfood.gov/DGA_508.pdf) support varied nutrient-dense foods, hydration, and individual context; StrideOS does not assign one generic calorie target.
+- [FDA food allergy guidance](https://www.fda.gov/food/buy-store-serve-safe-food/food-allergies-what-you-need-know) makes declared allergies hard constraints. A meal image is never presented as proof of ingredients, allergen safety, or cross-contact safety.
+- The [NICE eating-disorder guideline](https://www.nice.org.uk/guidance/ng69) anchors the protected route: relevant concerns switch automated support to number-free behavior and qualified-care guidance instead of more restrictive tracking.
 
 ## Connector matrix
 
@@ -57,4 +60,3 @@ Primary platform sources:
 - A plan cannot be finalized when a safety gate is active. The user can still save onboarding answers and receive a clear next step.
 - Missing wearable data reduces confidence; it never prevents a manual plan for an otherwise eligible user.
 - Nutrition and body-composition support are optional. Number-free support is available, and uncertain photo estimates require confirmation before logging.
-

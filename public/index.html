@@ -140,7 +140,7 @@
             </button>
             <button class="food-button" id="openFood">
               <span class="food-icon">◫</span>
-              <span><strong>Scan a meal</strong><small>Photo → estimate → confirm</small></span>
+              <span><strong id="fuelButtonTitle">Fuel companion</strong><small id="fuelButtonNote">Optional guidance + meal photos</small></span>
               <b>＋</b>
             </button>
           </aside>
@@ -177,6 +177,7 @@
             <div class="ledger" id="ledger"><div class="empty-ledger"><strong>Ask the coach to create a trace.</strong><p>Evidence, the rule gate, and any proposed action will appear here.</p></div></div>
             <div class="approval-card" id="approvalCard" hidden>
               <div><span>Approval required</span><strong id="proposalText">Push “Aerobic rhythm · 8 km” to Garmin?</strong></div>
+              <label class="meal-confirmation" id="mealConfirmation" hidden>Anything to correct before logging?<textarea id="mealCorrections" maxlength="500" placeholder="e.g. one cup of rice, not two; sauce was separate"></textarea></label>
               <div class="approval-actions">
                 <button class="approve" id="approveDecision">Approve action</button>
                 <button class="decline" id="declineDecision">Not now</button>
@@ -215,18 +216,34 @@
 
     <footer class="shell"><span>StrideOS / 2026</span><span>Wellness coaching, not medical advice.</span></footer>
 
-    <dialog class="food-dialog" id="foodDialog">
+    <dialog class="food-dialog" id="foodDialog" aria-labelledby="foodTitle">
       <form method="dialog" class="dialog-shell">
         <button class="dialog-close" value="cancel" aria-label="Close">×</button>
-        <div class="dialog-heading"><p class="eyebrow">Fuel lens</p><h2>Show the harness what you ate.</h2><p>With an OpenAI key, GPT-5.6 estimates the meal. Demo mode returns a clearly labeled fixed sample so judges can test the approval flow.</p></div>
-        <label class="drop-zone" id="dropZone" for="foodImage">
-          <input id="foodImage" type="file" accept="image/png,image/jpeg,image/webp" />
-          <img id="foodPreview" alt="Selected meal preview" />
-          <span id="dropCopy"><b>＋</b><strong>Choose a meal photo</strong><small>PNG, JPG, or WEBP</small></span>
-        </label>
-        <label class="note-field">Anything the image cannot show?<input id="foodNote" type="text" placeholder="e.g. olive oil in the dressing" /></label>
-        <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with the harness</button>
-        <div class="meal-result" id="mealResult" hidden></div>
+        <div class="dialog-heading"><p class="eyebrow">Fuel companion / athlete controlled</p><h2 id="foodTitle">Fuel the week.<br /><em>Keep the rules.</em></h2><p>Your onboarding choices decide whether support is loose, portion-guided, detailed, or number-free. Photos are optional estimates and never prove allergen safety.</p></div>
+        <div class="fuel-state" id="fuelState"><span>Loading</span><strong>Reading your nutrition choices…</strong></div>
+        <section class="fuel-overview" id="fuelOverview" hidden>
+          <div class="fuel-summary" id="fuelSummary"></div>
+          <div class="fuel-grid">
+            <article><p class="panel-kicker">Everyday framework</p><div class="fuel-cards" id="fuelFramework"></div></article>
+            <article><p class="panel-kicker">Fuel the training week</p><div class="fuel-cards" id="fuelSessionCues"></div></article>
+          </div>
+          <div class="fuel-grid">
+            <article><p class="panel-kicker">Supplement inventory</p><div class="supplement-list" id="supplementReview"></div></article>
+            <article><p class="panel-kicker">Hard boundaries</p><ul class="fuel-boundaries" id="fuelBoundaries"></ul></article>
+          </div>
+          <section class="photo-analyzer" id="photoAnalyzer">
+            <div><p class="panel-kicker">Meal or fridge photo / optional</p><h3>Estimate first. Confirm before logging.</h3><p id="photoPolicy">The raw image is not retained by this starter.</p></div>
+            <label class="drop-zone" id="dropZone" for="foodImage">
+              <input id="foodImage" type="file" accept="image/png,image/jpeg,image/webp" />
+              <img id="foodPreview" alt="Selected meal preview" />
+              <span id="dropCopy"><b>＋</b><strong>Choose a meal or fridge photo</strong><small>PNG, JPG, or WEBP · max 8 MB</small></span>
+            </label>
+            <label class="note-field">Anything the image cannot show?<input id="foodNote" type="text" maxlength="500" placeholder="e.g. ingredients, oil, sauce, or actual portion" /></label>
+            <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with the harness</button>
+            <div class="meal-result" id="mealResult" hidden></div>
+          </section>
+          <section class="meal-history"><div class="saved-heading"><strong>Local fuel records</strong><span>DELETE ANYTIME</span></div><div id="mealHistory"></div></section>
+        </section>
       </form>
     </dialog>
 

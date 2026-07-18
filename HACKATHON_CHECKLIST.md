@@ -51,6 +51,11 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Named advanced or regional training methods trigger a suitability-research gate instead of becoming a universal template.
 - [x] Training-plan preview, proposal, decline, and activation use the persisted decision ledger; only explicit server-authorized approval activates a block.
 - [x] Missed sessions never create catch-up stacking, and new pain/profile evidence marks an active block for review.
+- [x] Nutrition support is optional and implements off, loose, guided, detailed, and number-free behavior.
+- [x] Number-free preference, tracking concerns, under-18 profiles, and clinician-prescribed diets prevent automated restrictive targets.
+- [x] Meal and fridge estimates expose ingredient, portion, allergen, and cross-contact uncertainty; raw images are not written to local state.
+- [x] Food logging requires a linked decision, an explicit confirmation, and supports bounded corrections, decline, persistence, and deletion.
+- [x] Protein powder, creatine, caffeine, and other supplements are inventoried without automatic prescription.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 
