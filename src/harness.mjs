@@ -46,7 +46,34 @@ export function buildDecision({ evidence, action, context, proposal, resource = 
   };
 }
 
-export function demoCoachDecision(message = "", dashboard = null) {
+const runningSessionTypes = new Set(["run_walk", "easy_run", "long_easy", "controlled_quality"]);
+
+export function workoutResourceFromDashboard(dashboard, athleteId = "local-athlete") {
+  if (dashboard?.today?.state !== "scheduled") return null;
+  const session = dashboard.today.sessions?.find((item) => runningSessionTypes.has(item.type));
+  const durationMinutes = Number(session?.durationMinutes);
+  if (!session?.id || !session?.title || !Number.isFinite(durationMinutes) || durationMinutes <= 0) return null;
+  const safeAthleteId = String(athleteId || "local-athlete").trim().slice(0, 80) || "local-athlete";
+  return {
+    type: "workout",
+    athleteId: safeAthleteId,
+    workout: {
+      source: "approved_training_plan",
+      planId: dashboard.plan?.id || null,
+      sessionId: session.id,
+      name: session.title,
+      sport: "running",
+      type: session.type,
+      scheduledDate: dashboard.today.date,
+      durationMinutes,
+      target: session.intensity?.talkTest || session.intensity?.rule || `RPE ${session.intensity?.rpe || "easy"}`,
+      intensity: session.intensity || null,
+      steps: Array.isArray(session.steps) ? session.steps : []
+    }
+  };
+}
+
+export function demoCoachDecision(message = "", dashboard = null, athleteId = "local-athlete") {
   const normalized = message.toLowerCase();
   const wantsFood = /food|meal|lunch|breakfast|dinner|eat|photo/.test(normalized);
   const mentionsPain = /pain|sharp|dizzy|chest|faint/.test(normalized);
@@ -86,12 +113,16 @@ export function demoCoachDecision(message = "", dashboard = null) {
       dashboard.recovery.pain === null ? "No fresh pain check-in" : `Pain: ${dashboard.recovery.pain}/10`,
       `Data freshness: ${dashboard.sources.status}`
     ];
-    if (dashboard.today?.state === "scheduled" && running) return buildDecision({
-      evidence,
-      action: "push_garmin_workout",
-      context: {},
-      proposal: `Keep ${running.title} for ${running.durationMinutes} minutes at RPE ${running.intensity?.rpe || "easy"}. Push this approved session to Garmin?`
-    });
+    if (dashboard.today?.state === "scheduled" && running) {
+      const resource = workoutResourceFromDashboard(dashboard, athleteId);
+      if (resource) return buildDecision({
+        evidence,
+        action: "push_garmin_workout",
+        context: {},
+        proposal: `Keep ${resource.workout.name} for ${resource.workout.durationMinutes} minutes at RPE ${resource.workout.intensity?.rpe || "easy"}. Push this approved session to Garmin?`,
+        resource
+      });
+    }
     return buildDecision({
       evidence,
       action: "read_training_data",
@@ -104,6 +135,23 @@ export function demoCoachDecision(message = "", dashboard = null) {
     evidence: ["Readiness 74/100", "7.6 h sleep", "No pain reported", "Yesterday RPE 2.5/10"],
     action: "push_garmin_workout",
     context: {},
-    proposal: "Keep today's 8 km aerobic run. Start very easy for 10 minutes, then settle into conversational effort. Push it to Garmin?"
+    proposal: "Keep today's 8 km aerobic run. Start very easy for 10 minutes, then settle into conversational effort. Push it to Garmin?",
+    resource: {
+      type: "workout",
+      athleteId: "demo-alex",
+      workout: {
+        source: "synthetic_judge_fixture",
+        sessionId: "demo_aerobic_rhythm",
+        name: "Aerobic rhythm",
+        sport: "running",
+        type: "easy_run",
+        scheduledDate: null,
+        distanceKm: 8,
+        durationMinutes: null,
+        target: "Easy conversational effort",
+        intensity: { rpe: "2-4", talkTest: "Full sentences and relaxed form." },
+        steps: []
+      }
+    }
   });
 }

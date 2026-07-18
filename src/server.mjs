@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
-import { buildDecision, demoCoachDecision, loadPolicy } from "./harness.mjs";
+import { buildDecision, demoCoachDecision, loadPolicy, workoutResourceFromDashboard } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
 import { connectorFreshnessPolicy, sourcePriority } from "./connectors.mjs";
 import { analyzeAthlete } from "./athlete-analysis.mjs";
@@ -289,10 +289,25 @@ async function api(req, res, pathname) {
     if (process.env.OPENAI_API_KEY && !personal) throw new HttpError(409, "Complete athlete onboarding before live coaching.");
     if (process.env.OPENAI_API_KEY && onboarding.profile.delivery?.cloudProcessing !== true) throw new HttpError(403, "Enable cloud processing in Athlete setup before sending personal coaching context to GPT-5.6.");
     const result = await coach({ message, athlete: personal || demoAthlete });
-    const decision = result ? buildDecision({
-      evidence: result.evidence, action: result.action,
-      context: { confidence: result.confidence }, proposal: result.proposal
-    }) : demoCoachDecision(message, personal?.dashboard || null);
+    const athleteId = personal?.profile?.personal?.preferredName || "local-athlete";
+    const exactWorkout = workoutResourceFromDashboard(personal?.dashboard, athleteId);
+    let decision;
+    if (result) {
+      const requestedGarminWrite = result.action === "push_garmin_workout";
+      const action = requestedGarminWrite && !exactWorkout ? "read_training_data" : result.action;
+      const proposal = requestedGarminWrite
+        ? exactWorkout
+          ? `Push ${exactWorkout.workout.name} for ${exactWorkout.workout.durationMinutes} minutes to Garmin?`
+          : "No server-authorized running session is scheduled today, so no Garmin write was created."
+        : result.proposal;
+      decision = buildDecision({
+        evidence: requestedGarminWrite && !exactWorkout ? [...result.evidence, "No server-authorized running session is scheduled today."] : result.evidence,
+        action,
+        context: { confidence: result.confidence },
+        proposal,
+        resource: requestedGarminWrite ? exactWorkout : null
+      });
+    } else decision = demoCoachDecision(message, personal?.dashboard || null, athleteId);
     saveDecision(decision);
     return json(res, 200, { decision, mode: result ? "live" : "demo" });
   }
@@ -360,7 +375,22 @@ async function api(req, res, pathname) {
     if (decision.status !== "awaiting_approval") throw new HttpError(409, "This decision is no longer awaiting approval.");
 
     let actionResult;
-    if (decision.gate.action === "push_garmin_workout") actionResult = await pushWorkout({ decision, athlete: demoAthlete });
+    if (decision.gate.action === "push_garmin_workout") {
+      const source = decision.resource?.workout?.source;
+      if (decision.resource?.type !== "workout" || !["approved_training_plan", "synthetic_judge_fixture"].includes(source)) {
+        throw new HttpError(409, "The approved decision has no exact server-authored workout to send.");
+      }
+      if (source === "approved_training_plan") {
+        const onboarding = getOnboarding();
+        const athleteId = onboarding?.profile?.personal?.preferredName || "local-athlete";
+        const currentResource = onboarding?.completedAt ? workoutResourceFromDashboard(currentDashboard(onboarding), athleteId) : null;
+        if (!currentResource || JSON.stringify(currentResource) !== JSON.stringify(decision.resource)) {
+          updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The workout is no longer current. Review the latest plan, pain, and recovery evidence." } });
+          throw new HttpError(409, "The workout is no longer current. Review the latest plan, pain, and recovery evidence.");
+        }
+      }
+      actionResult = await pushWorkout({ decision });
+    }
     else if (decision.gate.action === "change_training_plan") {
       const plan = decision.resource?.type === "training_plan" ? activatePlan(decision.resource.id) : null;
       if (!plan) throw new HttpError(409, "This training-plan proposal is no longer available for activation.");

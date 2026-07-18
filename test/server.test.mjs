@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createServer } from "../src/server.mjs";
-import { resetState } from "../src/store.mjs";
+import { activatePlan, resetState, savePlanProposal } from "../src/store.mjs";
 import { completeProfile } from "./fixtures.mjs";
 
 const stateFile = path.join(os.tmpdir(), `strideos-test-${process.pid}.json`);
@@ -23,6 +23,17 @@ async function withServer(run) {
 
 async function post(base, pathname, body) {
   return fetch(`${base}${pathname}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+}
+
+function activateTodaysRunningPlan({ id = "plan_personal_bridge_test", sessionId = "personal_run_1", title = "Personal easy run" } = {}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const plan = {
+    id, status: "proposal", startDate: today, endDate: today,
+    weeks: [{ week: 1, startDate: today, recoveryWeek: false, days: [{ day: "monday", date: today, sessions: [{ id: sessionId, type: "easy_run", title, durationMinutes: 31, intensity: { rpe: "2-4", talkTest: "Full sentences." }, steps: [] }] }] }]
+  };
+  savePlanProposal(plan, "seed_decision");
+  activatePlan(plan.id);
+  return plan;
 }
 
 test("bootstrap reports connector truthfully", () => withServer(async (base) => {
@@ -80,6 +91,32 @@ test("personal demo coaching does not invent a Garmin workout without an active 
   assert.equal(coached.decision.gate.action, "read_training_data");
   assert.equal(coached.decision.status, "completed");
   assert.match(coached.decision.evidence.join(" "), /No active training block/i);
+}));
+
+test("personal approval is bound to the exact active-plan workout", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" } }), complete: true });
+  activateTodaysRunningPlan();
+  const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
+  assert.equal(coached.decision.gate.action, "push_garmin_workout");
+  assert.equal(coached.decision.resource.athleteId, "Mia");
+  assert.equal(coached.decision.resource.workout.planId, "plan_personal_bridge_test");
+  assert.equal(coached.decision.resource.workout.sessionId, "personal_run_1");
+  assert.equal(coached.decision.resource.workout.name, "Personal easy run");
+  assert.equal(coached.decision.resource.workout.distanceKm, undefined);
+  assert.equal((await post(base, "/api/decisions/approve", { id: coached.decision.id })).status, 200);
+}));
+
+test("new pain evidence invalidates a previously proposed Garmin write", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" } }), complete: true });
+  activateTodaysRunningPlan({ id: "plan_stale_workout_test", sessionId: "stale_run_1", title: "Run before new evidence" });
+  const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
+  assert.equal(coached.decision.status, "awaiting_approval");
+  await post(base, "/api/checkins", { pain: 5, rpe: 7, energy: 2, sleepFeel: 2, note: "Pain changed after the proposal" });
+  const approval = await post(base, "/api/decisions/approve", { id: coached.decision.id });
+  assert.equal(approval.status, 409);
+  assert.match((await approval.json()).error, /no longer current/i);
+  const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
+  assert.equal(bootstrap.decisions.find((item) => item.id === coached.decision.id).status, "stopped");
 }));
 
 test("onboarding schema and connector truth are available", () => withServer(async (base) => {
@@ -301,6 +338,26 @@ test("meal upload rejects non-image data", () => withServer(async (base) => {
   assert.equal(response.status, 400);
   const fakePng = await post(base, "/api/food", { imageDataUrl: "data:image/png;base64,SGVsbG8=" });
   assert.equal(fakePng.status, 400);
+}));
+
+test("HTTP boundary rejects malformed, mislabelled, oversized, and traversal requests", () => withServer(async (base) => {
+  const apiResponse = await fetch(`${base}/api/bootstrap`);
+  assert.equal(apiResponse.headers.get("x-content-type-options"), "nosniff");
+  assert.match(apiResponse.headers.get("content-security-policy"), /default-src 'self'/);
+  assert.equal(apiResponse.headers.get("cache-control"), "no-store");
+
+  const page = await fetch(base);
+  assert.equal(page.status, 200);
+  assert.equal(page.headers.get("referrer-policy"), "no-referrer");
+  assert.match(page.headers.get("permissions-policy"), /camera=\(\)/);
+  assert.equal((await fetch(`${base}/%2e%2e%2fpackage.json`)).status, 404);
+
+  const wrongType = await fetch(`${base}/api/coach`, { method: "POST", headers: { "content-type": "text/plain" }, body: "hello" });
+  assert.equal(wrongType.status, 415);
+  const malformed = await fetch(`${base}/api/coach`, { method: "POST", headers: { "content-type": "application/json" }, body: "{" });
+  assert.equal(malformed.status, 400);
+  const oversized = await fetch(`${base}/api/checkins`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ note: "x".repeat(21_000) }) });
+  assert.equal(oversized.status, 413);
 }));
 
 test.after(() => { try { fs.rmSync(stateFile); } catch {} });

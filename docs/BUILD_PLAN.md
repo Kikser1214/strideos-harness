@@ -138,6 +138,8 @@ Done when a clean clone can reach onboarding and judge mode from the README alon
 
 ## Task 11 — Hardening
 
+Status: **complete (July 18, 2026)**. The release gate passes, the production dependency audit reports zero vulnerabilities, and the full 11-step first-run, plan approval, dashboard activation, desktop/mobile, and manual automation-preview path was rehearsed against isolated local state.
+
 Deliverables:
 
 - unit, API, persistence, browser, accessibility, responsive, and clean-install checks;

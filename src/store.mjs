@@ -33,11 +33,24 @@ function migrateState(value) {
 }
 
 export function readState() {
+  const file = stateFile();
+  let raw;
   try {
-    return migrateState(JSON.parse(fs.readFileSync(stateFile(), "utf8")));
+    raw = fs.readFileSync(file, "utf8");
   } catch (error) {
     if (error?.code === "ENOENT") return emptyState();
     throw error;
+  }
+
+  try {
+    return migrateState(JSON.parse(raw));
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    const parsed = path.parse(file);
+    const stamp = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
+    const backup = path.join(parsed.dir, `${parsed.name}.corrupt-${stamp}-${process.pid}${parsed.ext || ".json"}`);
+    fs.renameSync(file, backup);
+    return emptyState();
   }
 }
 

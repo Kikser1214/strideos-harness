@@ -99,6 +99,7 @@ docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, 
 docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
 docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
 docs/INSTALL.md        Clean-clone Windows, macOS, Linux, doctor, environment, and state guide
+docs/RELEASE_CHECKLIST.md  Automated gate and manual release rehearsal
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
@@ -163,11 +164,10 @@ The human made the central product decisions: rebuild from scratch, treat Stride
 ## Tests
 
 ```bash
-npm test
-npm run check
+npm run verify
 ```
 
-The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, deterministic nutrition modes, number-free and protected contexts, allergen warnings, supplement non-prescription, meal confirmation/correction/decline/deletion, raw-image non-retention, dashboard empty/pending/active/safety states, observed-versus-completed separation, source freshness, editable automation proposals, RRULE generation, manual brief tests, no-update behavior, post-workout reflection gating, automation safety overrides, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
+The release gate runs the setup doctor, syntax checks, and the full test suite. Coverage includes action boundaries, onboarding, athlete analysis, planning, nutrition, dashboard truth, Scheduled proposals, source freshness, file imports, manual check-ins, corrupt-state recovery, exact Garmin bridge payloads, HTTP input limits and security headers, static accessibility, persistence, and duplicate approvals. Use the [manual release checklist](docs/RELEASE_CHECKLIST.md) before a public submission.
 
 ## Build Week plan
 

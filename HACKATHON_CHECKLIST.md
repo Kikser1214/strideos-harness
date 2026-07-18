@@ -18,7 +18,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 
 ## Submission requirements
 
-- [ ] Install the optional Devpost Hackathons plugin after signing into the ChatGPT Apps page. The official rules say it is not required for eligibility or judging.
+- [x] Install and connect the optional Devpost Hackathons plugin after signing into ChatGPT. Version 3.0.0 was verified through its active Manage/Try in chat controls; the official rules say it is not required for eligibility or judging.
 - [ ] Join the hackathon on Devpost.
 - [ ] Exercise the live GPT-5.6 path with a real API key and capture evidence.
 - [x] Category selected: **Apps for Your Life**.
@@ -63,6 +63,11 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Every scheduled prompt has a manual test path, read-only command contract, no-update behavior, safety override, and zero external writes.
 - [x] `npm run setup` installs, diagnoses, and starts a clean clone; `npm run doctor` checks Node, dependencies, env syntax, state permissions, port, privacy ignores, sample profile, and required docs.
 - [x] Windows, macOS, and Linux clean-install instructions, optional live mode, persistent state, reset, and a non-auto-loaded synthetic sample are documented.
+- [x] Corrupt local JSON state is moved to a recoverable ignored backup before StrideOS starts with an empty state.
+- [x] Garmin approval is bound to the exact server-authored workout resource, revalidated against new evidence, and synthetic judge workouts stay simulated even when a bridge is configured.
+- [x] Security headers, content type, malformed JSON, oversized input, traversal, duplicate action, static accessibility, persistence, and bridge-payload boundaries have automated coverage.
+- [x] Task 11 release gate passes: setup doctor, syntax checks, 89 tests, and the production dependency audit report zero vulnerabilities.
+- [x] The isolated clean-state browser rehearsal completed all 11 onboarding steps, plan proposal/approval, active dashboard, desktop/mobile layouts, and a read-only automation preview.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 

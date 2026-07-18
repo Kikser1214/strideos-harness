@@ -42,6 +42,8 @@ The onboarding primary source is first, followed by the other selected sources, 
 
 Set `GARMIN_BRIDGE_URL` and, when needed, `GARMIN_BRIDGE_TOKEN`. The bridge receives an approved, server-authored workout payload. Official Garmin cloud access is available through the Garmin Connect Developer Program and may require approval and commercial licensing. Production adapters must implement athlete consent, read freshness, write confirmation, token security, disconnect, and upstream deletion/revocation behavior.
 
+The POST body is `{ decisionId, athleteId, workout }`. `workout` is copied from the exact scheduled running session attached to the persisted approval decision and includes its source, plan ID, session ID, name, sport, type, scheduled date, duration, target, intensity, and steps. Approval revalidates that exact resource against current plan, pain, recovery, and profile state. A missing or stale workout is rejected, and the synthetic judge fixture is always simulated even when a bridge URL is configured.
+
 ### Strava
 
 Set `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, and `STRAVA_REDIRECT_URI`. This changes the truthful status to **OAuth setup ready**, not connected. A later connector must implement authorization-code exchange, short-lived access tokens, refresh-token rotation, accepted-scope checks, webhooks, and the current revocation endpoint before the status may become connected.

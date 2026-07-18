@@ -8,7 +8,19 @@ export function garminStatus() {
   };
 }
 
-export async function pushWorkout({ decision, athlete }) {
+export async function pushWorkout({ decision }) {
+  const resource = decision?.resource;
+  const source = resource?.workout?.source;
+  if (resource?.type !== "workout" || !resource.athleteId || !resource.workout?.name || !["approved_training_plan", "synthetic_judge_fixture"].includes(source)) {
+    throw new TypeError("Garmin writes require an exact server-authored workout resource.");
+  }
+  if (source === "synthetic_judge_fixture") {
+    return {
+      performed: false,
+      simulated: true,
+      message: "Approval recorded. Synthetic judge workouts are always simulated; no external calendar changed."
+    };
+  }
   const status = garminStatus();
   if (!status.configured) {
     return {
@@ -28,7 +40,7 @@ export async function pushWorkout({ decision, athlete }) {
         "content-type": "application/json",
         ...(process.env.GARMIN_BRIDGE_TOKEN ? { authorization: `Bearer ${process.env.GARMIN_BRIDGE_TOKEN}` } : {})
       },
-      body: JSON.stringify({ decisionId: decision.id, athleteId: athlete.athlete.firstName, workout: athlete.workout })
+      body: JSON.stringify({ decisionId: decision.id, athleteId: resource.athleteId, workout: resource.workout })
     });
     if (!response.ok) throw new Error(`Garmin bridge rejected the write (${response.status}).`);
     return { performed: true, simulated: false, message: "Workout sent through the configured Garmin bridge." };
