@@ -24,6 +24,8 @@ StrideOS also turns authorized training signals, pain and RPE feedback, and meal
 
 Its optional fuel companion respects off, loose, guided, detailed, and number-free modes. It combines ordinary food and training-day cues with allergy, medical-diet, budget, kitchen, hydration, and supplement context. A photo never proves ingredients or allergen safety. The harness can remove all calorie and macro ranges before storage, and every estimate must be corrected or confirmed before it becomes a local log.
 
+Optional Codex/ChatGPT Scheduled workflows cover a morning brief, pre-workout check, post-workout reflection, and weekly review. StrideOS generates an editable timezone-aware RRULE and durable read-only prompt, requires a manual test, and never claims the workflow was installed. Scheduled runs can summarize or ask for input, but plan changes, food logs, and connector writes return to interactive approval.
+
 The included judge mode needs no account, wearable, private data, or API key. Judges can inspect the data-source truth matrix, import a FIT, GPX, TCX, or CSV activity through preview and explicit consent, or add a manual pain/RPE/energy/sleep check-in. They can then ask for today's workout, inspect why a Garmin write stops for approval, accept or decline a clearly labeled simulation, and test the meal approval flow with a disclosed fixed sample estimate. With an OpenAI key, the same meal flow analyzes the uploaded image with GPT-5.6.
 
 ## How we built it
@@ -48,6 +50,7 @@ The hard part was not generating another training answer. It was defining the bo
 - An athlete-controlled nutrition companion with number-free and protected contexts, food-first session cues, and no automatic supplement prescription.
 - A server-authoritative meal lifecycle: uncertain photo estimate, optional correction, explicit confirm or decline, local persistence without the raw image, and deletion.
 - A deterministic athlete dashboard that separates approved plans, observed activity, subjective recovery, source freshness, and confirmed meal records without inventing completion or readiness.
+- Four preview-first scheduled-workflow proposals with editable RRULEs, exact prompts, manual tests, safety overrides, and no unattended external writes.
 - Transparent confidence and evidence-gap labels for stage, goal window, load, weekly room, and recovery; model enrichment cannot rewrite safety or permissions.
 - Multimodal meal analysis that exposes uncertainty, with an honest non-AI sample fallback.
 - Server-authoritative, persisted approvals and an optional Garmin bridge adapter.

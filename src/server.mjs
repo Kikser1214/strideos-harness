@@ -12,8 +12,9 @@ import { analyzeAthlete } from "./athlete-analysis.mjs";
 import { buildTrainingPlan } from "./training-plan.mjs";
 import { applyMealPolicy, buildNutritionCompanion } from "./nutrition.mjs";
 import { buildDashboard } from "./dashboard.mjs";
+import { buildAutomationSetup, normalizeAutomationOverride, runAutomationPreview } from "./automations.mjs";
 import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
-import { activatePlan, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, findDecision, findPlan, getActivePlan, getOnboarding, listCheckins, listImports, listMeals, listPlans, recentDecisions, resetOnboarding, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, updateDecision } from "./store.mjs";
+import { activatePlan, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, findDecision, findPlan, getActivePlan, getAutomationState, getOnboarding, listCheckins, listImports, listMeals, listPlans, recentDecisions, resetOnboarding, saveAutomationOverride, saveAutomationTest, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, updateDecision } from "./store.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
@@ -106,6 +107,10 @@ function currentDashboard(onboarding = getOnboarding()) {
   });
 }
 
+function currentAutomationSetup(onboarding = getOnboarding()) {
+  return buildAutomationSetup({ profile: onboarding?.completedAt ? onboarding.profile : null, automationState: getAutomationState() });
+}
+
 async function api(req, res, pathname) {
   if (req.method === "GET" && pathname === "/api/health") {
     return json(res, 200, { ok: true, openai: Boolean(process.env.OPENAI_API_KEY), garmin: garminStatus() });
@@ -124,6 +129,7 @@ async function api(req, res, pathname) {
       training: { activePlan: getActivePlan(), proposals: listPlans(4) },
       nutrition: currentNutritionData(onboarding),
       dashboard: currentDashboard(onboarding),
+      automations: currentAutomationSetup(onboarding),
       needsOnboarding: !onboarding?.completedAt,
       decisions: recentDecisions()
     });
@@ -159,6 +165,32 @@ async function api(req, res, pathname) {
 
   if (req.method === "GET" && pathname === "/api/dashboard") {
     return json(res, 200, { dashboard: currentDashboard() });
+  }
+
+  if (req.method === "GET" && pathname === "/api/automations") {
+    return json(res, 200, currentAutomationSetup());
+  }
+
+  if (req.method === "POST" && pathname === "/api/automations/config") {
+    const onboarding = getOnboarding();
+    if (!onboarding?.completedAt) throw new HttpError(409, "Complete athlete onboarding before configuring scheduled-brief proposals.");
+    const body = await readJson(req);
+    let override;
+    try { override = normalizeAutomationOverride(body.id, body); }
+    catch (error) { throw new HttpError(422, error.message); }
+    saveAutomationOverride(body.id, override);
+    return json(res, 200, currentAutomationSetup(onboarding));
+  }
+
+  if (req.method === "POST" && pathname === "/api/automations/test") {
+    const onboarding = getOnboarding();
+    if (!onboarding?.completedAt) throw new HttpError(409, "Complete athlete onboarding before testing a scheduled brief.");
+    const body = await readJson(req);
+    const setup = currentAutomationSetup(onboarding);
+    if (!setup.tasks.some((task) => task.id === body.id)) throw new HttpError(422, "Choose a known automation proposal.");
+    const preview = runAutomationPreview({ id: body.id, dashboard: currentDashboard(onboarding), imports: listImports(), checkins: listCheckins() });
+    saveAutomationTest(body.id, preview.status);
+    return json(res, 200, { preview, setup: currentAutomationSetup(onboarding) });
   }
 
   if (req.method === "GET" && pathname === "/api/training-plan") {

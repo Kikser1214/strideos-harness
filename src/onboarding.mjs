@@ -200,6 +200,7 @@ function automationAnalysis(profile) {
   const proposals = [];
   if (profile.delivery?.morningBrief) proposals.push({ id: "morning_brief", label: "Morning readiness brief", requiresScheduleApproval: true });
   if (profile.delivery?.preWorkoutBrief) proposals.push({ id: "pre_workout", label: "Pre-workout check", requiresScheduleApproval: true });
+  if (profile.delivery?.postWorkoutReflection) proposals.push({ id: "post_workout", label: "Post-workout reflection", requiresScheduleApproval: true });
   if (profile.delivery?.weeklyReview) proposals.push({ id: "weekly_review", label: "Weekly review and plan proposal", requiresScheduleApproval: true });
   return { proposals, scheduled: false, note: "These are proposals only. Test each prompt manually before creating a scheduled task." };
 }

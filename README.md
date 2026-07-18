@@ -34,12 +34,20 @@ After onboarding, **Training plan** opens a deterministic four-week proposal bui
 
 The **athlete dashboard** then projects only server-authoritative state: today's approved session or an honest empty/upcoming state, current-week running and strength load, recovery feedback, observed activity, goal window, optional fuel mode, and source freshness. Pending plans never masquerade as active workouts, and observed files never silently become claimed plan completion. No synthetic readiness score is substituted for a real athlete.
 
+The **Automations** screen prepares optional morning, pre-workout, post-workout, and weekly workflows for ChatGPT/Codex Scheduled. Each shows an editable local schedule and RRULE, an exact durable prompt, a manual read-only test, and its permission boundary. StrideOS never schedules merely because onboarding selected a workflow and never claims an external task is installed. After a successful test, copy the prompt into Scheduled or use the included `codex://automations` link.
+
 **Fuel companion** follows the nutrition mode chosen in onboarding: off, loose, guided, detailed, or number-free. It combines a food-first framework, training-day cues, declared allergy and medical-diet boundaries, and a supplement inventory without automatically prescribing a product. Meal or fridge photos remain estimates; number-free policy can remove all calorie and macro ranges before storage, and the athlete can correct, confirm, decline, or delete every local record.
 
 Reset the local profile before recording or rehearsing a true first run:
 
 ```bash
 npm run reset
+```
+
+Test the same deterministic automation payload used by a scheduled prompt:
+
+```bash
+npm run brief -- --kind morning_brief
 ```
 
 ### Live GPT-5.6 mode
@@ -88,6 +96,7 @@ docs/ATHLETE_ANALYSIS.md  Deterministic analysis rules and model boundary
 docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and approval lifecycle
 docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
 docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
+docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
@@ -95,6 +104,8 @@ src/athlete-analysis.mjs  Stage, goal, load, recovery, confidence, and permissio
 src/training-plan.mjs  Deterministic four-week running and strength proposals
 src/nutrition.mjs     Nutrition modes, protected contexts, fuel cues, and meal-display policy
 src/dashboard.mjs     Deterministic personal dashboard projection
+src/automations.mjs   Scheduled-brief proposals and deterministic manual previews
+src/automation-cli.mjs  Read-only command used by local scheduled prompts
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
 src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
@@ -152,7 +163,7 @@ npm test
 npm run check
 ```
 
-The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, deterministic nutrition modes, number-free and protected contexts, allergen warnings, supplement non-prescription, meal confirmation/correction/decline/deletion, raw-image non-retention, dashboard empty/pending/active/safety states, observed-versus-completed separation, source freshness, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
+The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, deterministic nutrition modes, number-free and protected contexts, allergen warnings, supplement non-prescription, meal confirmation/correction/decline/deletion, raw-image non-retention, dashboard empty/pending/active/safety states, observed-versus-completed separation, source freshness, editable automation proposals, RRULE generation, manual brief tests, no-update behavior, post-workout reflection gating, automation safety overrides, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
 
 ## Build Week plan
 

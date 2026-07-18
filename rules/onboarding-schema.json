@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-18",
+  "version": "2026-07-18-automation",
   "title": "Build your athlete map",
   "description": "A beginner-friendly intake that gives StrideOS enough context to recommend running, strength, recovery, data, and optional nutrition support safely.",
   "principles": [
@@ -158,8 +158,13 @@
         { "id": "dashboard", "label": "Create the personal dashboard?", "type": "boolean", "required": true },
         { "id": "morningBrief", "label": "Propose a morning readiness brief?", "type": "boolean", "required": true },
         { "id": "preWorkoutBrief", "label": "Propose a pre-workout check?", "type": "boolean", "required": true },
+        { "id": "postWorkoutReflection", "label": "Propose a post-workout reflection?", "type": "boolean", "required": true },
         { "id": "weeklyReview", "label": "Propose a weekly review and plan update?", "type": "boolean", "required": true },
         { "id": "briefTime", "label": "Preferred morning brief time", "type": "time", "required": false },
+        { "id": "preWorkoutLeadMinutes", "label": "How long before the usual training time?", "type": "single", "required": false, "options": ["30", "60", "90", "120"] },
+        { "id": "postWorkoutDelayMinutes", "label": "How long after the usual training time?", "type": "single", "required": false, "options": ["15", "30", "60", "120"] },
+        { "id": "weeklyReviewDay", "label": "Preferred weekly review day", "type": "single", "required": false, "options": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
+        { "id": "weeklyReviewTime", "label": "Preferred weekly review time", "type": "time", "required": false },
         { "id": "approvalMode", "label": "External action rule", "type": "single", "required": true, "options": ["ask_every_time", "ask_for_plan_and_writes", "read_only"] },
         { "id": "cloudProcessing", "label": "Allow selected text/images to be processed by the configured AI service?", "type": "boolean", "required": true },
         { "id": "photoRetention", "label": "Photo retention", "type": "single", "required": true, "options": ["do_not_retain", "retain_local", "ask_each_time"] }

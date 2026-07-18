@@ -59,6 +59,8 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] The dashboard shows server-authoritative today/week/strength/fuel state, source freshness, and useful setup, pending, review, safety, recovery, and upcoming states.
 - [x] Observed activity remains separate from claimed plan completion, and no synthetic readiness score is substituted for a completed athlete profile.
 - [x] Dashboard behavior is covered by deterministic unit/API tests and real-browser desktop/mobile checks.
+- [x] Morning, pre-workout, post-workout, and weekly Scheduled proposals are timezone-aware, editable, copyable, and explicitly not auto-installed.
+- [x] Every scheduled prompt has a manual test path, read-only command contract, no-update behavior, safety override, and zero external writes.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 

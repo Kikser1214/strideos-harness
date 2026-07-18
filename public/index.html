@@ -22,6 +22,7 @@
         <span id="modelLabel">GPT-5.6</span>
       </div>
       <div class="topbar-actions">
+        <button class="automation-link" id="openAutomations">Automations</button>
         <button class="plan-link" id="openPlan">Training plan</button>
         <button class="data-link" id="openDataSources">Data sources</button>
         <button class="setup-link" id="openOnboarding">Athlete setup</button>
@@ -151,6 +152,10 @@
             <button class="source-button" id="openDataSourcesPanel">
               <span><strong>Data sources</strong><small id="sourceButtonNote">Files + manual check-ins available</small></span>
               <b>MANAGE →</b>
+            </button>
+            <button class="schedule-button" id="openAutomationsPanel">
+              <span><strong id="automationButtonTitle">Scheduled briefs</strong><small id="automationButtonNote">Preview and test before scheduling</small></span>
+              <b>SET UP →</b>
             </button>
             <button class="food-button" id="openFood">
               <span class="food-icon">◫</span>
@@ -350,6 +355,26 @@
             </article>
           </section>
         </div>
+      </section>
+    </dialog>
+
+    <dialog class="automation-dialog" id="automationDialog" aria-labelledby="automationTitle">
+      <section class="automation-shell">
+        <header class="automation-heading">
+          <div>
+            <p class="eyebrow">Codex + ChatGPT Scheduled / proposal first</p>
+            <h2 id="automationTitle">Useful while you sleep.<br /><em>Still controlled when you wake.</em></h2>
+            <p>Choose a time, run the exact prompt manually, and only then create it in Scheduled. These local settings never claim that a task was installed.</p>
+          </div>
+          <button class="dialog-close automation-close" id="closeAutomationDialog" aria-label="Close automations">×</button>
+        </header>
+        <div class="automation-state" id="automationState"><span>Loading</span><strong>Building read-only proposals…</strong></div>
+        <div class="automation-list" id="automationList"></div>
+        <aside class="automation-preview" id="automationPreview" hidden></aside>
+        <footer class="automation-footer">
+          <div><strong>Scheduling stays a separate athlete action.</strong><p>Local project schedules need the computer on and the ChatGPT desktop app running. Use the narrowest permissions; these prompts require no network or file writes.</p></div>
+          <a href="codex://automations">Open Scheduled in Codex →</a>
+        </footer>
       </section>
     </dialog>
 

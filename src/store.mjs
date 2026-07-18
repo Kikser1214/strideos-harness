@@ -11,20 +11,24 @@ function stateFile() {
 }
 
 function emptyState() {
-  return { version: 5, decisions: [], onboarding: null, imports: [], checkins: [], plans: [], activePlanId: null, meals: [] };
+  return { version: 6, decisions: [], onboarding: null, imports: [], checkins: [], plans: [], activePlanId: null, meals: [], automations: { overrides: {}, tests: {} } };
 }
 
 function migrateState(value) {
   const state = value && typeof value === "object" && !Array.isArray(value) ? value : emptyState();
   return {
-    version: 5,
+    version: 6,
     decisions: Array.isArray(state.decisions) ? state.decisions : [],
     onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null,
     imports: Array.isArray(state.imports) ? state.imports : [],
     checkins: Array.isArray(state.checkins) ? state.checkins : [],
     plans: Array.isArray(state.plans) ? state.plans : [],
     activePlanId: typeof state.activePlanId === "string" ? state.activePlanId : null,
-    meals: Array.isArray(state.meals) ? state.meals : []
+    meals: Array.isArray(state.meals) ? state.meals : [],
+    automations: {
+      overrides: state.automations?.overrides && typeof state.automations.overrides === "object" ? state.automations.overrides : {},
+      tests: state.automations?.tests && typeof state.automations.tests === "object" ? state.automations.tests : {}
+    }
   };
 }
 
@@ -107,7 +111,26 @@ export function resetOnboarding() {
   state.plans = [];
   state.activePlanId = null;
   state.meals = [];
+  state.automations = { overrides: {}, tests: {} };
   writeState(state);
+}
+
+export function getAutomationState() {
+  return readState().automations;
+}
+
+export function saveAutomationOverride(id, override) {
+  const state = readState();
+  state.automations.overrides[id] = { ...(state.automations.overrides[id] || {}), ...override, updatedAt: new Date().toISOString() };
+  writeState(state);
+  return state.automations.overrides[id];
+}
+
+export function saveAutomationTest(id, status) {
+  const state = readState();
+  state.automations.tests[id] = { status, testedAt: new Date().toISOString() };
+  writeState(state);
+  return state.automations.tests[id];
 }
 
 export function listPlans(limit = 12) {

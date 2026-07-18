@@ -3,7 +3,7 @@ const state = {
   bootstrap: null, currentDecision: null, imageDataUrl: null, trace: 0, busy: false,
   onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null,
   dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null,
-  planData: null, planWeek: 0, nutrition: null, dashboard: null
+  planData: null, planWeek: 0, nutrition: null, dashboard: null, automationData: null
 };
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -110,6 +110,8 @@ function renderBootstrap(data) {
     : "This workspace starts safely: ask a question to create a labeled synthetic decision trace. Garmin writes are simulated.";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
   updatePlanEntry(data.training);
+  state.automationData = data.automations;
+  updateAutomationEntry(data.automations);
   state.nutrition = data.nutrition;
   updateFuelEntry(data.nutrition);
   if (data.decisions.length) { state.trace = data.decisions.length; renderLedger(data.decisions[0], { restored: true }); } else renderEmptyLedger();
@@ -449,7 +451,7 @@ function fieldHint(section, field) {
   if (section.id === "data" && field.id === "sources") return "Apple Health and Health Connect need native companion apps. Garmin needs bridge setup. Manual check-ins work now.";
   if (section.id === "preferences" && field.id === "trainingStyle") return "A named style is a preference, not automatic permission to use an advanced method.";
   if (section.id === "nutrition" && field.id === "supplements") return "Include product, dose, and timing when known. StrideOS reviews context; it does not assume a supplement is needed.";
-  if (section.id === "delivery" && field.id === "morningBrief") return "This proposes a schedule only. Nothing is created until you approve it.";
+  if (section.id === "delivery" && ["morningBrief", "preWorkoutBrief", "postWorkoutReflection", "weeklyReview"].includes(field.id)) return "This proposes a schedule only. Nothing is created until you test the prompt and create it in Scheduled.";
   return "";
 }
 
@@ -591,6 +593,7 @@ async function finishOnboarding() {
     $("#openOnboarding").textContent = "Athlete setup ✓";
     $("#onboardingDialog").close();
     await refreshDashboard();
+    await refreshAutomations(false);
     addMessage("assistant", `<small class="message-mode">Athlete map ready</small><p>${escapeHtml(result.analysis.summary)}</p>`);
     toast(result.analysis.safety.blocked ? "Profile saved — safety review needed before a plan" : "Athlete map ready");
   } catch (error) {
@@ -828,6 +831,107 @@ $("#dataDialog").addEventListener("click", async (event) => {
       await refreshDataSetup();
     }
   } catch (error) { toast(error.message); }
+});
+
+const automationDays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+function updateAutomationEntry(data = state.automationData) {
+  const enabled = data?.tasks?.filter((task) => task.enabled).length || 0;
+  const tested = data?.tasks?.filter((task) => task.testedAt).length || 0;
+  $("#automationButtonTitle").textContent = state.bootstrap?.needsOnboarding ? "Scheduled briefs" : enabled ? `${enabled} brief proposal${enabled === 1 ? "" : "s"}` : "Scheduled briefs off";
+  $("#automationButtonNote").textContent = state.bootstrap?.needsOnboarding ? "Complete setup to choose briefs" : `${tested} tested / none installed automatically`;
+  $("#openAutomations").textContent = enabled ? `Automations ${tested}/${enabled}` : "Automations";
+}
+
+function renderAutomationPreview(preview) {
+  $("#automationPreview").hidden = false;
+  $("#automationPreview").innerHTML = `<small>Manual test / ${escapeHtml(humanize(preview.status))}</small><strong>${escapeHtml(preview.title)}</strong><p>${escapeHtml(preview.summary)}</p>${preview.evidence?.length ? `<p><b>Evidence:</b> ${preview.evidence.map(escapeHtml).join(" · ")}</p>` : ""}${preview.questions?.length ? `<ul>${preview.questions.map((question) => `<li>${escapeHtml(question)}</li>`).join("")}</ul>` : ""}<p><b>External actions:</b> none. This test did not schedule or change anything.</p>`;
+  $("#automationPreview").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function renderAutomationSetup(data) {
+  state.automationData = data;
+  updateAutomationEntry(data);
+  if (data.status === "needs_onboarding") {
+    $("#automationState").innerHTML = "<span>Setup needed</span><strong>Complete the athlete map first.</strong>";
+    $("#automationList").innerHTML = "";
+    return;
+  }
+  const enabled = data.tasks.filter((task) => task.enabled).length;
+  $("#automationState").innerHTML = `<span>Proposal only · scheduled: no</span><strong>${enabled} of ${data.tasks.length} workflows enabled in ${escapeHtml(data.timezone)}</strong>`;
+  $("#automationList").innerHTML = data.tasks.map((task) => `<article class="automation-card ${task.enabled ? "" : "disabled"} ${task.testedAt ? "tested" : ""}" data-automation-card="${escapeHtml(task.id)}">
+    <header><div><small>${escapeHtml(task.cadence)} · ${task.testedAt ? "manually tested" : "not tested"}</small><strong>${escapeHtml(task.label)}</strong></div><label class="automation-toggle"><input type="checkbox" data-auto-enabled ${task.enabled ? "checked" : ""}> Enabled</label></header>
+    <p>${escapeHtml(task.description)}</p>
+    <div class="automation-controls">
+      <label>Local time<input type="time" data-auto-time value="${escapeHtml(task.schedule.time)}"></label>
+      ${task.cadence === "weekly" ? `<label>Day<select data-auto-day>${automationDays.map((day) => `<option value="${day}" ${task.schedule.day === day ? "selected" : ""}>${escapeHtml(humanize(day))}</option>`).join("")}</select></label>` : ""}
+    </div>
+    <p class="automation-schedule">${escapeHtml(task.schedule.label)} · ${escapeHtml(task.schedule.timezone)}<br>${escapeHtml(task.schedule.rrule)}</p>
+    <details><summary>Exact durable prompt</summary><pre>${escapeHtml(task.prompt)}</pre></details>
+    <div class="automation-actions"><button type="button" data-auto-save>Save proposal</button><button type="button" class="test-automation" data-auto-test>Test now</button><button type="button" data-auto-copy>Copy prompt + RRULE</button></div>
+    <span class="automation-test-state">${task.testedAt ? `Last test: ${escapeHtml(humanize(task.lastTestStatus))} · ${escapeHtml(new Date(task.testedAt).toLocaleString())}` : "Manual test required before scheduling"}</span>
+  </article>`).join("");
+}
+
+async function refreshAutomations(render = true) {
+  const data = await request("/api/automations");
+  state.automationData = data;
+  updateAutomationEntry(data);
+  if (render) renderAutomationSetup(data);
+  return data;
+}
+
+async function openAutomationDialog() {
+  if (state.bootstrap?.needsOnboarding) return openAthleteSetup({ firstRun: false });
+  if (!$("#automationDialog").open) $("#automationDialog").showModal();
+  $("#automationState").innerHTML = "<span>Loading</span><strong>Building read-only proposals…</strong>";
+  $("#automationList").innerHTML = "";
+  $("#automationPreview").hidden = true;
+  try { await refreshAutomations(true); }
+  catch (error) { $("#automationState").innerHTML = `<span>Could not load</span><strong>${escapeHtml(error.message)}</strong>`; }
+}
+
+$("#openAutomations").addEventListener("click", openAutomationDialog);
+$("#openAutomationsPanel").addEventListener("click", openAutomationDialog);
+$("#closeAutomationDialog").addEventListener("click", () => $("#automationDialog").close());
+$("#automationDialog").addEventListener("click", async (event) => {
+  if (event.target === $("#automationDialog")) return $("#automationDialog").close();
+  const card = event.target.closest("[data-automation-card]");
+  if (!card) return;
+  const id = card.dataset.automationCard;
+  const task = state.automationData?.tasks?.find((item) => item.id === id);
+  if (!task) return;
+  const saveButton = event.target.closest("[data-auto-save]");
+  const testButton = event.target.closest("[data-auto-test]");
+  const copyButton = event.target.closest("[data-auto-copy]");
+  try {
+    if (saveButton) {
+      saveButton.disabled = true;
+      const payload = { id, enabled: card.querySelector("[data-auto-enabled]").checked, time: card.querySelector("[data-auto-time]").value };
+      const day = card.querySelector("[data-auto-day]")?.value;
+      if (day) payload.day = day;
+      const setup = await request("/api/automations/config", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+      renderAutomationSetup(setup);
+      toast("Automation proposal saved locally · nothing scheduled");
+    }
+    if (testButton) {
+      testButton.disabled = true;
+      testButton.textContent = "Testing read-only…";
+      const result = await request("/api/automations/test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
+      renderAutomationSetup(result.setup);
+      renderAutomationPreview(result.preview);
+      toast("Manual preview complete · no external actions");
+    }
+    if (copyButton) {
+      const copy = `${task.prompt}\n\nTimezone: ${task.schedule.timezone}\nSchedule: ${task.schedule.rrule}`;
+      await navigator.clipboard.writeText(copy);
+      toast("Prompt and RRULE copied · paste into Scheduled after testing");
+    }
+  } catch (error) { toast(error.message); }
+  finally {
+    if (saveButton?.isConnected) saveButton.disabled = false;
+    if (testButton?.isConnected) { testButton.disabled = false; testButton.textContent = "Test now"; }
+  }
 });
 
 request("/api/bootstrap").then(async (data) => { renderBootstrap(data); await initializeOnboarding(data); }).catch((error) => toast(error.message));

@@ -112,6 +112,8 @@ Done when the dashboard answers “what should I do today, why, and what happens
 
 ## Task 9 — Codex and ChatGPT automation layer
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - proposed morning brief, pre-workout check, post-workout reflection, and weekly review;

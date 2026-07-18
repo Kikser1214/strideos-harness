@@ -12,7 +12,7 @@ export function completeProfile(overrides = {}) {
     data: { sources: ["none", "manual"], primarySource: "manual", historyWindow: "none", manualCheckins: true, authorizedRead: true },
     preferences: { trainingStyle: "recommend_for_me", intensityTolerance: "unknown", coachingTone: "adaptive", explanationDepth: "why_it_matters" },
     nutrition: { mode: "loose", numberFreePreferred: false, photoMode: true },
-    delivery: { dashboard: true, morningBrief: true, preWorkoutBrief: true, weeklyReview: true, approvalMode: "ask_every_time", cloudProcessing: false, photoRetention: "do_not_retain" }
+    delivery: { dashboard: true, morningBrief: true, preWorkoutBrief: true, postWorkoutReflection: true, weeklyReview: true, approvalMode: "ask_every_time", cloudProcessing: false, photoRetention: "do_not_retain" }
   };
   return Object.fromEntries(Object.entries(base).map(([section, values]) => [section, { ...values, ...(overrides[section] || {}) }]));
 }

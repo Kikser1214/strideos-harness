@@ -56,6 +56,8 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Plan changes, food logging, and device/calendar writes require the configured approval.
 - Morning, pre-workout, post-workout, and weekly automations begin as proposals. Test prompts manually before scheduling and keep permissions narrow.
 - Never create a scheduled task merely because onboarding selected one. Show the schedule, prompt, data access, and approval behavior first.
+- Use `npm run brief -- --kind <morning_brief|pre_workout|post_workout|weekly_review>` as the read-only scheduled-task contract. Treat its JSON as authoritative and never substitute the synthetic fixture for missing personal state.
+- A scheduled task may summarize and ask questions. It may not modify files, activate or change a plan, log food, or write to Garmin/calendar/connectors. Return those actions to interactive approval.
 
 ## Development commands
 

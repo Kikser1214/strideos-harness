@@ -34,6 +34,30 @@ test("bootstrap reports connector truthfully", () => withServer(async (base) => 
   assert.equal(data.connectors.garmin.configured, false);
   assert.equal(data.needsOnboarding, true);
   assert.equal(data.dashboard.status, "needs_onboarding");
+  assert.equal(data.automations.status, "needs_onboarding");
+}));
+
+test("automation proposals are editable, testable, and never claim scheduling", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  let setup = await (await fetch(`${base}/api/automations`)).json();
+  assert.equal(setup.scheduled, false);
+  assert.equal(setup.tasks.length, 4);
+  assert.ok(setup.tasks.every((task) => task.scheduleStatus === "proposal_only"));
+
+  const configured = await post(base, "/api/automations/config", { id: "morning_brief", enabled: true, time: "06:45" });
+  assert.equal(configured.status, 200);
+  setup = await configured.json();
+  assert.equal(setup.tasks.find((task) => task.id === "morning_brief").schedule.time, "06:45");
+
+  const tested = await post(base, "/api/automations/test", { id: "morning_brief" });
+  assert.equal(tested.status, 200);
+  const result = await tested.json();
+  assert.equal(result.preview.status, "ready");
+  assert.deepEqual(result.preview.externalActions, []);
+  assert.ok(result.setup.tasks.find((task) => task.id === "morning_brief").testedAt);
+
+  assert.equal((await post(base, "/api/automations/config", { id: "morning_brief", time: "tomorrow" })).status, 422);
+  assert.equal((await post(base, "/api/automations/test", { id: "unknown" })).status, 422);
 }));
 
 test("dashboard API never treats a pending plan as active", () => withServer(async (base) => {

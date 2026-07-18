@@ -266,7 +266,7 @@ function parseCsv(buffer, context) {
     const date = firstColumn(record, ["activity_at", "start_time", "timestamp", "datetime", "date", "activity_date"]);
     const sport = firstColumn(record, ["sport", "activity_type", "type", "activity"]);
     const distance = firstColumn(record, ["distance_km", "kilometers", "km", "distance_meters", "meters", "distance_miles", "miles", "distance"]);
-    const duration = firstColumn(record, ["duration_seconds", "elapsed_time", "moving_time", "duration", "time"]);
+    const duration = firstColumn(record, ["duration_seconds", "duration_minutes", "minutes", "elapsed_time", "moving_time", "duration", "time"]);
     const avgHeartRate = firstColumn(record, ["avg_heart_rate", "average_heart_rate", "avg_hr", "heart_rate"]);
     const maxHeartRate = firstColumn(record, ["max_heart_rate", "max_hr"]);
     const calories = firstColumn(record, ["calories", "total_calories"]);
@@ -274,12 +274,13 @@ function parseCsv(buffer, context) {
     let distanceKm = positive(String(distance.value ?? "").replace(/[^0-9.]/g, ""));
     if (distanceKm !== null && /meter/.test(distance.name || "")) distanceKm /= 1000;
     if (distanceKm !== null && /mile/.test(distance.name || "")) distanceKm *= 1.609344;
+    const parsedDuration = durationSeconds(duration.value);
     activities.push(normalizeActivity({
       activityAt: date.value,
       sport: sport.value || "activity",
       name: record.name || record.title || sport.value || "Imported CSV activity",
       distanceKm,
-      durationSeconds: durationSeconds(duration.value),
+      durationSeconds: /minute/.test(duration.name || "") && parsedDuration !== null ? parsedDuration * 60 : parsedDuration,
       avgHeartRate: positive(String(avgHeartRate.value ?? "").replace(/[^0-9.]/g, "")),
       maxHeartRate: positive(String(maxHeartRate.value ?? "").replace(/[^0-9.]/g, "")),
       calories: positive(String(calories.value ?? "").replace(/[^0-9.]/g, "")),

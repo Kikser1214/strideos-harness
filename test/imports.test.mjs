@@ -39,6 +39,13 @@ test("CSV import supports several normalized activity rows", () => {
   assert.equal(result.activities[1].sport, "Walk");
 });
 
+test("CSV import recognizes explicit duration_minutes columns", () => {
+  const csv = "date,name,distance_km,duration_minutes\n2026-07-18T07:00:00Z,Easy run,4.2,31\n";
+  const result = parseActivityFile({ fileName: "minutes.csv", dataBase64: encoded(csv) });
+  assert.equal(result.activities[0].durationSeconds, 1860);
+  assert.match(result.activities[0].summary, /31 min/);
+});
+
 test("official Garmin SDK decodes a generated FIT activity", () => {
   const encoder = new Encoder();
   const start = new Date("2026-07-18T05:00:00Z");
