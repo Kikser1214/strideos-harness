@@ -51,6 +51,10 @@ test("includes the share card and removes the disposable starter", async () => {
   assert.match(layout, /x-forwarded-host/);
   assert.match(page, /Athlete in control/);
   assert.match(page, /Onboarding replay/);
+  assert.match(page, /Full block/);
+  assert.match(page, /Training history/);
+  assert.match(page, /Past work, this week, and what comes next/);
+  assert.match(page, /Invite a coach or experienced friend/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });
 

@@ -24,6 +24,10 @@ test("server-renders the StrideOS landing page", async () => {
   assert.match(html, /finally connected\./);
   assert.match(html, /Open the live coach/);
   assert.match(html, /Explore on GitHub/);
+  assert.match(html, /Coach Mode/);
+  assert.match(html, /Invite privately/);
+  assert.match(html, /Bring the people you trust into the loop/);
+  assert.match(html, /Only the athlete activates plan changes/);
   assert.match(html, /The agent can propose/);
   assert.match(html, /Only you can approve/);
   assert.match(html, /Built for the OpenAI Buildathon/);

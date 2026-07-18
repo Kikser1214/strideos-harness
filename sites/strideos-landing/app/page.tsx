@@ -42,6 +42,7 @@ export default function Home() {
         </a>
         <nav aria-label="Primary navigation">
           <a href="#how-it-works">How it works</a>
+          <a href="#coach-mode">Coach Mode</a>
           <a href="#capabilities">Capabilities</a>
           <a href="#integrations">Integrations</a>
         </nav>
@@ -179,6 +180,40 @@ export default function Home() {
               <p>{body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="collaboration-section" id="coach-mode">
+        <div className="collaboration-copy">
+          <p className="eyebrow"><span /> Coach Mode</p>
+          <h2>Bring the people you trust into the loop.</h2>
+          <p className="collaboration-lede">Invite a real coach, training partner, or experienced friend to review the same plan you see. They can annotate exact sessions, question the load, and suggest precise edits—without silently changing your training.</p>
+          <div className="collaboration-steps">
+            <article><span>01</span><div><h3>Invite privately</h3><p>Share reviewer access with one person or a small training circle.</p></div></article>
+            <article><span>02</span><div><h3>Review in context</h3><p>Comments stay attached to the workout, week, or training decision they refer to.</p></div></article>
+            <article><span>03</span><div><h3>Suggest an edit</h3><p>StrideOS turns feedback into a visible before-and-after proposal with a reason.</p></div></article>
+            <article><span>04</span><div><h3>Athlete approves</h3><p>Only the athlete activates plan changes or sends an update to a device.</p></div></article>
+          </div>
+        </div>
+
+        <div className="coach-mode-board" aria-label="Shared athlete and coach review example">
+          <div className="board-header">
+            <div><span className="board-label">SHARED TRAINING ROOM</span><strong>Sunday · Aerobic durability</strong></div>
+            <div className="reviewers"><span>MK</span><span>CE</span><span>+1</span></div>
+          </div>
+          <div className="board-workout">
+            <div className="board-workout-title"><div><span>LONG RUN</span><h3>24 km · easy aerobic</h3></div><em>Review open</em></div>
+            <div className="distance-line"><i /><i /><i /><i /><i /><i /><i /></div>
+            <div className="board-metrics"><span><b>5:05–5:25</b><small>pace / km</small></span><span><b>40–50 g</b><small>carbs / hour</small></span><span><b>RPE 4</b><small>through 18 km</small></span></div>
+          </div>
+          <div className="board-comment athlete-comment"><span>MK</span><div><strong>Milan · athlete</strong><p>The distance feels ambitious after last week’s calf tightness.</p></div></div>
+          <div className="board-comment coach-comment"><span>CE</span><div><strong>Coach Elena</strong><p>Agree. Keep the stimulus, reduce the cost: 21 km and reassess after Tuesday.</p></div></div>
+          <div className="proposal-preview">
+            <div><span>AGENT PROPOSAL</span><em>Awaiting athlete</em></div>
+            <strong>24 km <del>original</del> <b>→</b> 21 km <ins>proposed</ins></strong>
+            <button type="button">Review exact change</button>
+          </div>
+          <p className="board-permission">Reviewers advise · StrideOS drafts · Athlete decides</p>
         </div>
       </section>
 
