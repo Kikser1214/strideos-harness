@@ -9,12 +9,21 @@ function stateFile() {
 }
 
 function emptyState() {
-  return { version: 1, decisions: [] };
+  return { version: 2, decisions: [], onboarding: null };
+}
+
+function migrateState(value) {
+  const state = value && typeof value === "object" && !Array.isArray(value) ? value : emptyState();
+  return {
+    version: 2,
+    decisions: Array.isArray(state.decisions) ? state.decisions : [],
+    onboarding: state.onboarding && typeof state.onboarding === "object" ? state.onboarding : null
+  };
 }
 
 export function readState() {
   try {
-    return JSON.parse(fs.readFileSync(stateFile(), "utf8"));
+    return migrateState(JSON.parse(fs.readFileSync(stateFile(), "utf8")));
   } catch (error) {
     if (error?.code === "ENOENT") return emptyState();
     throw error;
@@ -53,6 +62,30 @@ export function updateDecision(id, update) {
 
 export function recentDecisions(limit = 8) {
   return readState().decisions.slice(0, limit);
+}
+
+export function getOnboarding() {
+  return readState().onboarding;
+}
+
+export function saveOnboarding({ profile, analysis, complete = false }) {
+  const state = readState();
+  const now = new Date().toISOString();
+  state.onboarding = {
+    profile,
+    analysis,
+    startedAt: state.onboarding?.startedAt || now,
+    updatedAt: now,
+    completedAt: complete ? (state.onboarding?.completedAt || now) : null
+  };
+  writeState(state);
+  return state.onboarding;
+}
+
+export function resetOnboarding() {
+  const state = readState();
+  state.onboarding = null;
+  writeState(state);
 }
 
 export function resetState() {

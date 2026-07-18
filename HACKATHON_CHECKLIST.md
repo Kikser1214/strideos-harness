@@ -18,6 +18,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 
 ## Submission requirements
 
+- [ ] Install the optional Devpost Hackathons plugin after signing into the ChatGPT Apps page. The official rules say it is not required for eligibility or judging.
 - [ ] Join the hackathon on Devpost.
 - [ ] Exercise the live GPT-5.6 path with a real API key and capture evidence.
 - [x] Category selected: **Apps for Your Life**.
@@ -32,6 +33,10 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 
 ## Current engineering status
 
+- [x] First-run athlete-map onboarding covers baseline activity, safety, goals, strength, schedule, data, coaching preference, nutrition, and delivery.
+- [x] Onboarding drafts persist; completion returns deterministic running, strength, connector, nutrition, and automation recommendations.
+- [x] Safety signals pause both running and strength prescription while preserving the profile and next-step explanation.
+- [x] Apple Health and Health Connect are truthfully labeled as native-companion routes; planned integrations are not shown as connected.
 - [x] Demo behavior is truthfully separated from live GPT-5.6 and Garmin connector state.
 - [x] Approval and decline state persists across reloads.
 - [x] Approval identity and action are server-authoritative.

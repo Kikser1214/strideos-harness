@@ -1,0 +1,168 @@
+{
+  "version": "2026-07-18",
+  "title": "Build your athlete map",
+  "description": "A beginner-friendly intake that gives StrideOS enough context to recommend running, strength, recovery, data, and optional nutrition support safely.",
+  "principles": [
+    "Ask only for information that changes the recommendation or delivery.",
+    "Keep sensitive body and health details optional unless a safety gate requires an answer.",
+    "Treat subjective feel, pain, schedule, and preferences as real data.",
+    "Never present a planned or simulated connector as connected.",
+    "Do not finalize a training prescription while a safety gate is active."
+  ],
+  "sections": [
+    {
+      "id": "personal",
+      "title": "You, not a template",
+      "description": "Set language, units, and enough context to speak to you clearly.",
+      "fields": [
+        { "id": "preferredName", "label": "What should your coach call you?", "type": "text", "required": true, "maxLength": 60 },
+        { "id": "ageGroup", "label": "Age group", "type": "single", "required": true, "options": ["under_18", "18_29", "30_39", "40_49", "50_59", "60_69", "70_plus", "prefer_not_to_say"] },
+        { "id": "units", "label": "Preferred units", "type": "single", "required": true, "options": ["metric", "imperial"] },
+        { "id": "timezone", "label": "Timezone", "type": "timezone", "required": true },
+        { "id": "height", "label": "Height (optional)", "type": "number", "required": false },
+        { "id": "weight", "label": "Current weight (optional)", "type": "number", "required": false },
+        { "id": "weightContext", "label": "How should weight be used?", "type": "single", "required": false, "options": ["do_not_use", "context_only", "track_trend", "support_change", "prefer_not_to_say"] }
+      ]
+    },
+    {
+      "id": "baseline",
+      "title": "Where you are now",
+      "description": "No fitness vocabulary needed. Describe what the last six to eight weeks really looked like.",
+      "fields": [
+        { "id": "activityLevel", "label": "Current activity", "type": "single", "required": true, "options": ["mostly_inactive", "some_walking", "inconsistent_training", "regular_unstructured", "structured_training"] },
+        { "id": "runningHistory", "label": "Running experience", "type": "single", "required": true, "options": ["never", "new", "returning", "recreational", "structured", "competitive"] },
+        { "id": "currentWeeklyKm", "label": "Average running distance per week", "type": "number", "required": true, "min": 0, "max": 300 },
+        { "id": "longestRecentRunKm", "label": "Longest run in the last eight weeks", "type": "number", "required": false, "min": 0, "max": 200 },
+        { "id": "otherActivities", "label": "Other movement or sports", "type": "multi", "required": false, "options": ["walking", "cycling", "swimming", "team_sport", "gym", "yoga_mobility", "hiking", "manual_work", "other"] },
+        { "id": "lastConsistentTraining", "label": "When were you last consistent?", "type": "single", "required": false, "options": ["never", "now", "under_3_months", "3_to_12_months", "over_1_year"] },
+        { "id": "recentBenchmark", "label": "Recent race, time trial, or useful benchmark", "type": "text", "required": false, "maxLength": 200 },
+        { "id": "sessionRpeFamiliar", "label": "Do you know the 1–10 effort scale?", "type": "boolean", "required": false }
+      ]
+    },
+    {
+      "id": "safety",
+      "title": "Safety before ambition",
+      "description": "This is not a diagnosis. A positive answer may pause prescription and suggest the official PAR-Q+ pathway or qualified care.",
+      "fields": [
+        { "id": "currentPain", "label": "Pain that changes how you move today?", "type": "boolean", "required": true },
+        { "id": "chestPain", "label": "Chest discomfort during activity or at rest?", "type": "boolean", "required": true },
+        { "id": "dizzinessOrFainting", "label": "Unexplained dizziness, fainting, or loss of balance?", "type": "boolean", "required": true },
+        { "id": "unusualBreathlessness", "label": "Unusual shortness of breath at low effort?", "type": "boolean", "required": true },
+        { "id": "recentInjuryOrSurgery", "label": "Recent injury, surgery, or return from treatment?", "type": "boolean", "required": true },
+        { "id": "knownCondition", "label": "Known condition that may affect exercise?", "type": "boolean", "required": true },
+        { "id": "medicationConsideration", "label": "Medication that may affect heart rate, balance, heat, hydration, or exercise tolerance?", "type": "boolean", "required": true },
+        { "id": "pregnancyPostpartum", "label": "Pregnant or postpartum and want this considered?", "type": "single", "required": false, "options": ["no", "yes", "not_applicable", "prefer_not_to_say"] },
+        { "id": "details", "label": "Anything the coach should adapt around?", "type": "textarea", "required": false, "maxLength": 1000 },
+        { "id": "clearanceStatus", "label": "Exercise clearance status", "type": "single", "required": true, "options": ["not_needed", "cleared", "waiting", "not_sure"] },
+        { "id": "parqStatus", "label": "Official PAR-Q+ status", "type": "single", "required": false, "options": ["not_started", "completed_no_followup", "followup_indicated", "prefer_later"] }
+      ]
+    },
+    {
+      "id": "goals",
+      "title": "What success means",
+      "description": "A plan can build health, confidence, consistency, or race performance. It does not need a race.",
+      "fields": [
+        { "id": "primary", "label": "Primary goal", "type": "single", "required": true, "options": ["couch_to_active", "general_health", "cardio", "running_habit", "return_to_running", "finish_race", "race_performance", "trail", "strength", "body_composition_support", "other"] },
+        { "id": "why", "label": "Why does this matter now?", "type": "textarea", "required": true, "maxLength": 500 },
+        { "id": "eventDistance", "label": "Event distance", "type": "single", "required": false, "options": ["5k", "10k", "half_marathon", "marathon", "ultra", "trail", "other"] },
+        { "id": "eventDate", "label": "Event date", "type": "date", "required": false },
+        { "id": "timeGoal", "label": "Time goal (optional)", "type": "text", "required": false, "maxLength": 80 },
+        { "id": "successInTwelveWeeks", "label": "What would make the next 12 weeks a win?", "type": "textarea", "required": true, "maxLength": 500 },
+        { "id": "deadlineFlexibility", "label": "How flexible is the deadline?", "type": "single", "required": false, "options": ["no_deadline", "flexible", "fixed_event", "not_sure"] }
+      ]
+    },
+    {
+      "id": "strength",
+      "title": "Strength belongs in the plan",
+      "description": "We recommend an appropriate dose based on experience, technique, equipment, recovery, and running load.",
+      "fields": [
+        { "id": "experience", "label": "Strength-training experience", "type": "single", "required": true, "options": ["never", "beginner", "returning", "consistent", "advanced"] },
+        { "id": "sessionsPerWeek", "label": "Current strength sessions per week", "type": "number", "required": true, "min": 0, "max": 7 },
+        { "id": "equipment", "label": "Equipment you can reliably use", "type": "multi", "required": true, "options": ["none", "bands", "dumbbells", "kettlebells", "barbell_rack", "machines", "full_gym", "other"] },
+        { "id": "movementConfidence", "label": "Confidence with squat, hinge, push, pull, carry, and calf work", "type": "single", "required": true, "options": ["need_guidance", "some_confidence", "confident", "coach_supervised"] },
+        { "id": "techniqueSupport", "label": "Would technique demos or professional coaching help?", "type": "single", "required": false, "options": ["yes", "maybe", "no"] },
+        { "id": "limitations", "label": "Movements to avoid or modify", "type": "textarea", "required": false, "maxLength": 500 },
+        { "id": "preference", "label": "Strength emphasis", "type": "single", "required": true, "options": ["recommend_for_me", "runner_resilience", "general_strength", "muscle_gain", "performance", "minimal_maintenance"] },
+        { "id": "likesDislikes", "label": "Exercises you like or dislike", "type": "textarea", "required": false, "maxLength": 500 }
+      ]
+    },
+    {
+      "id": "schedule",
+      "title": "The plan must fit real life",
+      "description": "Time, sleep, work, weather, and caring responsibilities are training inputs.",
+      "fields": [
+        { "id": "daysPerWeek", "label": "Realistic training days per week", "type": "number", "required": true, "min": 1, "max": 7 },
+        { "id": "preferredDays", "label": "Preferred days", "type": "multi", "required": true, "options": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
+        { "id": "minutesWeekday", "label": "Typical weekday session time", "type": "number", "required": true, "min": 10, "max": 300 },
+        { "id": "minutesWeekend", "label": "Typical weekend session time", "type": "number", "required": true, "min": 10, "max": 600 },
+        { "id": "preferredTime", "label": "Preferred training time", "type": "single", "required": false, "options": ["morning", "midday", "evening", "varies"] },
+        { "id": "workPattern", "label": "Work/life pattern", "type": "single", "required": false, "options": ["regular", "shifts", "travel", "caregiving", "variable", "other"] },
+        { "id": "sleepHours", "label": "Typical sleep hours", "type": "number", "required": false, "min": 0, "max": 16 },
+        { "id": "stressLevel", "label": "Current life stress", "type": "single", "required": true, "options": ["low", "moderate", "high", "very_high"] },
+        { "id": "surfaces", "label": "Available places to train", "type": "multi", "required": true, "options": ["road", "track", "trail", "treadmill", "home", "gym", "pool", "bike"] },
+        { "id": "barriers", "label": "What usually breaks consistency?", "type": "multi", "required": false, "options": ["time", "fatigue", "motivation", "pain", "weather", "travel", "family", "gym_access", "uncertainty", "other"] }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Choose the evidence route",
+      "description": "A watch is useful, not required. Manual feel and file imports remain first-class inputs.",
+      "fields": [
+        { "id": "sources", "label": "Devices and apps you use", "type": "multi", "required": true, "options": ["garmin", "apple_health", "health_connect", "strava", "fitbit", "oura", "whoop", "polar", "coros", "suunto", "manual", "file_import", "none"] },
+        { "id": "primarySource", "label": "Primary training source", "type": "single", "required": true, "options": ["garmin", "apple_health", "health_connect", "strava", "fitbit", "oura", "whoop", "polar", "coros", "suunto", "manual", "file_import", "none"] },
+        { "id": "historyWindow", "label": "How much history should be analyzed?", "type": "single", "required": true, "options": ["none", "4_weeks", "12_weeks", "6_months", "1_year"] },
+        { "id": "manualCheckins", "label": "Include short pain, effort, energy, and sleep-feel check-ins?", "type": "boolean", "required": true },
+        { "id": "authorizedRead", "label": "Allow reading only the sources you connect?", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "id": "preferences",
+      "title": "How you want to be coached",
+      "description": "Choose a method or ask StrideOS to recommend one after analyzing your profile.",
+      "fields": [
+        { "id": "trainingStyle", "label": "Training approach", "type": "single", "required": true, "options": ["recommend_for_me", "easy_volume", "run_walk", "polarized", "threshold", "norwegian_inspired", "pace_based", "trail_hills", "custom_research"] },
+        { "id": "customStyle", "label": "Named coach, culture, system, or method to research", "type": "text", "required": false, "maxLength": 200 },
+        { "id": "intensityTolerance", "label": "How do hard sessions usually feel?", "type": "single", "required": true, "options": ["unknown", "avoid_for_now", "manageable", "enjoy_them", "recover_poorly"] },
+        { "id": "sessionPreference", "label": "Session preferences", "type": "multi", "required": false, "options": ["solo", "social", "outdoors", "indoors", "music", "no_metrics", "detailed_metrics", "variety", "routine"] },
+        { "id": "coachingTone", "label": "Coaching tone", "type": "single", "required": true, "options": ["gentle", "direct", "analytical", "motivating", "adaptive"] },
+        { "id": "explanationDepth", "label": "How much explanation?", "type": "single", "required": true, "options": ["brief", "why_it_matters", "deep_dive"] }
+      ]
+    },
+    {
+      "id": "nutrition",
+      "title": "Fuel support is optional",
+      "description": "Use loose guidance, detailed tracking, meal photos, or none at all.",
+      "fields": [
+        { "id": "mode", "label": "Nutrition support", "type": "single", "required": true, "options": ["off", "loose", "guided", "detailed", "number_free"] },
+        { "id": "goal", "label": "Nutrition priority", "type": "single", "required": false, "options": ["general_health", "training_fuel", "recovery", "body_composition", "routine", "not_sure"] },
+        { "id": "dietPattern", "label": "Dietary pattern", "type": "multi", "required": false, "options": ["omnivore", "vegetarian", "vegan", "pescatarian", "religious_cultural", "medical", "other"] },
+        { "id": "allergiesIntolerances", "label": "Allergies or intolerances", "type": "textarea", "required": false, "maxLength": 500 },
+        { "id": "medicalDiet", "label": "Clinician-prescribed dietary constraints?", "type": "boolean", "required": false },
+        { "id": "numberFreePreferred", "label": "Avoid calories, weight targets, and macro numbers?", "type": "boolean", "required": true },
+        { "id": "cookingAccess", "label": "Cooking access", "type": "single", "required": false, "options": ["full_kitchen", "basic", "limited", "mostly_prepared_food"] },
+        { "id": "budget", "label": "Food budget style", "type": "single", "required": false, "options": ["tight", "moderate", "flexible", "prefer_not_to_say"] },
+        { "id": "hydration", "label": "Hydration routine", "type": "single", "required": false, "options": ["rarely_track", "inconsistent", "consistent", "not_sure"] },
+        { "id": "proteinPowder", "label": "Protein powder use", "type": "single", "required": false, "options": ["no", "sometimes", "regularly", "considering"] },
+        { "id": "creatine", "label": "Creatine use", "type": "single", "required": false, "options": ["no", "sometimes", "regularly", "considering"] },
+        { "id": "caffeine", "label": "Caffeine use around training", "type": "single", "required": false, "options": ["none", "low", "moderate", "high", "not_sure"] },
+        { "id": "supplements", "label": "Other supplements and doses", "type": "textarea", "required": false, "maxLength": 1000 },
+        { "id": "photoMode", "label": "Allow meal or fridge photos when you choose to send them?", "type": "boolean", "required": true }
+      ]
+    },
+    {
+      "id": "delivery",
+      "title": "Make it useful every day",
+      "description": "Choose a dashboard and optional scheduled briefings. Nothing is scheduled or pushed without approval.",
+      "fields": [
+        { "id": "dashboard", "label": "Create the personal dashboard?", "type": "boolean", "required": true },
+        { "id": "morningBrief", "label": "Propose a morning readiness brief?", "type": "boolean", "required": true },
+        { "id": "preWorkoutBrief", "label": "Propose a pre-workout check?", "type": "boolean", "required": true },
+        { "id": "weeklyReview", "label": "Propose a weekly review and plan update?", "type": "boolean", "required": true },
+        { "id": "briefTime", "label": "Preferred morning brief time", "type": "time", "required": false },
+        { "id": "approvalMode", "label": "External action rule", "type": "single", "required": true, "options": ["ask_every_time", "ask_for_plan_and_writes", "read_only"] },
+        { "id": "cloudProcessing", "label": "Allow selected text/images to be processed by the configured AI service?", "type": "boolean", "required": true },
+        { "id": "photoRetention", "label": "Photo retention", "type": "single", "required": true, "options": ["do_not_retain", "retain_local", "ask_each_time"] }
+      ]
+    }
+  ]
+}

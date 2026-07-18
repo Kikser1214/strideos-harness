@@ -2,7 +2,7 @@
 
 > A coach that can act. A harness that knows when not to.
 
-StrideOS is an open-source, rule-governed personal coaching harness for runners. It combines training signals, subjective feedback, and meal images into evidence-backed recommendations, then checks every intended action against an inspectable policy before anything changes.
+StrideOS is an open-source, rule-governed personal coaching harness for runners and people who want to become active. It begins with a real athlete onboarding, combines training signals, strength experience, subjective feedback, schedule constraints, and optional meal images into evidence-backed recommendations, then checks every intended action against an inspectable policy before anything changes.
 
 Built from scratch for **OpenAI Build Week 2026** with Codex and GPT-5.6.
 
@@ -26,6 +26,14 @@ npm start
 ```
 
 Open <http://localhost:4173>. With no environment variables, the full interface runs in deterministic **judge demo mode** with synthetic data.
+
+On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Draft answers save locally, and the final review shows the starting running frame, strength recommendation, connector truth, and any safety gate before a plan is created.
+
+Reset the local profile before recording or rehearsing a true first run:
+
+```bash
+npm run reset
+```
 
 ### Live GPT-5.6 mode
 
@@ -55,6 +63,7 @@ No account, Garmin device, private athlete data, or API key is required.
 4. Approve or decline it.
 5. Select **Scan a meal**, choose a local image, and review the clearly labeled fixed sample estimate. Add an OpenAI key for real image analysis.
 6. Try a message mentioning chest pain or dizziness to see the safety stop.
+7. Run `npm run reset`, refresh, and inspect the complete first-run athlete map, including the strength and data-source steps.
 
 In demo mode, external writes are clearly marked as simulated.
 
@@ -64,11 +73,16 @@ In demo mode, external writes are clearly marked as simulated.
 data/                  Synthetic judge fixture only
 public/                Responsive product experience
 rules/                 Versioned action policy
+rules/onboarding-schema.json  Versioned first-run question inventory
+docs/BUILD_PLAN.md     Delivery tasks and acceptance criteria
+docs/ONBOARDING_RESEARCH.md  Safety, strength, and connector sources
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
+src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
-src/store.mjs          Atomic local decision-state persistence
+src/store.mjs          Atomic local decision and onboarding persistence
+src/reset.mjs          Clean first-run reset command
 src/server.mjs         Dependency-free Node HTTP server
 test/                  Rule-boundary and HTTP integration tests
 ```
@@ -79,10 +93,16 @@ No Garmin integration is claimed by default. The interface reports **Garmin simu
 
 Decisions are persisted atomically in the operating system's temporary directory by default. Set `STRIDEOS_STATE_FILE` to choose a durable deployment path.
 
+### Wearables and files
+
+The onboarding lists more than Garmin without pretending those connectors already exist. Garmin can use the documented bridge contract; Apple Health requires an iOS companion or export/relay; Android Health Connect requires an Android companion; Strava and other vendor OAuth routes are planned; manual check-ins remain available now. See [the connector truth matrix](docs/ONBOARDING_RESEARCH.md).
+
 ## Safety and privacy
 
 - StrideOS is for general wellness coaching, not diagnosis or medical treatment.
 - Possible red flags stop the normal action path and recommend qualified care.
+- A positive onboarding safety signal can save the profile but pauses automated running and strength prescription until the indicated review is resolved.
+- Strength is always considered; the starting dose adapts to experience, technique confidence, equipment, schedule, and recovery.
 - Food-image nutrition values are explicitly estimates and require confirmation before logging.
 - Plan changes and external writes require athlete approval.
 - Unknown actions stop by default.
@@ -109,6 +129,12 @@ The human made the central product decisions: rebuild from scratch, treat Stride
 npm test
 npm run check
 ```
+
+The current suite covers action boundaries, onboarding validation, beginner strength recommendations, safety stops, advanced-method suitability, connector truth, draft persistence, and completed first-run restoration.
+
+## Build Week plan
+
+The rebuild is intentionally split into auditable tasks. See [the delivery plan](docs/BUILD_PLAN.md) for the onboarding, connector, analysis, plan, nutrition, dashboard, automation, open-source, hardening, submission, and demo-video checkpoints.
 
 ## Open source
 

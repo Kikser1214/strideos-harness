@@ -6,7 +6,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
 import { buildDecision, demoCoachDecision, loadPolicy } from "./harness.mjs";
-import { findDecision, recentDecisions, saveDecision, updateDecision } from "./store.mjs";
+import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
+import { findDecision, getOnboarding, recentDecisions, resetOnboarding, saveDecision, saveOnboarding, updateDecision } from "./store.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
@@ -62,14 +63,39 @@ async function api(req, res, pathname) {
   }
 
   if (req.method === "GET" && pathname === "/api/bootstrap") {
+    const onboarding = getOnboarding();
     return json(res, 200, {
       mode: process.env.OPENAI_API_KEY ? "live" : "demo",
       model: process.env.OPENAI_MODEL || "gpt-5.6",
       athlete: demoAthlete,
       policy: loadPolicy(),
-      connectors: { garmin: garminStatus() },
+      connectors: { garmin: garminStatus(), catalog: listConnectors() },
+      onboarding,
+      needsOnboarding: !onboarding?.completedAt,
       decisions: recentDecisions()
     });
+  }
+
+  if (req.method === "GET" && pathname === "/api/onboarding/schema") {
+    return json(res, 200, { schema: loadOnboardingSchema(), connectors: listConnectors() });
+  }
+
+  if (req.method === "POST" && pathname === "/api/onboarding") {
+    const body = await readJson(req, 250_000);
+    const complete = body.complete === true;
+    const validation = validateProfile(body.profile, { complete });
+    if (validation.errors.length) throw new HttpError(422, "Some onboarding answers are invalid.");
+    if (complete && validation.missing.length) {
+      return json(res, 422, { error: "Finish the required onboarding questions first.", missing: validation.missing });
+    }
+    const analysis = buildOnboardingAnalysis(validation.profile);
+    const onboarding = saveOnboarding({ profile: validation.profile, analysis, complete });
+    return json(res, complete ? 201 : 200, { onboarding, analysis, missing: validation.missing });
+  }
+
+  if (req.method === "DELETE" && pathname === "/api/onboarding") {
+    resetOnboarding();
+    return json(res, 200, { reset: true });
   }
 
   if (req.method === "POST" && pathname === "/api/coach") {

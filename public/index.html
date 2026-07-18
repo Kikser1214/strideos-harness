@@ -21,8 +21,48 @@
         <span class="separator">·</span>
         <span id="modelLabel">GPT-5.6</span>
       </div>
-      <a class="github-link" href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">Open source ↗</a>
+      <div class="topbar-actions">
+        <button class="setup-link" id="openOnboarding">Athlete setup</button>
+        <a class="github-link" href="https://github.com/Kikser1214/strideos-harness" target="_blank" rel="noreferrer">Open source ↗</a>
+      </div>
     </header>
+
+    <dialog class="onboarding-dialog" id="onboardingDialog" aria-labelledby="onboardingTitle">
+      <form class="onboarding-shell" id="onboardingForm" novalidate>
+        <aside class="athlete-map">
+          <div>
+            <a class="brand onboarding-brand" href="#top" aria-label="StrideOS home"><span class="brand-mark">S/</span><span>StrideOS</span></a>
+            <p class="map-kicker">First-run athlete map</p>
+            <strong id="onboardingProgress">0% mapped</strong>
+            <div class="map-progress" aria-hidden="true"><i id="onboardingProgressBar"></i></div>
+          </div>
+          <nav id="onboardingNav" aria-label="Onboarding progress"></nav>
+          <div class="map-footnote">
+            <span>Local draft</span>
+            <p>Your answers stay in this local StrideOS state unless you explicitly connect or send data.</p>
+            <button type="button" id="exploreDemo">Explore synthetic demo</button>
+          </div>
+        </aside>
+
+        <section class="onboarding-stage">
+          <header class="onboarding-heading">
+            <div>
+              <p class="eyebrow" id="onboardingStepLabel">Step 1</p>
+              <h1 id="onboardingTitle">Build your athlete map.</h1>
+            </div>
+            <span class="step-count" id="onboardingStepCount">01 / 10</span>
+          </header>
+          <p class="onboarding-description" id="onboardingDescription">Tell StrideOS where you are now. No training vocabulary required.</p>
+          <div class="onboarding-fields" id="onboardingFields"></div>
+          <div class="onboarding-notice" id="onboardingNotice" role="alert" hidden></div>
+          <footer class="onboarding-actions">
+            <button type="button" class="back-button" id="onboardingBack">Back</button>
+            <p id="onboardingSaveState">Draft saves on this device.</p>
+            <button type="submit" class="primary" id="onboardingNext">Save and continue</button>
+          </footer>
+        </section>
+      </form>
+    </dialog>
 
     <main id="top">
       <section class="hero shell">
