@@ -32,6 +32,8 @@ On the first launch, StrideOS opens the athlete-map onboarding. It asks about cu
 
 After onboarding, **Training plan** opens a deterministic four-week proposal built around the athlete's stage, goal, availability, recovery context, and strength experience. Every session explains its duration and intensity, week four reduces load, missed sessions never create catch-up stacking, and named advanced methods remain behind a suitability-research gate. Previewing changes nothing; the exact plan becomes active only after the athlete approves its server-recorded decision.
 
+The **athlete dashboard** then projects only server-authoritative state: today's approved session or an honest empty/upcoming state, current-week running and strength load, recovery feedback, observed activity, goal window, optional fuel mode, and source freshness. Pending plans never masquerade as active workouts, and observed files never silently become claimed plan completion. No synthetic readiness score is substituted for a real athlete.
+
 **Fuel companion** follows the nutrition mode chosen in onboarding: off, loose, guided, detailed, or number-free. It combines a food-first framework, training-day cues, declared allergy and medical-diet boundaries, and a supplement inventory without automatically prescribing a product. Meal or fridge photos remain estimates; number-free policy can remove all calorie and macro ranges before storage, and the athlete can correct, confirm, decline, or delete every local record.
 
 Reset the local profile before recording or rehearsing a true first run:
@@ -85,12 +87,14 @@ docs/ONBOARDING_RESEARCH.md  Safety, strength, and connector sources
 docs/ATHLETE_ANALYSIS.md  Deterministic analysis rules and model boundary
 docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and approval lifecycle
 docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
+docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
 src/env.mjs            Tiny local environment loader
 src/harness.mjs        Deterministic gate and decision ledger
 src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
 src/athlete-analysis.mjs  Stage, goal, load, recovery, confidence, and permission analysis
 src/training-plan.mjs  Deterministic four-week running and strength proposals
 src/nutrition.mjs     Nutrition modes, protected contexts, fuel cues, and meal-display policy
+src/dashboard.mjs     Deterministic personal dashboard projection
 src/openai.mjs         GPT-5.6 text + vision reasoning
 src/garmin.mjs         Optional external bridge + honest simulation fallback
 src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
@@ -148,7 +152,7 @@ npm test
 npm run check
 ```
 
-The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, deterministic nutrition modes, number-free and protected contexts, allergen warnings, supplement non-prescription, meal confirmation/correction/decline/deletion, raw-image non-retention, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
+The current suite covers action boundaries, onboarding validation, deterministic athlete classification, goal-window pressure, declared-versus-observed load, recovery holds, hostile model-enrichment attempts, beginner strength recommendations, safety stops, advanced-method research gates, four-week plan determinism, recovery weeks, read-only behavior, missed-session rules, server-authoritative activation and decline, deterministic nutrition modes, number-free and protected contexts, allergen warnings, supplement non-prescription, meal confirmation/correction/decline/deletion, raw-image non-retention, dashboard empty/pending/active/safety states, observed-versus-completed separation, source freshness, connector truth, real FIT/GPX/TCX/CSV parsing, import consent and deletion, manual check-ins, draft persistence, and completed first-run restoration.
 
 ## Build Week plan
 

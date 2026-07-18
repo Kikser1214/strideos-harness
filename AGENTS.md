@@ -46,6 +46,9 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Garmin bridge, simulation, planned OAuth, native companion, file import, manual, and connected are different states. Never collapse them into “connected.”
 - Apple Health requires an authorized iOS route. Health Connect requires an Android route. Manual check-ins are a valid primary source.
 - Label every signal with source and freshness when the dashboard supports it. Missing wearable data lowers confidence; it does not exclude the athlete.
+- Read `GET /api/dashboard` before answering what the athlete should do today. A pending or review-required plan is not an active prescription.
+- Keep planned sessions, observed activities, and confirmed completion as separate concepts. Until explicit matching exists, never infer plan completion from an import.
+- Do not calculate or display a synthetic personal readiness score. Unknown, stale, and missing evidence must stay visible.
 
 ## Actions and automations
 

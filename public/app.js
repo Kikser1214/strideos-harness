@@ -3,7 +3,7 @@ const state = {
   bootstrap: null, currentDecision: null, imageDataUrl: null, trace: 0, busy: false,
   onboardingSchema: null, onboardingConnectors: [], onboardingProfile: {}, onboardingStep: 0, onboardingAnalysis: null,
   dataSetup: null, activityFile: null, activityFileBase64: null, importPreview: null,
-  planData: null, planWeek: 0, nutrition: null
+  planData: null, planWeek: 0, nutrition: null, dashboard: null
 };
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -11,17 +11,103 @@ function toast(message) { const el = $("#toast"); el.textContent = message; el.c
 async function request(url, options) { const response = await fetch(url, options); const data = await response.json().catch(() => ({})); if (!response.ok) { const error = new Error(data.error || "The request failed."); error.data = data; error.status = response.status; throw error; } return data; }
 function setBusy(busy) { state.busy = busy; $("#coachInput").disabled = busy; $("#sendCoach").disabled = busy; document.querySelectorAll("[data-prompt]").forEach((button) => { button.disabled = busy; }); }
 
+const dashboardStatusLabels = {
+  needs_onboarding: "Athlete setup needed",
+  safety_stop: "Safety review",
+  awaiting_approval: "Approval needed",
+  review_required: "Plan review needed",
+  ready: "Ready"
+};
+
+function formatDashboardDate(value) {
+  if (!value) return "No session date";
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(date) : value;
+}
+
+function renderDashboard(dashboard) {
+  if (!dashboard) return;
+  state.dashboard = dashboard;
+  const statusLabel = dashboardStatusLabels[dashboard.status] || humanize(dashboard.status);
+  const attention = ["safety_stop", "awaiting_approval", "review_required"].includes(dashboard.status);
+  const signalWord = dashboard.status === "needs_onboarding" ? "SETUP" : dashboard.status === "safety_stop" ? "STOP" : dashboard.status === "review_required" ? "REVIEW" : dashboard.status === "awaiting_approval" ? "PLAN" : "READY";
+  const pain = dashboard.recovery?.pain;
+  const evidenceStatus = dashboard.sources?.status || "unknown";
+  const observedDistance = Number(dashboard.week?.observedDistanceKm || 0);
+  const observedCount = Number(dashboard.week?.observedActivities || 0);
+  const plannedSessions = Number(dashboard.week?.plannedSessions || 0);
+  const plannedMinutes = Number(dashboard.week?.plannedMinutes || 0);
+  const plannedStrength = Number(dashboard.week?.plannedStrength || 0);
+  const loggedMeals = Number(dashboard.fuel?.loggedMeals || 0);
+
+  $("#readinessValue").textContent = signalWord;
+  $("#readinessValue").classList.add("status-word");
+  $("#readinessUnit").textContent = statusLabel;
+  $("#signalTitle").textContent = dashboard.today?.date === dashboard.date ? "TODAY" : dashboard.today?.date ? "NEXT ACTIVE DAY" : "CURRENT STATE";
+  $("#signalOneLabel").textContent = "Plan";
+  $("#sleepValue").textContent = humanize(dashboard.plan?.status || "unavailable");
+  $("#signalTwoLabel").textContent = dashboard.goal?.label || "Goal";
+  $("#hrvValue").textContent = dashboard.goal?.value || "Not set";
+  $("#signalThreeLabel").textContent = "Pain";
+  $("#painValue").textContent = pain === null || pain === undefined ? "No check-in" : `${pain}/10`;
+  $("#signalFourLabel").textContent = "Evidence";
+  $("#rpeValue").textContent = humanize(evidenceStatus);
+  $("#instrumentNote").innerHTML = `<span></span> ${escapeHtml(dashboard.explanation)}`;
+
+  $("#dashboardStatusCard").dataset.state = attention ? "attention" : dashboard.status === "ready" ? "ready" : "empty";
+  $("#dashboardStatus").textContent = statusLabel;
+  $("#dashboardExplanation").textContent = dashboard.explanation;
+  $("#dashboardRecovery").textContent = humanize(dashboard.recovery?.status || "unknown");
+  $("#dashboardRecoveryNote").textContent = pain === null || pain === undefined ? "No current pain check-in." : `Pain ${pain}/10${dashboard.recovery.rpe === null || dashboard.recovery.rpe === undefined ? "" : ` / RPE ${dashboard.recovery.rpe}`}.`;
+  $("#dashboardWeek").textContent = dashboard.week?.number ? `Week ${dashboard.week.number} / ${plannedMinutes} min` : "No active week";
+  $("#dashboardWeekNote").textContent = dashboard.week?.number ? `${plannedSessions} planned sessions / ${plannedStrength} strength.` : "Planned work appears only after approval.";
+  $("#dashboardObserved").textContent = `${observedCount} activit${observedCount === 1 ? "y" : "ies"}`;
+  $("#dashboardObservedNote").textContent = `${observedDistance.toFixed(1)} km observed. Never auto-matched to plan completion.`;
+  $("#dashboardFuel").textContent = humanize(dashboard.fuel?.mode || "off");
+  $("#dashboardFuelNote").textContent = `${loggedMeals} confirmed meal${loggedMeals === 1 ? "" : "s"} / optional support.`;
+  $("#dashboardFreshness").textContent = humanize(evidenceStatus);
+  $("#dashboardFreshnessNote").textContent = dashboard.sources?.explanation || "No source loaded.";
+
+  $(".today-panel").dataset.state = dashboard.today?.state || dashboard.status;
+  $("#dashboardDate").textContent = `${formatDashboardDate(dashboard.today?.date || dashboard.date)}${dashboard.week?.number ? ` / Week ${dashboard.week.number}` : ""}`;
+  $("#workoutName").textContent = dashboard.today?.title || "No current recommendation";
+  $("#distanceValue").textContent = dashboard.today?.primaryMetric || "-";
+  $("#workoutUnit").textContent = dashboard.today?.primaryUnit || "";
+  $("#workoutTarget").textContent = dashboard.today?.target || dashboard.today?.explanation || "No recommendation available.";
+  $("#weekPlanned").textContent = dashboard.week?.number ? `${plannedMinutes} min / ${plannedSessions} sessions` : "No approved block";
+  $("#weekCompleted").textContent = `${observedCount} activit${observedCount === 1 ? "y" : "ies"} / ${observedDistance.toFixed(1)} km`;
+  $("#goalLabel").textContent = dashboard.goal?.label || "Goal";
+  $("#daysToRace").textContent = dashboard.goal?.value || "Not set";
+  $("#calendarStatus").textContent = dashboard.sources?.primary || "No evidence source";
+  $("#connectorNote").textContent = dashboard.connector?.configured
+    ? `${dashboard.connector.label}. External writes still require the rule gate and athlete approval.`
+    : `${dashboard.connector?.label || "No wearable bridge"}. Files and manual check-ins remain available; no external write is implied.`;
+  $("#sourceButtonNote").textContent = dashboard.sources?.signals?.length ? `${dashboard.sources.signals.length} visible signal${dashboard.sources.signals.length === 1 ? "" : "s"} / ${humanize(evidenceStatus)}` : "Files + manual check-ins available";
+}
+
+async function refreshDashboard() {
+  const result = await request("/api/dashboard");
+  renderDashboard(result.dashboard);
+  if (state.bootstrap) state.bootstrap.dashboard = result.dashboard;
+  return result.dashboard;
+}
+
 function renderBootstrap(data) {
   state.bootstrap = data;
-  const { today, workout, week, athlete } = data.athlete;
   $("#modeLabel").textContent = data.mode === "live" ? "GPT-5.6 live reasoning" : "Transparent demo mode";
   $("#modelLabel").textContent = data.model;
   $("#traceMode").textContent = data.mode === "live" ? "● LIVE MODEL" : "● DEMO TRACE";
-  $("#readinessValue").textContent = today.readiness; $("#sleepValue").textContent = `${today.sleepHours}h`; $("#hrvValue").textContent = `${today.hrvMs}ms`; $("#painValue").textContent = `${today.pain}/10`; $("#rpeValue").textContent = `RPE ${today.rpeYesterday}`;
-  $("#workoutName").textContent = workout.name; $("#distanceValue").textContent = workout.distanceKm.toFixed(1); $("#workoutTarget").textContent = workout.target; $("#weekCompleted").textContent = week.completedKm; $("#weekPlanned").textContent = week.plannedKm; $("#daysToRace").textContent = `${athlete.daysToRace} days`;
-  $("#calendarStatus").textContent = data.connectors.garmin.label;
-  $("#connectorNote").textContent = data.connectors.garmin.configured ? "External writes go through your configured bridge after approval." : "No Garmin account is connected. Approved workout writes are safely simulated.";
-  $("#sourceButtonNote").textContent = data.connectors.garmin.configured ? "Garmin adapter + local fallback" : "Files + manual check-ins available";
+  renderDashboard(data.dashboard);
+  const personalDashboard = !data.needsOnboarding;
+  $("#consoleDisclosure").textContent = data.mode === "live"
+    ? "GPT-5.6 receives only the personal context permitted in Athlete setup; the deterministic harness still controls actions."
+    : personalDashboard
+      ? "Deterministic demo reasoning now uses your local athlete dashboard. No personal context is sent to OpenAI and external writes remain simulated."
+      : "The no-setup judge path uses labeled synthetic data. Complete Athlete setup for personal local demo reasoning, or add an OpenAI key for GPT-5.6.";
+  $("#initialMessageMode").textContent = personalDashboard ? "Personal local dashboard · no external writes" : "Synthetic athlete · no external writes";
+  $("#initialMessageText").textContent = personalDashboard
+    ? "Ask about today to reason from the approved plan, recovery, and source freshness. Demo mode stays local and Garmin writes remain simulated."
+    : "This workspace starts safely: ask a question to create a labeled synthetic decision trace. Garmin writes are simulated.";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
   updatePlanEntry(data.training);
   state.nutrition = data.nutrition;
@@ -66,6 +152,7 @@ $("#approveDecision").addEventListener("click", async () => {
     renderLedger(result.decision, { restored: true });
     if (action === "change_training_plan") await refreshPlanData(false);
     if (action === "log_food") await refreshNutrition(false);
+    if (!['change_training_plan', 'log_food'].includes(action)) await refreshDashboard();
     toast(result.result);
   } catch (error) { toast(error.message); }
 });
@@ -77,6 +164,7 @@ $("#declineDecision").addEventListener("click", async () => {
     renderLedger(result.decision, { restored: true });
     if (action === "change_training_plan") await refreshPlanData(false);
     if (action === "log_food") await refreshNutrition(false);
+    if (!['change_training_plan', 'log_food'].includes(action)) await refreshDashboard();
     toast(result.result);
   } catch (error) { toast(error.message); }
 });
@@ -135,6 +223,7 @@ async function refreshNutrition(render = true) {
   state.nutrition = data;
   updateFuelEntry(data);
   if (render) renderNutrition(data);
+  await refreshDashboard();
   return data;
 }
 
@@ -278,6 +367,7 @@ async function refreshPlanData(render = true) {
   state.planData = data;
   updatePlanEntry(data);
   if (render) renderTrainingPlan(data);
+  await refreshDashboard();
   return data;
 }
 
@@ -309,6 +399,7 @@ $("#proposePlan").addEventListener("click", async () => {
     state.planData.proposals = [result.plan, ...(state.planData.proposals || []).filter((plan) => plan.id !== result.plan.id)];
     renderLedger(result.decision);
     updatePlanEntry(state.planData);
+    await refreshDashboard();
     $("#planDialog").close();
     $("#ledger").scrollIntoView({ behavior: "smooth", block: "center" });
     toast("Plan proposal added to the approval ledger");
@@ -499,6 +590,7 @@ async function finishOnboarding() {
     updateFuelEntry(null);
     $("#openOnboarding").textContent = "Athlete setup ✓";
     $("#onboardingDialog").close();
+    await refreshDashboard();
     addMessage("assistant", `<small class="message-mode">Athlete map ready</small><p>${escapeHtml(result.analysis.summary)}</p>`);
     toast(result.analysis.safety.blocked ? "Profile saved — safety review needed before a plan" : "Athlete map ready");
   } catch (error) {
@@ -640,6 +732,7 @@ function renderDataSetup(data) {
 async function refreshDataSetup() {
   const data = await request("/api/connectors");
   renderDataSetup(data);
+  await refreshDashboard();
   return data;
 }
 

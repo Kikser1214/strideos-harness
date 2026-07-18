@@ -11,6 +11,7 @@ import { connectorFreshnessPolicy, sourcePriority } from "./connectors.mjs";
 import { analyzeAthlete } from "./athlete-analysis.mjs";
 import { buildTrainingPlan } from "./training-plan.mjs";
 import { applyMealPolicy, buildNutritionCompanion } from "./nutrition.mjs";
+import { buildDashboard } from "./dashboard.mjs";
 import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
 import { activatePlan, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, findDecision, findPlan, getActivePlan, getOnboarding, listCheckins, listImports, listMeals, listPlans, recentDecisions, resetOnboarding, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, updateDecision } from "./store.mjs";
 
@@ -91,6 +92,20 @@ function currentNutritionData(onboarding = getOnboarding()) {
   return companion ? { companion, meals: visibleMeals(companion) } : null;
 }
 
+function currentDashboard(onboarding = getOnboarding()) {
+  return buildDashboard({
+    onboarding,
+    analysis: currentAthleteAnalysis(onboarding),
+    activePlan: getActivePlan(),
+    plans: listPlans(),
+    imports: listImports(),
+    checkins: listCheckins(),
+    nutrition: currentNutritionData(onboarding),
+    connectors: { garmin: garminStatus() },
+    decisions: recentDecisions()
+  });
+}
+
 async function api(req, res, pathname) {
   if (req.method === "GET" && pathname === "/api/health") {
     return json(res, 200, { ok: true, openai: Boolean(process.env.OPENAI_API_KEY), garmin: garminStatus() });
@@ -108,6 +123,7 @@ async function api(req, res, pathname) {
       athleteAnalysis: currentAthleteAnalysis(onboarding),
       training: { activePlan: getActivePlan(), proposals: listPlans(4) },
       nutrition: currentNutritionData(onboarding),
+      dashboard: currentDashboard(onboarding),
       needsOnboarding: !onboarding?.completedAt,
       decisions: recentDecisions()
     });
@@ -139,6 +155,10 @@ async function api(req, res, pathname) {
     const onboarding = getOnboarding();
     if (!onboarding?.completedAt) throw new HttpError(409, "Complete athlete onboarding before opening nutrition support.");
     return json(res, 200, currentNutritionData(onboarding));
+  }
+
+  if (req.method === "GET" && pathname === "/api/dashboard") {
+    return json(res, 200, { dashboard: currentDashboard() });
   }
 
   if (req.method === "GET" && pathname === "/api/training-plan") {
@@ -232,11 +252,15 @@ async function api(req, res, pathname) {
     const message = typeof body.message === "string" ? body.message.trim() : "";
     if (!message) throw new HttpError(400, "Write a message first.");
     if (message.length > 2_000) throw new HttpError(400, "Keep the message under 2,000 characters.");
-    const result = await coach({ message, athlete: demoAthlete });
+    const onboarding = getOnboarding();
+    const personal = onboarding?.completedAt ? { profile: onboarding.profile, analysis: currentAthleteAnalysis(onboarding), dashboard: currentDashboard(onboarding) } : null;
+    if (process.env.OPENAI_API_KEY && !personal) throw new HttpError(409, "Complete athlete onboarding before live coaching.");
+    if (process.env.OPENAI_API_KEY && onboarding.profile.delivery?.cloudProcessing !== true) throw new HttpError(403, "Enable cloud processing in Athlete setup before sending personal coaching context to GPT-5.6.");
+    const result = await coach({ message, athlete: personal || demoAthlete });
     const decision = result ? buildDecision({
       evidence: result.evidence, action: result.action,
       context: { confidence: result.confidence }, proposal: result.proposal
-    }) : demoCoachDecision(message);
+    }) : demoCoachDecision(message, personal?.dashboard || null);
     saveDecision(decision);
     return json(res, 200, { decision, mode: result ? "live" : "demo" });
   }

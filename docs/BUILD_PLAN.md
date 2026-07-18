@@ -99,6 +99,8 @@ Done when nutrition remains optional, estimates are visibly uncertain, and loggi
 
 ## Task 8 — Dashboard rebuild
 
+Status: **complete — July 18, 2026**
+
 Deliverables:
 
 - today view, week plan, strength sessions, recovery, progress, fuel, and decision ledger;

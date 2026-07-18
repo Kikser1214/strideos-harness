@@ -4,7 +4,7 @@ StrideOS is local-first by design. The public repository and judge demo use synt
 
 ## In the included demo
 
-- Athlete and training signals come from `data/demo-athlete.json`.
+- Before onboarding, the clearly labeled zero-setup judge trace can use `data/demo-athlete.json`. After onboarding, personal demo coaching uses the local athlete dashboard and does not send that context to OpenAI.
 - Meal images selected in the browser are held in memory for the request and are not written to disk.
 - Decisions, onboarding answers, training-plan proposals and active-plan state, normalized meal drafts/logs and bounded corrections, confirmed normalized activity summaries, and manual check-ins are stored in the configured local state file. The default is an operating-system temporary file and can be replaced with `STRIDEOS_STATE_FILE`.
 - Demo Garmin actions are simulated and labeled as such.

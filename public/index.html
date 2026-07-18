@@ -82,17 +82,17 @@
 
         <div class="hero-instrument" aria-label="Current athlete signal">
           <div class="instrument-ring">
-            <div class="ring-label">TODAY</div>
-            <strong id="readinessValue">74</strong>
-            <span>ready / 100</span>
+            <div class="ring-label" id="signalTitle">TODAY</div>
+            <strong id="readinessValue">â€”</strong>
+            <span id="readinessUnit">loading evidence</span>
           </div>
           <div class="signal-grid">
-            <div><span>Sleep</span><strong id="sleepValue">7.6h</strong></div>
-            <div><span>HRV</span><strong id="hrvValue">58ms</strong></div>
-            <div><span>Pain</span><strong id="painValue">0/10</strong></div>
-            <div><span>Yesterday</span><strong id="rpeValue">RPE 2.5</strong></div>
+            <div><span id="signalOneLabel">Plan</span><strong id="sleepValue">Checking</strong></div>
+            <div><span id="signalTwoLabel">Goal</span><strong id="hrvValue">â€”</strong></div>
+            <div><span id="signalThreeLabel">Pain</span><strong id="painValue">â€”</strong></div>
+            <div><span id="signalFourLabel">Evidence</span><strong id="rpeValue">â€”</strong></div>
           </div>
-          <p class="instrument-note"><span></span> Four signals agree. No hidden leap of faith.</p>
+          <p class="instrument-note" id="instrumentNote"><span></span> Waiting for the local dashboard.</p>
         </div>
       </section>
 
@@ -114,20 +114,34 @@
             <p class="eyebrow">Interactive harness</p>
             <h2>Ask once. See every decision.</h2>
           </div>
-          <p>The demo uses synthetic athlete data. Add an OpenAI key locally to run the same flow live with GPT-5.6.</p>
+          <p id="consoleDisclosure">The demo uses synthetic athlete data. Add an OpenAI key locally to run the same flow live with GPT-5.6.</p>
         </div>
+
+        <section class="dashboard-overview" id="dashboardOverview" aria-label="Athlete dashboard status" aria-live="polite">
+          <article class="dashboard-status" id="dashboardStatusCard">
+            <small>Control state</small>
+            <strong id="dashboardStatus">Loading</strong>
+            <p id="dashboardExplanation">Reading local athlete evidenceâ€¦</p>
+          </article>
+          <article><small>Recovery</small><strong id="dashboardRecovery">Unknown</strong><p id="dashboardRecoveryNote">No check-in loaded.</p></article>
+          <article><small>Current week</small><strong id="dashboardWeek">No active week</strong><p id="dashboardWeekNote">Planned work will appear after approval.</p></article>
+          <article><small>Observed</small><strong id="dashboardObserved">0 activities</strong><p id="dashboardObservedNote">Observed is not assumed completed.</p></article>
+          <article><small>Fuel</small><strong id="dashboardFuel">Off</strong><p id="dashboardFuelNote">Nutrition support is optional.</p></article>
+          <article><small>Evidence freshness</small><strong id="dashboardFreshness">Unknown</strong><p id="dashboardFreshnessNote">No source loaded.</p></article>
+        </section>
 
         <div class="console-grid">
           <aside class="today-panel">
-            <div class="panel-kicker">Friday / Week 5</div>
-            <h3 id="workoutName">Aerobic rhythm</h3>
-            <div class="workout-dose"><strong id="distanceValue">8.0</strong><span>KM</span></div>
-            <p id="workoutTarget">Easy conversational effort</p>
+            <div class="panel-kicker" id="dashboardDate">Loading today</div>
+            <h3 id="workoutName">Reading local plan</h3>
+            <div class="workout-dose"><strong id="distanceValue">â€”</strong><span id="workoutUnit"></span></div>
+            <p id="workoutTarget">No recommendation is shown before the evidence is loaded.</p>
             <div class="route-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <dl>
-              <div><dt>Week</dt><dd><span id="weekCompleted">24.6</span> / <span id="weekPlanned">42</span> km</dd></div>
-              <div><dt>Race</dt><dd id="daysToRace">79 days</dd></div>
-              <div><dt>Calendar</dt><dd id="calendarStatus">Checking connector</dd></div>
+              <div><dt>Week</dt><dd id="weekPlanned">No approved block</dd></div>
+              <div><dt>Observed</dt><dd id="weekCompleted">None loaded</dd></div>
+              <div><dt id="goalLabel">Goal</dt><dd id="daysToRace">Not set</dd></div>
+              <div><dt>Source</dt><dd id="calendarStatus">Checking evidence</dd></div>
             </dl>
             <p class="connector-note" id="connectorNote">Checking whether an external calendar is connected.</p>
             <button class="plan-button" id="openPlanPanel">
@@ -152,8 +166,8 @@
             </div>
             <div class="conversation" id="conversation" aria-live="polite">
               <div class="message assistant">
-                <small class="message-mode">Synthetic athlete · no external writes</small>
-                <p>This workspace starts safely: ask a question to create a real decision trace. In demo mode, Garmin writes are simulated and clearly labeled.</p>
+                <small class="message-mode" id="initialMessageMode">Synthetic athlete · no external writes</small>
+                <p id="initialMessageText">This workspace starts safely: ask a question to create a real decision trace. In demo mode, Garmin writes are simulated and clearly labeled.</p>
                 <button class="inline-action" data-prompt="Should I keep today's run and send it to Garmin?">Check the decision →</button>
               </div>
             </div>

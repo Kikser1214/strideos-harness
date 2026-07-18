@@ -56,6 +56,9 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Meal and fridge estimates expose ingredient, portion, allergen, and cross-contact uncertainty; raw images are not written to local state.
 - [x] Food logging requires a linked decision, an explicit confirmation, and supports bounded corrections, decline, persistence, and deletion.
 - [x] Protein powder, creatine, caffeine, and other supplements are inventoried without automatic prescription.
+- [x] The dashboard shows server-authoritative today/week/strength/fuel state, source freshness, and useful setup, pending, review, safety, recovery, and upcoming states.
+- [x] Observed activity remains separate from claimed plan completion, and no synthetic readiness score is substituted for a completed athlete profile.
+- [x] Dashboard behavior is covered by deterministic unit/API tests and real-browser desktop/mobile checks.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
 - [ ] A real Garmin bridge is optional and not configured in judge mode; the UI explicitly reports simulation.
 

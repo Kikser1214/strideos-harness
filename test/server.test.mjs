@@ -33,6 +33,29 @@ test("bootstrap reports connector truthfully", () => withServer(async (base) => 
   assert.equal(data.connectors.garmin.mode, "simulation");
   assert.equal(data.connectors.garmin.configured, false);
   assert.equal(data.needsOnboarding, true);
+  assert.equal(data.dashboard.status, "needs_onboarding");
+}));
+
+test("dashboard API never treats a pending plan as active", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  let dashboard = await (await fetch(`${base}/api/dashboard`)).json();
+  assert.equal(dashboard.dashboard.plan.status, "no_active_plan");
+  const proposal = await (await post(base, "/api/training-plan/proposals", { startDate: "2026-07-20" })).json();
+  dashboard = await (await fetch(`${base}/api/dashboard`)).json();
+  assert.equal(dashboard.dashboard.plan.status, "awaiting_approval");
+  assert.equal(dashboard.dashboard.today.sessions.length, 0);
+  await post(base, "/api/decisions/approve", { id: proposal.decision.id });
+  dashboard = await (await fetch(`${base}/api/dashboard`)).json();
+  assert.ok(["active", "upcoming"].includes(dashboard.dashboard.plan.status));
+  assert.ok(dashboard.dashboard.week.plannedStrength >= 1);
+}));
+
+test("personal demo coaching does not invent a Garmin workout without an active session", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const coached = await (await post(base, "/api/coach", { message: "Should I run today?" })).json();
+  assert.equal(coached.decision.gate.action, "read_training_data");
+  assert.equal(coached.decision.status, "completed");
+  assert.match(coached.decision.evidence.join(" "), /No active training block/i);
 }));
 
 test("onboarding schema and connector truth are available", () => withServer(async (base) => {
