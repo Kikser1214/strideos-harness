@@ -123,9 +123,7 @@ function renderDashboard(dashboard) {
   $("#goalLabel").textContent = dashboard.goal?.label || "Goal";
   $("#daysToRace").textContent = dashboard.goal?.value || "Not set";
   $("#calendarStatus").textContent = dashboard.sources?.primary || "No evidence source";
-  $("#connectorNote").textContent = dashboard.connector?.configured
-    ? `${dashboard.connector.label}. External writes still require the rule gate and athlete approval.`
-    : `${dashboard.connector?.label || "No wearable bridge"}. Files and manual check-ins remain available; no external write is implied.`;
+  $("#connectorNote").textContent = `${dashboard.connector?.label || "No provider route"}. No direct Garmin agent route is claimed; use an approved export or manual entry.`;
   $("#sourceButtonNote").textContent = dashboard.sources?.signals?.length ? `${dashboard.sources.signals.length} visible signal${dashboard.sources.signals.length === 1 ? "" : "s"} / ${humanize(evidenceStatus)}` : "Files + manual check-ins available";
   renderWorkoutFeedback(dashboard);
 }
@@ -146,13 +144,13 @@ function renderBootstrap(data) {
   renderDashboard(data.dashboard);
   const personalDashboard = !data.needsOnboarding;
   $("#consoleDisclosure").textContent = data.mode === "live"
-    ? "GPT-5.6 receives only the personal context permitted in Athlete setup; the deterministic harness still controls actions."
+    ? "GPT-5.6 receives only the personal context permitted in Athlete setup; the deterministic policy layer still controls actions."
     : personalDashboard
-      ? "Deterministic demo reasoning now uses your local athlete dashboard. No personal context is sent to OpenAI and external writes remain simulated."
+      ? "Deterministic demo reasoning now uses your local athlete dashboard. No personal context is sent to OpenAI; provider actions remain unavailable unless a playbook proves permission and a reviewed executor exists."
       : "The no-setup judge path uses labeled synthetic data. Complete Athlete setup for personal local demo reasoning, or add an OpenAI key for GPT-5.6.";
-  $("#initialMessageMode").textContent = personalDashboard ? "Personal local dashboard · no external writes" : "Synthetic athlete · no external writes";
+  $("#initialMessageMode").textContent = personalDashboard ? "Personal local dashboard · no direct provider writes" : "Synthetic athlete · no external writes";
   $("#initialMessageText").textContent = personalDashboard
-    ? "Ask about today to reason from the approved plan, recovery, and source freshness. Demo mode stays local and Garmin writes remain simulated."
+    ? "Ask about today to reason from the approved plan, recovery, and source freshness. Garmin delivery stays local/manual because no permitted browser-agent route is established."
     : "This workspace starts safely: ask a question to create a labeled synthetic decision trace. Garmin writes are simulated.";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
   updatePlanEntry(data.training);
@@ -178,7 +176,10 @@ function renderLedger(decision, { restored = false } = {}) {
   const mealApproval = decision.status === "awaiting_approval" && decision.gate.action === "log_food" && decision.resource?.type === "meal_draft";
   $("#mealConfirmation").hidden = !mealApproval;
   if (!mealApproval) $("#mealCorrections").value = "";
-  if (decision.status === "awaiting_approval") $("#approveDecision").textContent = mealApproval ? "Confirm and log" : state.bootstrap?.connectors.garmin.configured || decision.gate.action !== "push_garmin_workout" ? "Approve action" : "Approve simulation";
+  if (decision.status === "awaiting_approval") {
+    const syntheticWorkout = decision.resource?.workout?.source === "synthetic_judge_fixture";
+    $("#approveDecision").textContent = mealApproval ? "Confirm and log" : syntheticWorkout ? "Approve simulation" : "Approve action";
+  }
 }
 
 async function sendCoachMessage(message) {
@@ -364,7 +365,7 @@ $("#analyzeFood").addEventListener("click", async () => {
     $("#reviewMeal").addEventListener("click", () => { renderLedger(result.decision); $("#foodDialog").close(); $("#ledger").scrollIntoView({ behavior: "smooth", block: "center" }); });
     toast(result.mode === "live" ? "Meal analyzed by GPT-5.6" : "Demo sample ready — image not inspected");
   }
-  catch (error) { toast(error.message); } finally { button.disabled = false; button.textContent = "Analyze with the harness"; }
+  catch (error) { toast(error.message); } finally { button.disabled = false; button.textContent = "Analyze with StrideOS"; }
 });
 
 $("#mealHistory").addEventListener("click", async (event) => {
@@ -557,13 +558,13 @@ function renderOnboardingNav() {
 function fieldHint(section, field) {
   if (section.id === "safety" && field.id === "parqStatus") return 'Use the current official form at <a href="https://eparmedx.com/" target="_blank" rel="noreferrer">ePARmed-X+ ↗</a>.';
   if (section.id === "strength" && field.id === "experience") return "Strength is part of the recommendation even when you have never lifted before.";
-  if (section.id === "data" && field.id === "sources") return "Apple Health and Health Connect need native companion apps. Garmin needs bridge setup. Manual check-ins work now.";
+  if (section.id === "data" && field.id === "sources") return "StrideOS uses only provider-permitted individual routes. Garmin currently uses approved exports or manual entry; native health stores need authorized companions.";
   if (section.id === "preferences" && field.id === "trainingStyle") return "New to training methods? Keep Recommend for me. A starter will normally begin with three separated run / walk sessions, two short technique-first strength sessions, and optional easy cycling when it fits.";
   if (section.id === "nutrition" && field.id === "supplements") return "Include product, dose, and timing when known. StrideOS reviews context; it does not assume a supplement is needed.";
   if (section.id === "delivery" && ["morningBrief", "preWorkoutBrief", "postWorkoutReflection", "weeklyReview"].includes(field.id)) return "This proposes a schedule only. Nothing is created until you test the prompt and create it in Scheduled.";
   if (section.id === "delivery" && field.id === "workoutDelivery") return "Reading completed activities and sending a structured workout are separate permissions.";
-  if (section.id === "delivery" && field.id === "workoutDeliveryTarget") return "Garmin can use an official adapter or an optional local community bridge. Apple Watch and Android require native companion apps.";
-  if (section.id === "delivery" && field.id === "connectorSetupMode") return "Allow local setup only if you want the agent to show every command and ask before installing, authenticating, or changing configuration. Passwords and MFA stay in your terminal or device.";
+  if (section.id === "delivery" && field.id === "workoutDeliveryTarget") return "Garmin browser-agent delivery is not currently permitted. Apple Watch and Android require authorized native companions with separately verified delivery support.";
+  if (section.id === "delivery" && field.id === "connectorSetupMode") return "Only provider-permitted routes may be set up. The user always signs in, the agent never handles passwords or MFA codes, and approval cannot make an unavailable write route valid.";
   return "";
 }
 
@@ -677,7 +678,7 @@ async function saveOnboardingDraft() {
 }
 
 async function renderOnboardingReview() {
-  $("#onboardingFields").innerHTML = '<div class="review-grid"><article class="review-card review-full"><small>Building analysis</small><strong>Checking your athlete map…</strong><p>Nothing is being connected or scheduled.</p></article></div>';
+  $("#onboardingFields").innerHTML = '<div class="review-grid"><article class="review-card review-full"><small>Building analysis</small><strong>Checking your athlete map…</strong><p>No provider session or schedule is being created.</p></article></div>';
   try {
     const result = await saveOnboardingDraft();
     const analysis = result.analysis;
@@ -698,7 +699,7 @@ async function renderOnboardingReview() {
       <article class="review-card"><small>Running frame</small><strong>${analysis.training.runSessionsPerWeek} sessions / week</strong><p>${escapeHtml(humanize(analysis.training.recommended))}. ${analysis.training.researchRequired ? "The requested method needs a suitability research pass." : "The method can be refined from your feedback."}</p></article>
       <article class="review-card"><small>Strength frame</small><strong>${analysis.strength.sessionsPerWeek} sessions / week</strong><p>${escapeHtml(analysis.strength.recommendation)}</p></article>
       <article class="review-card review-full"><small>Evidence route</small><strong>${escapeHtml(analysis.data.primary.label)}</strong><p>${escapeHtml(analysis.data.note)}</p><div class="connector-truth">${connectorChips}</div></article>
-      <article class="review-card review-full"><small>Workout delivery</small><strong>${analysis.workoutDelivery.requested ? escapeHtml(humanize(analysis.workoutDelivery.target || "target_needed")) : "Off"}</strong><p>${escapeHtml(analysis.workoutDelivery.note)} ${escapeHtml(analysis.workoutDelivery.approval)}</p><div class="connector-truth"><span>${escapeHtml(humanize(analysis.workoutDelivery.setupMode))}</span><span>${analysis.workoutDelivery.canPushNow ? "Adapter configured" : "No verified device write"}</span></div></article>
+      <article class="review-card review-full"><small>Workout delivery</small><strong>${analysis.workoutDelivery.requested ? escapeHtml(humanize(analysis.workoutDelivery.target || "target_needed")) : "Off"}</strong><p>${escapeHtml(analysis.workoutDelivery.note)} ${escapeHtml(analysis.workoutDelivery.approval)}</p><div class="connector-truth"><span>${escapeHtml(humanize(analysis.workoutDelivery.setupMode))}</span><span>${analysis.workoutDelivery.connector?.workoutDelivery?.attendedOnly ? "No reviewed browser executor" : "No verified device write"}</span></div></article>
       <article class="review-card review-full"><small>What would improve confidence</small><strong>${escapeHtml(humanize(athlete.missingData.status))}</strong><ul>${gapList}</ul></article>
       <article class="review-card"><small>Fuel support</small><strong>${escapeHtml(humanize(analysis.nutrition.mode))}</strong><p>${escapeHtml(analysis.nutrition.recommendation)}</p></article>
       <article class="review-card"><small>Automation proposals</small><strong>${analysis.automation.proposals.length} selected</strong><ul>${automations}</ul></article>
@@ -804,26 +805,31 @@ $("#onboardingNav").addEventListener("click", async (event) => {
 
 const connectorStatusLabels = {
   available: "Available now",
-  adapter_configured: "Adapter configured",
-  oauth_setup_ready: "OAuth setup ready",
+  available_attended: "Contract only",
+  attended_session_available: "Contract only",
+  contract_only: "Contract only",
   setup_required: "Setup needed",
   companion_required: "Native app required",
+  policy_review_required: "Policy review required",
+  file_or_manual: "Export or manual",
+  manual_only: "Manual only",
+  not_available_for_individual: "No individual write route",
   planned: "Planned"
 };
 
 function connectorStatusClass(status) {
   if (status === "available") return "ready";
-  if (["adapter_configured", "oauth_setup_ready"].includes(status)) return "configured";
-  if (["setup_required", "companion_required"].includes(status)) return "setup";
+  if (["setup_required", "companion_required", "file_or_manual", "manual_only"].includes(status)) return "setup";
   return "planned";
 }
 
 function connectorSetupMarkup(connector) {
+  const attendedDelivery = connector.workoutDelivery?.attendedOnly === true;
   const delivery = connector.workoutDelivery
-    ? `<p class="connector-capability">Workout delivery: ${escapeHtml(humanize(connector.workoutDelivery.status))}${connector.workoutDelivery.route ? ` · ${escapeHtml(connector.workoutDelivery.route)}` : ""}</p>`
+    ? `<p class="connector-capability">Workout delivery: ${attendedDelivery ? "not enabled in this build" : escapeHtml(humanize(connector.workoutDelivery.status))}${!attendedDelivery && connector.workoutDelivery.route ? ` · ${escapeHtml(connector.workoutDelivery.route)}` : ""}</p>`
     : "";
   const methods = connector.setup?.methods?.length
-    ? `<details><summary>Connection routes</summary><ul>${connector.setup.methods.map((method) => `<li><strong>${escapeHtml(method.label)}</strong>${method.recommended ? " · recommended" : ""}${method.unofficial ? " · unofficial/local" : ""}${method.status ? ` · ${escapeHtml(humanize(method.status))}` : ""}</li>`).join("")}</ul><p>StrideOS may guide setup. It never asks for a password in chat, and setup consent is not workout-write consent.</p></details>`
+    ? `<details><summary>Permitted routes</summary><ul>${connector.setup.methods.map((method) => { const status = method.attendedOnly && !method.executorImplemented ? "contract_only" : method.status; return `<li><strong>${escapeHtml(method.label)}</strong>${method.recommended ? " · preferred" : ""}${method.attendedOnly ? " · attended only" : ""}${status ? ` · ${escapeHtml(connectorStatusLabels[status] || humanize(status))}` : ""}</li>`; }).join("")}</ul><p>No attended-browser provider write is enabled in this build. Approval never creates provider permission; a future reviewed executor would require a separate exact approval for each write.</p></details>`
     : "";
   if (connector.setup?.requiredEnvironment?.length) {
     return `${delivery}${methods}<details><summary>Setup contract</summary><p>Add server-side environment values: <code>${connector.setup.requiredEnvironment.map(escapeHtml).join(" · ")}</code>${connector.setup.optionalEnvironment?.length ? `<br>Optional: <code>${connector.setup.optionalEnvironment.map(escapeHtml).join(" · ")}</code>` : ""}. Secrets never go in the browser.</p></details>`;
@@ -867,13 +873,13 @@ function renderDataSetup(data) {
   $("#sourcePriority").innerHTML = data.sourcePriority.map((id, index) => `<li><b>${String(index + 1).padStart(2, "0")}</b><span>${escapeHtml(byId.get(id)?.label || humanize(id))}</span></li>`).join("");
   const visibleConnectors = data.connectors.filter((connector) => connector.id !== "none");
   const active = visibleConnectors.filter((connector) => connector.status === "available").length;
-  $("#connectorCount").textContent = `${active} usable now · ${visibleConnectors.length} routes`;
-  $("#connectorGrid").innerHTML = visibleConnectors.map((connector) => `<article class="connector-card ${connectorStatusClass(connector.status)}">
-    <header><span>${escapeHtml(connector.label)}</span><b>${escapeHtml(connectorStatusLabels[connector.status] || humanize(connector.status))}</b></header>
+  $("#connectorCount").textContent = `${active} usable routes · ${visibleConnectors.length} sources`;
+  $("#connectorGrid").innerHTML = visibleConnectors.map((connector) => { const status = ["available_attended", "attended_session_available"].includes(connector.status) ? "contract_only" : connector.status; return `<article class="connector-card ${connectorStatusClass(status)}">
+    <header><span>${escapeHtml(connector.label)}</span><b>${escapeHtml(connectorStatusLabels[status] || humanize(status))}</b></header>
     <p>${escapeHtml(connector.truth || connector.note)}</p>
     ${connector.truth ? `<small>${escapeHtml(connector.note)}</small>` : ""}
     ${connectorSetupMarkup(connector)}
-  </article>`).join("");
+  </article>`; }).join("");
   renderSavedImports(data.imports);
   renderManualCheckins(data.checkins);
 }

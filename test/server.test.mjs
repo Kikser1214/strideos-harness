@@ -3,19 +3,31 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createServer, validateRuntimeAccess } from "../src/server.mjs";
-import { activatePlan, resetState, savePlanProposal } from "../src/store.mjs";
+import { createServer, currentModelAthleteContext, currentProviderWriteStateBinding, validateRuntimeAccess } from "../src/server.mjs";
+import { buildProviderWriteDecision } from "../src/harness.mjs";
+import { activatePlan, findDecision, resetState, saveDecision, savePlanProposal } from "../src/store.mjs";
 import { completeProfile } from "./fixtures.mjs";
 
 const stateFile = path.join(os.tmpdir(), `strideos-test-${process.pid}.json`);
 process.env.STRIDEOS_STATE_FILE = stateFile;
 delete process.env.OPENAI_API_KEY;
-delete process.env.GARMIN_BRIDGE_URL;
 delete process.env.STRIDEOS_ACCESS_TOKEN;
 
-async function withServer(run) {
+const permittedBrowserFixture = {
+  routePrecedence: ["official_mcp", "official_api", "native_companion", "assisted_browsing", "file_import", "manual"],
+  assistedBrowsingContract: { executorEnabled: true },
+  providers: [{
+    id: "fixture_web", label: "Synthetic permitted web provider", assistedBrowsingClassification: "permitted", webAppUrl: "https://provider.invalid/",
+    permittedRoutes: [{
+      id: "fixture_browser", type: "assisted_browsing", providerPermittedForIndividual: true, status: "available_attended",
+      executorImplemented: true, capabilities: ["read_activity", "write_workout"]
+    }]
+  }]
+};
+
+async function withServer(run, serverOptions = {}) {
   resetState();
-  const server = createServer();
+  const server = createServer(serverOptions);
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   try { await run(base); }
@@ -26,7 +38,21 @@ async function post(base, pathname, body) {
   return fetch(`${base}${pathname}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 }
 
-function activateTodaysRunningPlan({ id = "plan_personal_bridge_test", sessionId = "personal_run_1", title = "Personal easy run" } = {}) {
+function providerWriteDecision({ now = new Date(), accountBinding = "athlete-42" } = {}) {
+  return buildProviderWriteDecision({
+    evidence: ["Synthetic permitted attended route"], proposal: "Create exactly one structured workout?",
+    providerId: "fixture_web", routeId: "fixture_browser", accountBinding,
+    capability: "write_workout", operation: "create_workout",
+    target: "workout:new",
+    stateBinding: currentProviderWriteStateBinding(),
+    payload: { name: "Easy 30", steps: [{ minutes: 30, target: "easy" }] },
+    browserContext: { surface: "codex_desktop", attended: true, scheduled: false, headless: false },
+    now,
+    ttlMs: 60_000
+  });
+}
+
+function activateTodaysRunningPlan({ id = "plan_personal_route_test", sessionId = "personal_run_1", title = "Personal easy run" } = {}) {
   const today = new Date().toISOString().slice(0, 10);
   const plan = {
     id, status: "proposal", startDate: today, endDate: today,
@@ -48,8 +74,9 @@ test("bootstrap reports connector truthfully", () => withServer(async (base) => 
   const data = await response.json();
   assert.equal(response.status, 200);
   assert.equal(data.mode, "demo");
-  assert.equal(data.connectors.garmin.mode, "simulation");
+  assert.equal(data.connectors.garmin.mode, "export_or_manual");
   assert.equal(data.connectors.garmin.configured, false);
+  assert.equal(data.connectors.garmin.workoutDeliverySupported, false);
   assert.equal(data.needsOnboarding, true);
   assert.equal(data.dashboard.status, "needs_onboarding");
   assert.equal(data.automations.status, "needs_onboarding");
@@ -100,30 +127,27 @@ test("personal demo coaching does not invent a Garmin workout without an active 
   assert.match(coached.decision.evidence.join(" "), /No active training block/i);
 }));
 
-test("personal approval is bound to the exact active-plan workout", () => withServer(async (base) => {
+test("personal Garmin requests fail closed before an approval is offered", () => withServer(async (base) => {
   await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" }, delivery: { workoutDelivery: true, workoutDeliveryTarget: "garmin", connectorSetupMode: "allow_local_setup_after_review" } }), complete: true });
   activateTodaysRunningPlan();
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
-  assert.equal(coached.decision.gate.action, "push_garmin_workout");
-  assert.equal(coached.decision.resource.athleteId, "Mia");
-  assert.equal(coached.decision.resource.workout.planId, "plan_personal_bridge_test");
-  assert.equal(coached.decision.resource.workout.sessionId, "personal_run_1");
-  assert.equal(coached.decision.resource.workout.name, "Personal easy run");
-  assert.equal(coached.decision.resource.workout.distanceKm, undefined);
-  assert.equal((await post(base, "/api/decisions/approve", { id: coached.decision.id })).status, 200);
+  assert.equal(coached.decision.gate.action, "read_training_data");
+  assert.equal(coached.decision.status, "completed");
+  assert.equal(coached.decision.resource, null);
+  assert.match(coached.decision.proposal, /Garmin agent delivery is unavailable/i);
 }));
 
-test("new pain evidence invalidates a previously proposed Garmin write", () => withServer(async (base) => {
+test("new pain evidence removes the workout from local Garmin guidance", () => withServer(async (base) => {
   await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" }, delivery: { workoutDelivery: true, workoutDeliveryTarget: "garmin", connectorSetupMode: "allow_local_setup_after_review" } }), complete: true });
   activateTodaysRunningPlan({ id: "plan_stale_workout_test", sessionId: "stale_run_1", title: "Run before new evidence" });
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
-  assert.equal(coached.decision.status, "awaiting_approval");
+  assert.equal(coached.decision.status, "completed");
   await post(base, "/api/checkins", { pain: 5, rpe: 7, energy: 2, sleepFeel: 2, note: "Pain changed after the proposal" });
-  const approval = await post(base, "/api/decisions/approve", { id: coached.decision.id });
-  assert.equal(approval.status, 409);
-  assert.match((await approval.json()).error, /no longer current/i);
-  const bootstrap = await (await fetch(`${base}/api/bootstrap`)).json();
-  assert.equal(bootstrap.decisions.find((item) => item.id === coached.decision.id).status, "stopped");
+  const reviewed = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
+  assert.equal(reviewed.decision.gate.action, "read_training_data");
+  assert.equal(reviewed.decision.status, "completed");
+  assert.match(reviewed.decision.evidence.join(" "), /Pain: 5\/10/i);
+  assert.match(reviewed.decision.proposal, /paused the block/i);
 }));
 
 test("a personal plan cannot create a Garmin write when device delivery is off", () => withServer(async (base) => {
@@ -131,7 +155,7 @@ test("a personal plan cannot create a Garmin write when device delivery is off",
   activateTodaysRunningPlan({ id: "plan_local_only", sessionId: "local_only_run", title: "Local-only run" });
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
   assert.equal(coached.decision.gate.action, "read_training_data");
-  assert.match(coached.decision.proposal, /device delivery is off/i);
+  assert.match(coached.decision.proposal, /Garmin agent delivery is unavailable/i);
 }));
 
 test("onboarding schema and connector truth are available", () => withServer(async (base) => {
@@ -139,14 +163,14 @@ test("onboarding schema and connector truth are available", () => withServer(asy
   const data = await response.json();
   assert.equal(response.status, 200);
   assert.ok(data.schema.sections.some((section) => section.id === "strength"));
-  assert.equal(data.connectors.find((connector) => connector.id === "apple_health").route, "ios_companion");
+  assert.equal(data.connectors.find((connector) => connector.id === "apple_health").route, "native_companion");
 }));
 
 test("data setup reports usable fallbacks without fake connected states", () => withServer(async (base) => {
   const response = await fetch(`${base}/api/connectors`);
   const data = await response.json();
   assert.equal(response.status, 200);
-  assert.equal(data.connectors.find((connector) => connector.id === "garmin").status, "setup_required");
+  assert.equal(data.connectors.find((connector) => connector.id === "garmin").status, "file_or_manual");
   assert.equal(data.connectors.find((connector) => connector.id === "file_import").status, "available");
   assert.equal(data.connectors.find((connector) => connector.id === "apple_health").status, "companion_required");
   assert.ok(data.connectors.every((connector) => connector.status !== "connected"));
@@ -165,10 +189,48 @@ test("activity import previews before explicit local-summary consent", () => wit
   assert.equal(saved.status, 201);
   const savedBody = await saved.json();
   assert.equal(savedBody.rawStored, false);
+  assert.equal(savedBody.activities[0].providerId, "unknown");
+  assert.equal(savedBody.activities[0].modelContext.allowed, false);
   const setup = await (await fetch(`${base}/api/connectors`)).json();
   assert.equal(setup.imports.length, 1);
   assert.equal((await fetch(`${base}/api/imports/${setup.imports[0].id}`, { method: "DELETE" })).status, 200);
   assert.equal((await (await fetch(`${base}/api/connectors`)).json()).imports.length, 0);
+}));
+
+test("activity import records explicit provider model-context authorization", () => withServer(async (base) => {
+  const csv = "date,type,distance_km,duration_minutes\n2026-07-18T05:00:00Z,Run,5,30\n";
+  const payload = { fileName: "fitbit.csv", dataBase64: Buffer.from(csv).toString("base64"), providerId: "fitbit", consent: true };
+  const blocked = await (await post(base, "/api/imports", payload)).json();
+  assert.equal(blocked.activities[0].routeId, "fitbit_export");
+  assert.equal(blocked.activities[0].modelContext.allowed, false);
+  assert.equal(blocked.activities[0].modelContext.reason, "model_context_disclosure_required");
+
+  const allowed = await (await post(base, "/api/imports", {
+    ...payload,
+    modelContext: { disclosureAccepted: true, consentRecorded: true }
+  })).json();
+  assert.equal(allowed.activities[0].modelContext.allowed, true);
+  assert.equal(allowed.activities[0].modelContext.reason, "disclosure_and_consent_recorded");
+}));
+
+test("GPT athlete context excludes local-only imports while local storage retains them", () => withServer(async (base) => {
+  await post(base, "/api/onboarding", { profile: completeProfile(), complete: true });
+  const csv = "date,type,distance_km,duration_minutes\n2026-07-18T05:00:00Z,Run,5,30\n";
+  const baseImport = { fileName: "history.csv", dataBase64: Buffer.from(csv).toString("base64"), consent: true };
+  assert.equal((await post(base, "/api/imports", baseImport)).status, 201);
+  let context = currentModelAthleteContext();
+  assert.equal(context.modelContextEvidence.includedImportCount, 0);
+  assert.equal(context.modelContextEvidence.excludedImportCount, 1);
+  assert.equal(context.analysis.load.recentRunCount, 0);
+
+  assert.equal((await post(base, "/api/imports", { ...baseImport, providerId: "garmin" })).status, 201);
+  context = currentModelAthleteContext();
+  assert.equal(context.modelContextEvidence.includedImportCount, 1);
+  assert.equal(context.modelContextEvidence.excludedImportCount, 1);
+  assert.equal(context.analysis.load.recentRunCount, 1);
+
+  const local = await (await fetch(`${base}/api/connectors`)).json();
+  assert.equal(local.imports.length, 2);
 }));
 
 test("manual check-ins persist and can be deleted", () => withServer(async (base) => {
@@ -316,6 +378,206 @@ test("unknown and duplicate approvals are rejected", () => withServer(async (bas
   assert.equal((await post(base, "/api/decisions/approve", { id: coached.decision.id })).status, 200);
   assert.equal((await post(base, "/api/decisions/approve", { id: coached.decision.id })).status, 409);
 }));
+
+test("an attended provider approval executes exactly one bound write and rejects replay", () => {
+  let writes = 0;
+  const executor = {
+    inspect: async ({ resource }) => ({
+      providerId: resource.providerId,
+      routeId: resource.routeId,
+      accountBinding: resource.accountBinding,
+      capability: resource.capability,
+      operation: resource.operation,
+      target: resource.target,
+      pageUrl: "https://provider.invalid/workouts/new",
+      surface: "codex_desktop",
+      attended: true,
+      scheduled: false,
+      headless: false
+    }),
+    execute: async ({ payload, maxWrites }) => {
+      assert.equal(maxWrites, 1);
+      assert.equal(payload.name, "Easy 30");
+      writes += 1;
+      return { performed: true, writeCount: 1, providerRecordId: "provider-workout-1", message: "Synthetic attended write completed." };
+    },
+    verify: async ({ resource, execution }) => ({
+      verified: true,
+      matchingWriteCount: 1,
+      providerId: resource.providerId,
+      routeId: resource.routeId,
+      accountBinding: resource.accountBinding,
+      capability: resource.capability,
+      operation: resource.operation,
+      target: resource.target,
+      providerRecordId: execution.providerRecordId,
+      observedPayload: resource.payload,
+      pageUrl: "https://provider.invalid/workouts/provider-workout-1",
+      verifiedAt: new Date().toISOString(),
+      message: "Synthetic attended write verified by read-back."
+    })
+  };
+  return withServer(async (base) => {
+    const decision = providerWriteDecision();
+    saveDecision(decision);
+    const proof = { id: decision.id, approvalNonce: decision.approvalEnvelope.nonce, scopeHash: decision.approvalEnvelope.scopeHash };
+    assert.equal((await post(base, "/api/decisions/approve", { ...proof, approvalNonce: "wrong-proof" })).status, 422);
+    assert.equal(findDecision(decision.id).status, "awaiting_approval");
+    assert.equal(writes, 0);
+    const approved = await post(base, "/api/decisions/approve", proof);
+    assert.equal(approved.status, 200);
+    assert.equal((await approved.json()).decision.result.writeCount, 1);
+    assert.equal(findDecision(decision.id).result.providerRecordId, "provider-workout-1");
+    assert.equal(writes, 1);
+    assert.equal((await post(base, "/api/decisions/approve", proof)).status, 409);
+    assert.equal(writes, 1);
+  }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
+});
+
+test("provider-write approval becomes stale when athlete evidence changes", () => {
+  let inspected = false;
+  const executor = {
+    inspect: async () => { inspected = true; return {}; },
+    execute: async () => { throw new Error("must not execute"); },
+    verify: async () => { throw new Error("must not verify"); }
+  };
+  return withServer(async (base) => {
+    const decision = providerWriteDecision();
+    saveDecision(decision);
+    assert.equal((await post(base, "/api/checkins", { pain: 1, rpe: 3, energy: 3, sleepFeel: 3, note: "New evidence" })).status, 201);
+    const response = await post(base, "/api/decisions/approve", {
+      id: decision.id,
+      approvalNonce: decision.approvalEnvelope.nonce,
+      scopeHash: decision.approvalEnvelope.scopeHash
+    });
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /evidence or the training plan changed/i);
+    assert.equal(findDecision(decision.id).status, "stopped");
+    assert.equal(inspected, false);
+  }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
+});
+
+test("provider write is not reported performed without a separate exact read-back", () => {
+  let writes = 0;
+  let verified = 0;
+  const executor = {
+    inspect: async ({ resource }) => ({
+      providerId: resource.providerId,
+      routeId: resource.routeId,
+      accountBinding: resource.accountBinding,
+      capability: resource.capability,
+      operation: resource.operation,
+      target: resource.target,
+      pageUrl: "https://provider.invalid/workouts/new",
+      surface: "codex_desktop",
+      attended: true,
+      scheduled: false,
+      headless: false
+    }),
+    execute: async () => {
+      writes += 1;
+      return { performed: true, writeCount: 1, providerRecordId: "provider-workout-2" };
+    },
+    verify: async ({ resource, execution }) => {
+      verified += 1;
+      return {
+        verified: true,
+        matchingWriteCount: 2,
+        providerId: resource.providerId,
+        routeId: resource.routeId,
+        accountBinding: resource.accountBinding,
+        capability: resource.capability,
+        operation: resource.operation,
+        target: resource.target,
+        providerRecordId: execution.providerRecordId,
+        observedPayload: resource.payload,
+        pageUrl: "https://provider.invalid/workouts/provider-workout-2",
+        verifiedAt: new Date().toISOString()
+      };
+    }
+  };
+  return withServer(async (base) => {
+    const decision = providerWriteDecision();
+    saveDecision(decision);
+    const proof = { id: decision.id, approvalNonce: decision.approvalEnvelope.nonce, scopeHash: decision.approvalEnvelope.scopeHash };
+    const response = await post(base, "/api/decisions/approve", proof);
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /separate visible read-back/i);
+    assert.equal(writes, 1);
+    assert.equal(verified, 1);
+    assert.equal(findDecision(decision.id).status, "stopped");
+    assert.equal((await post(base, "/api/decisions/approve", proof)).status, 409);
+  }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
+});
+
+test("provider writes fail closed without an executor and consume no phantom write", () => withServer(async (base) => {
+  const decision = providerWriteDecision();
+  saveDecision(decision);
+  const response = await post(base, "/api/decisions/approve", {
+    id: decision.id,
+    approvalNonce: decision.approvalEnvelope.nonce,
+    scopeHash: decision.approvalEnvelope.scopeHash
+  });
+  assert.equal(response.status, 409);
+  assert.match((await response.json()).error, /no attended provider-write executor/i);
+  assert.equal(findDecision(decision.id).status, "stopped");
+}, { connectorPlaybooks: permittedBrowserFixture }));
+
+test("expired provider-write approvals are rejected before executor inspection", () => {
+  let inspected = false;
+  const executor = {
+    inspect: async () => { inspected = true; return {}; },
+    execute: async () => { throw new Error("must not execute"); },
+    verify: async () => { throw new Error("must not verify"); }
+  };
+  return withServer(async (base) => {
+    const decision = providerWriteDecision({ now: new Date(Date.now() - 120_000) });
+    saveDecision(decision);
+    const response = await post(base, "/api/decisions/approve", {
+      id: decision.id,
+      approvalNonce: decision.approvalEnvelope.nonce,
+      scopeHash: decision.approvalEnvelope.scopeHash
+    });
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /expired/i);
+    assert.equal(findDecision(decision.id).status, "expired");
+    assert.equal(inspected, false);
+  }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
+});
+
+test("provider-write account mismatch consumes the approval without executing", () => {
+  let writes = 0;
+  const executor = {
+    inspect: async ({ resource }) => ({
+      providerId: resource.providerId,
+      routeId: resource.routeId,
+      accountBinding: "different-account",
+      capability: resource.capability,
+      operation: resource.operation,
+      target: resource.target,
+      pageUrl: "https://provider.invalid/workouts/new",
+      surface: "codex_desktop",
+      attended: true,
+      scheduled: false,
+      headless: false
+    }),
+    execute: async () => { writes += 1; return { performed: true, writeCount: 1, providerRecordId: "must-not-write" }; },
+    verify: async () => { throw new Error("must not verify"); }
+  };
+  return withServer(async (base) => {
+    const decision = providerWriteDecision();
+    saveDecision(decision);
+    const response = await post(base, "/api/decisions/approve", {
+      id: decision.id,
+      approvalNonce: decision.approvalEnvelope.nonce,
+      scopeHash: decision.approvalEnvelope.scopeHash
+    });
+    assert.equal(response.status, 409);
+    assert.match((await response.json()).error, /no longer matches/i);
+    assert.equal(findDecision(decision.id).status, "stopped");
+    assert.equal(writes, 0);
+  }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
+});
 
 test("safety decisions cannot be approved", () => withServer(async (base) => {
   const coached = await (await post(base, "/api/coach", { message: "I have sharp chest pain and feel dizzy." })).json();

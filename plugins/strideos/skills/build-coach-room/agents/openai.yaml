@@ -1,0 +1,8 @@
+interface:
+  display_name: "Build Coach Room"
+  short_description: "Create a private athlete-controlled coach dashboard."
+  brand_color: "#165DFF"
+  default_prompt: "Use $build-coach-room to create my shareable coach room."
+
+policy:
+  allow_implicit_invocation: true

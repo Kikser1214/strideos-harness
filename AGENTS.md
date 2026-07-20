@@ -1,6 +1,6 @@
 # StrideOS agent contract
 
-This repository is a beginner-first personal endurance coaching harness. A Codex or ChatGPT agent working here must preserve the distinction between advice, deterministic safety/permission rules, and external actions.
+This repository ships the StrideOS beginner-first endurance coaching plugin plus an optional deterministic reference implementation. A Codex or ChatGPT agent working here must preserve the distinction between advice, deterministic safety/permission rules, and external actions.
 
 ## First run
 
@@ -46,9 +46,12 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 
 ## Data truth
 
-- Use `docs/ONBOARDING_RESEARCH.md` and `listConnectors()` for connector language.
-- Garmin bridge, simulation, planned OAuth, native companion, file import, manual, and connected are different states. Never collapse them into “connected.”
+- Use `docs/ONBOARDING_RESEARCH.md` and `listConnectors()` for provider-route language.
+- Official self-service access, an attended browser session, simulation, native companion, file import, and manual entry are different states. Never collapse them into “connected.”
 - Apple Health requires an authorized iOS route. Health Connect requires an Android route. Manual check-ins are a valid primary source.
+- A future attended browser read is eligible only when the provider playbook classifies the exact operation as permitted for an individual user and a reviewed executor is implemented. Store only normalized evidence with `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, observed time, retrieval time, and freshness. Never persist page HTML, cookies, session tokens, or browser storage. No provider browser executor ships in the current build.
+- Garmin attended AI/browser operation is not provider-permitted or otherwise established, so fail closed: do not browse Garmin Connect, create workouts, edit its calendar, or claim watch delivery. Garmin's current individual routes are an official export selected for local file import and manual entry. Its developer program is application/business reviewed, not ordinary self-service.
+- Strava API data must not enter model context, and Strava's current terms prohibit automated access to its signed-in web experience. Do not use either route. Offer the provider's permitted export and manual entry instead.
 - Label every signal with source and freshness when the dashboard supports it. Missing wearable data lowers confidence; it does not exclude the athlete.
 - Read `GET /api/dashboard` before answering what the athlete should do today. A pending or review-required plan is not an active prescription.
 - Keep planned sessions, observed activities, and confirmed completion as separate concepts. Until explicit matching exists, never infer plan completion from an import.
@@ -69,17 +72,19 @@ This repository is a beginner-first personal endurance coaching harness. A Codex
 - Morning, pre-workout, post-workout, and weekly automations begin as proposals. Test prompts manually before scheduling and keep permissions narrow.
 - Never create a scheduled task merely because onboarding selected one. Show the schedule, prompt, data access, and approval behavior first.
 - Use `npm run brief -- --kind <morning_brief|pre_workout|post_workout|weekly_review>` as the read-only scheduled-task contract. Treat its JSON as authoritative and never substitute the synthetic fixture for missing personal state.
-- A scheduled task may summarize and ask questions. It may not modify files, activate or change a plan, log food, or write to Garmin/calendar/connectors. Return those actions to interactive approval.
+- A scheduled task may summarize and ask questions. It may not modify files, activate or change a plan, log food, or write to a provider workout/calendar UI. Return those actions to interactive approval.
+- Assisted browsing is attended-only. Never propose it from Scheduled, a headless browser, an unattended task, or any automation that cannot keep the user's provider session visible and interruptible.
 
-## Self-service connector setup
+## Provider access setup
 
-- When device delivery is requested, read `delivery.workoutDeliveryTarget`, `delivery.connectorSetupMode`, `GET /api/connectors`, and `docs/SELF_SERVICE_CONNECTORS.md` before proposing setup.
-- Reading history, configuring an adapter, authenticating an athlete, and writing a workout are separate permissions and separate proof states.
-- Recommend official provider routes first. The optional Garmin community bridge is local, self-hosted, unofficial, user-selected, and may break; personal or non-commercial use does not make it official.
-- `guide_only` permits explanation only. `allow_local_setup_after_review` permits proposing exact local commands and file changes, but installation, authentication, and configuration still require review before execution. `not_now` stops setup.
-- Never ask a user to paste a vendor password, MFA code, refresh token, or token directory contents into chat. Keep connector tokens local/private and out of Git, Sites, logs, screenshots, and StrideOS state.
-- A configured URL, dependency, or healthy bridge is not proof of an authenticated athlete. Verify adapter health, authentication with the correct account, a dry-run, and then one exact separately approved test workout.
-- Keep the included community Garmin bridge on loopback. Do not weaken its host restriction or expose an unofficial connector publicly.
+- When device delivery is requested, read `delivery.workoutDeliveryTarget`, `delivery.connectorSetupMode`, `GET /api/connectors`, and `docs/SELF_SERVICE_CONNECTORS.md` before proposing a route.
+- A playbook may describe only routes the provider permits for an individual user. A partner-only or otherwise unavailable API is a limitation to explain, not a setup path to teach.
+- Resolve each requested capability in this order: permitted official self-service API/MCP/native companion; permitted attended assisted browsing with a reviewed executor; permitted provider export/file import; manual entry. Resolve reads and writes separately.
+- `guide_only` permits explanation only. `allow_local_setup_after_review` permits proposing exact local commands, files, or an attended browser flow, but installation and configuration still require review before execution. `not_now` stops setup.
+- Login is always performed by the user in the provider's own page or operating-system permission sheet. Never type, request, inspect, or store a vendor password, MFA code, cookie, session token, refresh token, or token-directory content.
+- If a future provider operation is classified as permitted and has a reviewed executor, browser reads need no per-read write approval after the athlete selects the source, but they remain data-minimized and local. Every browser write must require a dry-run preview and one exact, expiring approval envelope. One approval may authorize one write only. This dormant contract does not make Garmin browsing available.
+- The agent may fill and save a provider web form only after the provider classification permits that exact operation, the exact approval is current, and the user is present in the visible authenticated session. Account mismatch, UI drift, an extra write, or an expired session stops the action and requires a new preview and approval.
+- A configured client, open page, or visible account is not proof that every capability works. Verify official authorization or attended session state, then prove reads and writes independently. Explain sign-out, revocation, local deletion, and provider-side deletion before declaring setup complete.
 
 ## Development commands
 

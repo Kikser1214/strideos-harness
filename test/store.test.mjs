@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { readState, resetState } from "../src/store.mjs";
+import { claimDecisionExecution, readState, resetState, saveDecision, updateDecision } from "../src/store.mjs";
 
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), "strideos-store-test-"));
 const file = path.join(directory, "state.json");
@@ -20,6 +20,17 @@ test("malformed local state is preserved as a recoverable backup", () => {
   assert.equal(fs.readFileSync(path.join(directory, backups[0]), "utf8"), "{not valid json");
   resetState();
   assert.equal(readState().version, 7);
+});
+
+test("provider execution claims remain one-use even if state is accidentally rewound", () => {
+  resetState();
+  const decision = { id: "decision-atomic", status: "awaiting_approval", approvalEnvelope: { nonce: "one-use-nonce" } };
+  saveDecision(decision);
+  const first = claimDecisionExecution(decision.id, { approvalNonce: "one-use-nonce", update: { executionClaimedAt: "2026-07-20T05:00:00.000Z" } });
+  assert.equal(first.status, "executing");
+  updateDecision(decision.id, { status: "awaiting_approval" });
+  const replay = claimDecisionExecution(decision.id, { approvalNonce: "one-use-nonce" });
+  assert.equal(replay, null);
 });
 
 test.after(() => fs.rmSync(directory, { recursive: true, force: true }));

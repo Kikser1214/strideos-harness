@@ -13,20 +13,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StrideOS — Open-source agentic coaching",
-  description:
-    "A rule-governed AI coaching harness that connects training, recovery, nutrition, and real life into one explainable plan.",
+  title: "StrideOS - Five-skill endurance coaching plugin",
+  description: "Install five local-first ChatGPT Work and Codex coaching skills for training, data, fueling, and a private human coach room.",
   openGraph: {
-    title: "StrideOS — Your whole training life. One adaptive coach.",
-    description:
-      "Open-source agentic coaching for runners, with every important decision under athlete control.",
+    title: "StrideOS - Train with AI. Keep your people in the loop.",
+    description: "An installable open-source ChatGPT Work and Codex plugin with five coaching skills and an athlete-controlled room for real human feedback.",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrideOS open-source agentic coaching" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrideOS five-skill endurance coaching plugin" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "StrideOS — Your whole training life. One adaptive coach.",
-    description: "Open-source agentic coaching for runners.",
+    title: "StrideOS - Five-skill endurance coaching plugin",
+    description: "Installable, local-first coaching skills for runners.",
     images: ["/og.png"],
   },
 };
@@ -34,9 +32,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
     </html>
   );
 }

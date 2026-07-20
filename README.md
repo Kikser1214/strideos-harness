@@ -1,207 +1,254 @@
 # StrideOS
 
-> A coach that can act. A harness that knows when not to.
+> An open-source, local-first endurance coaching plugin for ChatGPT Work mode and Codex.
 
-StrideOS is an open-source, rule-governed personal coaching harness for runners and people who want to become active. It begins with a real athlete onboarding, combines training signals, strength experience, subjective feedback, schedule constraints, and optional meal images into evidence-backed recommendations, then checks every intended action against an inspectable policy before anything changes.
+StrideOS is a package of coaching skills—not another training-account app. It helps an athlete build a complete athlete map, understand permitted training evidence, plan running and strength work, use optional fueling support, and create a private coach room that can be shared with a real coach, experienced runner, or trusted friend.
 
-![StrideOS server-authoritative dashboard](docs/assets/dashboard-hero.png)
+The athlete stays in control. StrideOS may explain and propose; it does not silently activate a plan, log uncertain food, expand sharing, or operate a provider account.
 
-Built from scratch for **OpenAI Build Week 2026** with Codex and GPT-5.6.
+![StrideOS four-week training plan and detailed session view](sites/strideos-landing/public/dashboard-plan.png)
 
-## Why this is a harness
+Built from scratch for **OpenAI Build Week 2026** with Codex and GPT-5.6. Licensed under MIT.
 
-Most AI fitness products stop at chat, or quietly turn a confident answer into an action. StrideOS separates the system into a visible control loop:
+## Install the plugin
 
-1. **Sense** — authorized Garmin-style training data, recovery signals, food images, pain, and RPE.
-2. **Reason** — GPT-5.6 produces schema-constrained evidence and a proposed action.
-3. **Gate** — deterministic, versioned rules outside the model decide whether the action is autonomous, requires approval, or must stop.
-4. **Act** — approved actions move to an integration adapter; declined actions change nothing.
+According to [OpenAI's plugin documentation](https://learn.chatgpt.com/docs/plugins), plugins are supported in Work mode on ChatGPT web, in Work mode or Codex in the ChatGPT desktop app, and in Codex CLI. They are not available in Chat mode, the IDE extension, or mobile. The validated local-source install below requires Git, Node.js 20 or newer, and a desktop or CLI Codex environment; workspace policy may control which personal plugins are available.
 
-The **decision ledger** makes this loop visible to the athlete and to judges.
+```bash
+git clone https://github.com/Kikser1214/strideos-harness.git
+cd strideos-harness
+npx plugins discover .
+npx plugins add ./plugins/strideos --target codex
+```
 
-## Run it
+On Windows PowerShell, use `npx.cmd` if PowerShell blocks `npx.ps1`:
 
-Requires Node.js 20 or newer. From a clean clone, one command installs the locked dependency, runs the setup doctor, and starts the local server:
+```powershell
+npx.cmd plugins discover .
+npx.cmd plugins add ./plugins/strideos --target codex
+```
+
+Restart the ChatGPT desktop app or begin a new Codex CLI session, then open a new Work/Codex task so the skills are loaded. Then try:
+
+> I want StrideOS to coach me. Start from the beginning and recommend what I should do.
+
+The distributable package lives at [`plugins/strideos`](plugins/strideos). The repository also includes [marketplace metadata](.agents/plugins/marketplace.json) for the ChatGPT desktop plugin directory, following [OpenAI's repository-marketplace format](https://learn.chatgpt.com/docs/build-plugins#marketplace-metadata). The package contains a real `.codex-plugin/plugin.json`, five skills, UI metadata, references, an icon, and its MIT license. It does not claim an MCP server, hosted backend, parser, native companion, or provider integration that it does not ship.
+
+## Five core skills, many coaching workflows
+
+These are broad intent boundaries, not five single-purpose features. Strength, run-walk progression, race planning, method research, provider routes, meal images, training review, automation preferences, dashboard building, and human-coach feedback live inside the relevant core skill so the plugin can route requests without overlapping triggers or conflicting authority rules.
+
+| Skill | What it does |
+| --- | --- |
+| `strideos:coach-athlete` | Runs first-time onboarding, resumes an athlete relationship, answers “what should I do today?”, and routes work across StrideOS |
+| `strideos:plan-training` | Builds and adapts running, run-walk, race, strength, recovery, and cross-training plans; researches named methods before using them |
+| `strideos:use-training-data` | Chooses permitted data routes, preserves provenance and freshness, applies provider model-use rules, and gates any future provider write; tested file parsing lives in the optional reference runtime |
+| `strideos:support-fueling` | Provides opt-in loose, guided, detailed, or number-free fueling support, including uncertain meal and fridge images |
+| `strideos:build-coach-room` | Builds an athlete-controlled local dashboard or private Site with scoped human review and athlete-only approval |
+
+The skills are self-contained enough to use conversationally. This repository also includes a deterministic local reference implementation and two Sites templates so contributors and judges can inspect and test the rules behind the coaching behavior.
+
+## What makes StrideOS different
+
+### A real coach can join the room
+
+The private coach room is the central collaboration feature. The athlete decides:
+
+- who is invited;
+- which workouts, dates, and fields they can see;
+- whether nutrition or body context is included;
+- how long access lasts;
+- when access is revoked.
+
+A reviewer can comment on an exact workout or week and suggest a structured edit. They cannot activate a plan, invite other people, widen sharing, or operate a provider account. An accepted suggestion becomes a new athlete-visible proposal with a before/after diff; the existing plan stays unchanged until the athlete approves it.
+
+The included [`athlete-coach-demo`](sites/athlete-coach-demo) shows the complete product flow with a clearly synthetic 3:20 marathon runner: detailed history, current week, full plan, annotations, coach comments, revision proposals, and athlete-only approval. Its current identity and persistence are demo-only, so the repository does not describe it as production-private.
+
+### Beginner-first onboarding
+
+StrideOS asks for information only when it can change safety, the recommendation, delivery, or communication:
+
+- current activity, running history, recent load, and useful benchmarks;
+- pain, relevant symptoms, injury, conditions, medications, and clearance;
+- goal, event date if any, expectations, and motivation;
+- realistic schedule, work pattern, sleep, stress, terrain, climate, and barriers;
+- strength experience, technique confidence, equipment, preferences, and limitations;
+- athlete-selected phone, watch, provider, file, or manual evidence;
+- coaching style, optional nutrition, collaboration, automation, and delivery preferences.
+
+Someone who does not know training terminology is not asked to choose among unexplained systems. For a suitable beginner who wants StrideOS to decide, the starting recommendation is three separated run-walk-run sessions, two short technique-first strength sessions, and optional easy cycling when it fits schedule and recovery. Running grows gradually and walking reduces only when pain, recovery, and recent effort support it.
+
+### Training methods are researched, not copied
+
+A request for Norwegian-style threshold work, a run-walk protocol, a regional training tradition, or another named method starts research—it does not bypass the athlete assessment.
+
+StrideOS verifies the exact method with current primary or authoritative sources, identifies the intended population and recovery demand, compares it with the athlete's history and goal, and recommends full use, a conservative adaptation, or rejection. It never treats “Norwegian training” as automatically meaning double threshold or describes “African training” as one universal system.
+
+Strength belongs in every eligible plan. Missed sessions never create catch-up stacking. New pain or safety evidence overrides an approved progression.
+
+### Works alongside the accounts the athlete already has
+
+StrideOS does not say a provider is “connected” because a page is open, a client exists, or an athlete approved an idea. Reads and writes are resolved independently.
+
+Route precedence is:
+
+1. provider-permitted official self-service MCP, API, or user-owned native companion;
+2. attended browsing only when the provider permits the exact operation and a reviewed executor is enabled;
+3. provider-issued export and supported local file import;
+4. manual entry.
+
+This plugin ships **no provider browser executor**. Codex having a browser does not make an operation permitted or implemented. The athlete always performs login and MFA; StrideOS never requests, types, reads, copies, or stores credentials, cookies, session tokens, recovery codes, or browser storage.
+
+Before a new setup, the data skill re-checks current first-party provider sources. If the operation is ambiguous, it fails closed and offers the permitted export or manual route.
+
+#### Current provider truth
+
+These are provider-permitted routes the skill can explain or help the athlete configure, not bundled integrations. This release includes no provider client, MCP server, native companion, browser executor, or file parser inside the plugin package. The optional reference runtime separately parses its tested FIT, GPX, TCX, and CSV inputs.
+
+| Provider | Permitted route the skill can explain | Important limit |
+| --- | --- | --- |
+| Garmin Connect | Athlete-selected official export with a supported local file; manual check-in | No attended agent read/write or watch delivery is enabled; developer access is application/business reviewed |
+| Strava | Athlete-initiated export; manual check-in | Ordinary API data cannot enter AI coaching under the reviewed policy; automated signed-in browsing is prohibited |
+| Apple Health / Watch | Authorized iOS companion; manual check-in | HealthKit/WorkoutKit and per-type system permission require a native companion |
+| Android Health Connect | Authorized Android companion; manual check-in | On-device authorization and a native companion are required |
+| Fitbit / Google Health | Official API setup or athlete export with required disclosure and consent; manual check-in | Browser access is not established; restricted scopes and model-use consent must be enforced |
+| Oura | Official Oura MCP only after compatible setup is documented; manual subjective entry | Browser, API, and export data must not enter LLM context; provider-data routes currently fail closed |
+| WHOOP | Manual subjective entry | Browser extraction is prohibited; API/export model-context rules remain fail-closed |
+| Polar | Official API setup where permitted, official export, or manual entry | No browser automation; writes are unavailable unless separately documented |
+| COROS | Official read-only MCP, official export, or manual entry | Direct API access is reviewed; no browser automation |
+| Suunto | Official export or manual entry | Cloud API access is partner-oriented; no browser automation |
+
+The canonical, source-backed route catalog is [`rules/connector-playbooks.json`](rules/connector-playbooks.json). It records capability, permission, model-context policy, route status, first-party sources, limitations, and review date.
+
+### Every write is exact and one-use
+
+Provider permission and a real executor must exist before approval is even offered. A provider write preview is bound to the provider, route, account, capability, operation, context, exact payload, athlete state, and expiry. One approval authorizes one write.
+
+Expired, altered, mismatched, replayed, scheduled, headless, or unattended attempts stop. After an executor reports success, StrideOS still requires a visible attestation of exactly one write before it calls the action performed. No current personal provider executor is enabled; the checked-in Garmin-shaped judge action is explicitly simulation only.
+
+### Nutrition stays optional and practical
+
+The fueling skill supports `off`, `loose`, `guided`, `detailed`, and `number_free` modes. Number-free preference, under-18 status, a relevant tracking concern, `do_not_use` weight context, and clinician-prescribed constraints override detailed tracking.
+
+Meal and fridge photos are estimates. A photo cannot prove ingredients, portions, allergens, cooking fats, cross-contact safety, or nutritional values. The athlete corrects and confirms the normalized record before logging, and the bundled state never retains the raw image.
+
+Body measurements and images are optional. StrideOS does not infer a diagnosis, body-fat percentage, health status, performance potential, or moral judgment from appearance.
+
+## The control loop
+
+StrideOS keeps model reasoning separate from authority:
+
+1. **Sense** — use only athlete-authorized evidence and preserve source and freshness.
+2. **Reason** — combine deterministic analysis with optional GPT-5.6 explanation or image reasoning.
+3. **Gate** — check the intended action against versioned rules outside the model.
+4. **Propose** — show the exact recommendation or state change and explain why.
+5. **Approve or stop** — activate only the exact approved local change; provider actions additionally need a permitted implemented route.
+6. **Verify** — call an action performed only after its resulting state is read back or visibly attested.
+
+The model is never the permission system.
+
+## Run the optional local reference implementation
+
+The plugin does not require the web reference implementation. Use it when you want to inspect the deterministic state machine, onboarding, dashboard, imports, nutrition confirmation, decisions, and tests.
 
 ```bash
 npm run setup
 ```
 
-Open <http://localhost:4173>. With no environment variables, the full interface runs in deterministic **judge demo mode** with synthetic data.
+On Windows:
 
-### ChatGPT Work + Sites path
-
-The intended everyday user does not need to live in Codex or configure Vercel. Codex is the build surface; the runner uses StrideOS in **ChatGPT Work**. The conversation performs onboarding, explains the evidence, proposes a plan, collects subjective feedback, and asks for approvals. **ChatGPT Sites** is the optional visual companion: a private, shareable athlete dashboard that can be opened on phone or desktop and invited to a human coach.
-
-The open-source [Sites athlete-and-coach demo](sites/athlete-coach-demo) shows that target experience with an explicitly synthetic 3:20 marathon runner. It includes a first-run replay, current-day card, weekly plan, athlete annotation, coach feedback, an exact revision diff, athlete-only approval, and responsive navigation. It is an unbound template: every installer creates their own Site rather than inheriting the project author's deployment.
-
-The current Sites template is a product mock, not yet the durable multi-user backend. Its role switch, comments, and approval interaction reset on refresh. Real shared comments require Sites identity, a private coach allowlist, and D1 persistence; the permission contract is specified in [ChatGPT Work and Sites](docs/CHATGPT_SITES.md). The local server remains the authoritative reference implementation for policy, approval, nutrition, connectors, and external-action boundaries.
-
-Later starts use `npm start`. Windows users can run `npm.cmd run setup`; macOS and Linux use the same `npm run setup` command. See the complete [clean-clone install guide](docs/INSTALL.md), including port, environment, persistent-state, reset, and troubleshooting details. No watch, account, database, or API key is required.
-
-On the first launch, StrideOS opens the athlete-map onboarding. It asks about current movement, running history, safety, goals, strength experience and equipment, real-life schedule, data sources, coaching preferences, optional nutrition, and delivery. A watch is not required. Device delivery separately asks whether approved workouts should reach Garmin, Apple Watch, Android, or another destination and whether the agent may only guide setup or help with reviewed local steps. Draft answers save locally, and the final review shows starting stage, deadline pressure, declared-versus-observed load, available time, recovery context, missing evidence, confidence, strength guidance, connector truth, and any safety gate before a plan is created.
-
-After onboarding, **Training plan** opens a deterministic four-week proposal built around the athlete's stage, goal, availability, recovery context, and strength experience. Every session explains its duration and intensity, week four reduces load, missed sessions never create catch-up stacking, and named advanced methods remain behind a suitability-research gate. Previewing changes nothing; the exact plan becomes active only after the athlete approves its server-recorded decision.
-
-The **athlete dashboard** then projects only server-authoritative state: today's approved session or an honest empty/upcoming state, current-week running and strength load, recovery feedback, observed activity, goal window, optional fuel mode, and source freshness. Pending plans never masquerade as active workouts, and observed files never silently become claimed plan completion. No synthetic readiness score is substituted for a real athlete.
-
-The **Coach's margin** makes the dashboard two-way. Attach keep, adjust, move, or cannot-do feedback directly to the exact approved session, add the practical reason and optional pain score, then ask the coach for a revision. StrideOS creates an exact revised block—shorter, easier, moved, swapped, or cancelled—and puts it in the decision ledger. The current block remains active until that revision is separately approved. Pain at 4/10 or higher pauses normal progression for review.
-
-For a phone-accessible personal instance, the same interface is an installable PWA with optional server-side access-key protection. Localhost stays the default; private companion mode requires an intentional non-local host, HTTPS, a durable state volume, and a long secret. See [Open StrideOS anywhere](docs/REMOTE_COMPANION.md).
-
-The **Automations** screen prepares optional morning, pre-workout, post-workout, and weekly workflows for ChatGPT/Codex Scheduled. Each shows an editable local schedule and RRULE, an exact durable prompt, a manual read-only test, and its permission boundary. StrideOS never schedules merely because onboarding selected a workflow and never claims an external task is installed. After a successful test, copy the prompt into Scheduled or use the included `codex://automations` link.
-
-**Fuel companion** follows the nutrition mode chosen in onboarding: off, loose, guided, detailed, or number-free. It combines a food-first framework, training-day cues, declared allergy and medical-diet boundaries, and a supplement inventory without automatically prescribing a product. Meal or fridge photos remain estimates; number-free policy can remove all calorie and macro ranges before storage, and the athlete can correct, confirm, decline, or delete every local record.
-
-Reset the local profile before recording or rehearsing a true first run:
-
-```bash
-npm run reset
+```powershell
+npm.cmd run setup
 ```
 
-Test the same deterministic automation payload used by a scheduled prompt:
+Open <http://localhost:4173>. The first page is real onboarding; synthetic demo data is never silently loaded as a personal athlete.
+
+Useful commands:
 
 ```bash
+npm run doctor
+npm run verify
+npm run test:plugin
+npm run reset
 npm run brief -- --kind morning_brief
 ```
 
-### Live GPT-5.6 mode
+- `doctor` checks Node, dependencies, environment syntax, state permissions, privacy artifacts, and clean-install requirements without printing secret values.
+- `verify` runs diagnostics, syntax checks, and the complete acceptance suite.
+- `test:plugin` checks the plugin manifest, five skills, provider model-context rules, and prohibited-route regression guards.
+- `reset` clears the configured local athlete state and returns to a true first run.
+- `brief` produces a read-only payload for an optional scheduled prompt; it never changes a plan or provider account.
 
-```bash
-cp .env.example .env
-# Add OPENAI_API_KEY to .env
-npm start
-```
+The deterministic experience needs no wearable, provider account, database, deployment, or OpenAI key. Optional GPT-5.6 mode uses a server-side `OPENAI_API_KEY` only after the athlete enables cloud processing; deterministic safety and permission rules remain authoritative.
 
-On Windows PowerShell:
-
-```powershell
-npm.cmd install
-Copy-Item .env.example .env
-# Add OPENAI_API_KEY to .env
-npm.cmd start
-```
-
-The server uses the OpenAI Responses API with `gpt-5.6`, image input for meal analysis, medium reasoning effort, and strict JSON Schema outputs. API keys remain server-side.
-
-## Judge demo
-
-No account, Garmin device, private athlete data, or API key is required.
-
-1. Select **Should I run today?**
-2. Watch the decision ledger cite four synthetic athlete signals.
-3. See the Garmin write stop at the approval boundary.
-4. Approve or decline it.
-5. Open **Fuel companion**, inspect the athlete-selected number policy, then choose a local meal or fridge image. Review the clearly labeled fixed demo estimate, correct it, and explicitly confirm or decline logging. Add an OpenAI key and enable cloud processing for real image analysis.
-6. Try a message mentioning chest pain or dizziness to see the safety stop.
-7. Run `npm run reset`, refresh, and inspect the complete first-run athlete map, including the strength and data-source steps.
-
-In demo mode, external writes are clearly marked as simulated.
-
-## Project structure
+## Repository map
 
 ```text
-data/                  Synthetic judge fixture only
-public/                Responsive product experience
-rules/                 Versioned action policy
-rules/onboarding-schema.json  Versioned first-run question inventory
-docs/BUILD_PLAN.md     Delivery tasks and acceptance criteria
-docs/ONBOARDING_RESEARCH.md  Safety, strength, and connector sources
-docs/ATHLETE_ANALYSIS.md  Deterministic analysis rules and model boundary
-docs/TRAINING_PLAN_ENGINE.md  Four-week planning, adaptation, evidence, and approval lifecycle
-docs/NUTRITION_COMPANION.md  Optional fuel modes, photo estimates, supplements, and confirmation lifecycle
-docs/DASHBOARD.md      Server-authoritative today, progress, freshness, and empty-state contract
-docs/REMOTE_COMPANION.md Private PWA hosting, access-key, HTTPS, and persistence contract
-docs/CHATGPT_SITES.md ChatGPT Work flow, per-athlete Sites companion, coach roles, and open-source template
-docs/AUTOMATIONS.md    Preview-first Scheduled prompts, RRULEs, tests, and permission boundary
-docs/INSTALL.md        Clean-clone Windows, macOS, Linux, doctor, environment, and state guide
-docs/RELEASE_CHECKLIST.md  Automated gate and manual release rehearsal
-docs/ARCHITECTURE.md   Control loop, trust boundaries, and runtime modes
-docs/JUDGING_GUIDE.md  Fast judge path and claim-to-evidence map
-docs/VIDEO_SCRIPT.md   Under-three-minute recording and edit plan
-src/env.mjs            Tiny local environment loader
-src/harness.mjs        Deterministic gate and decision ledger
-src/onboarding.mjs     Validation, readiness, connector, running, and strength analysis
-src/athlete-analysis.mjs  Stage, goal, load, recovery, confidence, and permission analysis
-src/training-plan.mjs  Deterministic four-week running and strength proposals
-src/nutrition.mjs     Nutrition modes, protected contexts, fuel cues, and meal-display policy
-src/dashboard.mjs     Deterministic personal dashboard projection
-src/feedback.mjs      Workout annotation validation and approvable plan revisions
-src/automations.mjs   Scheduled-brief proposals and deterministic manual previews
-src/automation-cli.mjs  Read-only command used by local scheduled prompts
-src/doctor.mjs        Read-only clean-install and privacy setup diagnostics
-src/openai.mjs         GPT-5.6 text + vision reasoning
-src/garmin.mjs         Optional external bridge + honest simulation fallback
-src/connectors.mjs     Runtime connector truth, setup contracts, and source priority
-src/imports.mjs        FIT, GPX, TCX, CSV, and manual check-in normalization
-src/store.mjs          Atomic local decision and onboarding persistence
-src/reset.mjs          Clean first-run reset command
-src/server.mjs         Dependency-free Node HTTP server
-test/                  Rule-boundary and HTTP integration tests
-data/sample-profile.json  Complete synthetic contributor profile; never auto-loaded
-sites/athlete-coach-demo  Unbound ChatGPT Sites mock for a 3:20 marathon runner and human coach
+plugins/strideos/                     Installable StrideOS plugin package
+  .codex-plugin/plugin.json          Plugin manifest and UI metadata
+  skills/coach-athlete/              Onboarding and coaching orchestration
+  skills/plan-training/              Training plans and method research
+  skills/use-training-data/          Provider routes, imports, and provenance
+  skills/support-fueling/            Optional fueling and photo boundaries
+  skills/build-coach-room/           Private human-coach collaboration
+rules/onboarding-schema.json         First-run question inventory
+rules/connector-playbooks.json       Source-backed provider policy catalog
+rules/harness-policy.json            Deterministic action boundaries
+src/                                 Local reference engine and HTTP API
+public/                              Local reference interface and PWA assets
+sites/athlete-coach-demo/            Synthetic coach-room product template
+sites/strideos-landing/              Public project website
+docs/                                Architecture, install, research, demo, and release guides
+test/                                Unit, HTTP, provider-policy, and plugin-package tests
 ```
 
-### Optional Garmin bridge
+The repository retains its original GitHub URL, `strideos-harness`, but the shipped product is the **StrideOS plugin package**. `src/harness.mjs` is the internal deterministic decision gate, not the product identity.
 
-No Garmin integration is claimed by default. The interface reports **Garmin simulation**, and an approved workout records a simulated result without changing an external calendar. Deployers can set `GARMIN_BRIDGE_URL` (and optionally `GARMIN_BRIDGE_TOKEN`) to route approved workout writes through their own official adapter. Personal users may instead opt into the included loopback-only wrapper for a Python community connector they have reviewed. It remains unofficial and self-hosted. See [Self-service device connections](docs/SELF_SERVICE_CONNECTORS.md).
+## Verification evidence
 
-Decisions are persisted atomically in the operating system's temporary directory by default. Set `STRIDEOS_STATE_FILE` to choose a durable deployment path.
+The release gate includes:
 
-### Wearables and files
+- current strict portable validation of the final plugin, five skills, route-safety language, and repository marketplace metadata;
+- official Codex validation of the same manifest and skill metadata during packaging, including the installed cache copy;
+- plugins CLI discovery showing one `strideos` plugin with five skills;
+- an isolated successful Codex install using a relative local path;
+- root diagnostics, syntax checks, and the complete Node acceptance suite;
+- landing-site build and rendered-page test;
+- athlete-and-coach site build and rendered-page tests;
+- a last-successful production dependency audit with zero findings on July 18, 2026; refresh it immediately before submission;
+- `git diff --check`.
 
-Open **Data sources** to see the runtime truth matrix. FIT, GPX, TCX, and CSV import works now; FIT decoding uses Garmin's official SDK. Every file receives a server-side preview before the athlete explicitly confirms storage. Only normalized activity summaries are kept in local state, and each summary has a delete control. Manual pain, RPE, energy, sleep-feel, and context check-ins are also available now.
+Coverage includes beginner onboarding, safety stops, strength recommendations, training-plan approval and replay protection, workout annotations, nutrition confirmation, imports and freshness, provider permission and model-context filtering, explicit attended-context rejection, one-use expiring write envelopes, Garmin fail-closed behavior, Strava policy blocks, private-companion access control, and plugin packaging.
 
-Garmin can use the documented bridge contract, but a configured adapter is never presented as proof that an athlete account is connected. Strava exposes its required OAuth environment contract without claiming the OAuth flow is live. Apple Health requires an iOS HealthKit companion, and Android Health Connect requires an Android companion. Fitbit, Oura, WHOOP, Polar, COROS, and Suunto stay visibly labeled **planned**. See [Data connections](docs/DATA_CONNECTIONS.md) and [the onboarding research pack](docs/ONBOARDING_RESEARCH.md).
+## Important current boundaries
 
-## Safety and privacy
-
-- StrideOS is for general wellness coaching, not diagnosis or medical treatment.
-- Possible red flags stop the normal action path and recommend qualified care.
-- A positive onboarding safety signal can save the profile but pauses automated running and strength prescription until the indicated review is resolved.
-- Strength is always considered; the starting dose adapts to experience, technique confidence, equipment, schedule, and recovery.
-- Food-image nutrition values are explicitly estimates and require confirmation before logging.
-- Number-free preference, relevant tracking concerns, under-18 profiles, and clinician-prescribed diets prevent automated calorie or macro targeting.
-- A meal photo never establishes allergen or cross-contact safety, and supplement use is inventoried rather than automatically prescribed.
-- Plan changes and external writes require athlete approval.
-- Unknown actions stop by default.
+- StrideOS provides general wellness coaching, not diagnosis or treatment.
+- No provider browser executor or real provider write executor ships in this release.
+- The coach-room Site is a product template until real identity, private persistence, invitations, and revocation are bound to a production surface.
+- Scheduled tasks may summarize and ask questions; they cannot browse a provider, activate a plan, log food, or perform an external write.
 - The repository contains synthetic athlete data only.
-- `.env`, uploads, logs, and private data paths are gitignored.
 
-See [PRIVACY.md](PRIVACY.md) for the data model and deployment responsibilities.
+Read [`PRIVACY.md`](PRIVACY.md) before hosting a personal instance.
 
-## How Codex accelerated the build
+## Documentation
 
-Codex was the primary engineering collaborator for the Build Week implementation. It:
-
-- translated the product thesis into a bounded, testable control loop;
-- implemented the rule engine, API, multimodal flow, and interface;
-- used current OpenAI documentation to select GPT-5.6 Responses API patterns;
-- added schema-constrained outputs after a hardening review;
-- tested the approval boundary and visually verified desktop and mobile layouts with a real browser.
-
-The human made the central product decisions: rebuild from scratch, treat StrideOS as a personal runner harness rather than a generic app, put Garmin and food-photo workflows in scope, and release the result as open source.
-
-## Tests
-
-```bash
-npm run verify
-```
-
-The release gate runs the setup doctor, syntax checks, and the full test suite. Coverage includes action boundaries, onboarding, athlete analysis, planning, nutrition, dashboard truth, Scheduled proposals, source freshness, file imports, manual check-ins, corrupt-state recovery, exact Garmin bridge payloads, HTTP input limits and security headers, static accessibility, persistence, and duplicate approvals. Use the [manual release checklist](docs/RELEASE_CHECKLIST.md) before a public submission.
-
-## Build Week plan
-
-The rebuild is intentionally split into auditable tasks. See [the delivery plan](docs/BUILD_PLAN.md) for the onboarding, connector, analysis, plan, nutrition, dashboard, automation, open-source, hardening, submission, and demo-video checkpoints.
-
-## Submission screenshots
-
-| Athlete map | Training block | Fuel rules |
-| --- | --- | --- |
-| ![First-run athlete map](docs/assets/first-run-desktop.png) | ![Four-week training plan](docs/assets/training-plan.png) | ![Athlete-controlled fuel companion](docs/assets/fuel-companion.png) |
-
-The full caption set and recommended Devpost order are in [submission assets](docs/assets/README.md). The [architecture](docs/ARCHITECTURE.md) and [judge guide](docs/JUDGING_GUIDE.md) map every major claim to an inspectable path.
+- [Clean-clone and plugin installation](docs/INSTALL.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Build plan](docs/BUILD_PLAN.md)
+- [Provider access routes](docs/SELF_SERVICE_CONNECTORS.md)
+- [Data access and provenance](docs/DATA_CONNECTIONS.md)
+- [Onboarding research](docs/ONBOARDING_RESEARCH.md)
+- [Training-plan engine](docs/TRAINING_PLAN_ENGINE.md)
+- [Nutrition companion](docs/NUTRITION_COMPANION.md)
+- [Dashboard contract](docs/DASHBOARD.md)
+- [Automations](docs/AUTOMATIONS.md)
+- [ChatGPT Work and Sites](docs/CHATGPT_SITES.md)
+- [Judge guide](docs/JUDGING_GUIDE.md)
+- [Demo video script](docs/VIDEO_SCRIPT.md)
+- [Release checklist](docs/RELEASE_CHECKLIST.md)
 
 ## Open source
 
-StrideOS source is licensed under the [MIT License](LICENSE). Garmin's runtime FIT SDK remains under Garmin's own SDK license; it is installed from npm and is not relicensed by this project. See [Third-party notices](THIRD_PARTY_NOTICES.md). Contributions, experiments, and integration adapters are welcome.
+StrideOS is licensed under the [MIT License](LICENSE). Garmin's FIT SDK keeps its own license and is not relicensed by this project; see [Third-party notices](THIRD_PARTY_NOTICES.md).
+
+Contributions are welcome for coaching skills, training-method research, deterministic safety, provider policy, data normalization, privacy, testing, and human-coach collaboration. Every new provider route must be current, first-party sourced, permitted for an individual, compatible with the intended model use, capability-specific, and fail closed when permission or implementation is missing.

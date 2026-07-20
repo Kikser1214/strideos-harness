@@ -164,7 +164,7 @@ export default function Home() {
 
         <div className="rail-spacer" />
         <div className="source-card">
-          <div className="source-row"><span className="status-dot" /> Garmin synced</div>
+          <div className="source-row"><span className="status-dot" /> Garmin export loaded</div>
           <p>Last activity · 2h ago</p>
           <p>Manual check-in · today</p>
         </div>

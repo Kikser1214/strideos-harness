@@ -1,0 +1,8 @@
+interface:
+  display_name: "Use Training Data"
+  short_description: "Use permitted athlete data routes with provenance."
+  brand_color: "#165DFF"
+  default_prompt: "Use $use-training-data to add or review my training data."
+
+policy:
+  allow_implicit_invocation: true

@@ -33,7 +33,7 @@ npm run brief -- --kind post_workout
 npm run brief -- --kind weekly_review
 ```
 
-The command emits JSON derived from the completed athlete map, current deterministic analysis, server-active plan, normalized activity summaries, manual check-ins, nutrition policy, connector truth, and decision ledger. It does not call OpenAI, modify files, change a plan, log food, or write to a device.
+The command emits JSON derived from the completed athlete map, current deterministic analysis, server-active plan, normalized activity summaries, manual check-ins, nutrition policy, provider-route truth, and decision ledger. It does not call OpenAI, modify files, change a plan, log food, browse a provider account, or write to a device.
 
 If onboarding is missing, the command stops instead of using the synthetic judge fixture. If there is no scheduled session or observed post-workout activity, it returns `no_update` rather than inventing work. A safety stop overrides every normal scheduled brief.
 
@@ -45,7 +45,8 @@ The generated task prompt explicitly grants only:
 - execution of `npm run brief`;
 - presentation of the returned evidence and questions.
 
-It explicitly denies file mutation, network access, plan activation/change, food logging, and Garmin/calendar/connector writes. Any useful side effect must return to interactive StrideOS and its server-authoritative approval ledger.
+It explicitly denies file mutation, network access, plan activation/change, food logging, provider browsing, and provider workout/calendar writes. Any useful side effect must return to interactive StrideOS and its server-authoritative approval ledger.
 
 For a local project, start with workspace-write or narrower permissions. Do not use full access merely to make the brief run. Scheduled tasks are unattended, so a task that requires an interactive approval should report the blocked action rather than bypass it.
 
+Assisted browsing is never available to Scheduled, a headless browser, or any unattended task. A scheduled prompt cannot reuse a provider session, request login, refresh `browser_read` evidence, prefill a provider form, or consume a provider-write approval. Even when an official API or native companion is technically capable of background refresh, that capability does not grant this included Scheduled workflow network authority; it requires a separate, explicit automation design and consent. Garmin has no current permitted assisted-browser route in interactive or scheduled execution.

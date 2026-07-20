@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f2f4f6" />
-    <meta name="description" content="StrideOS is a rule-governed personal running coach harness built with Codex and GPT-5.6." />
+    <meta name="description" content="StrideOS is an open-source endurance-coaching plugin for ChatGPT Work mode and Codex, with an optional local reference implementation." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="StrideOS" />
     <title>StrideOS — the coach with a control plane</title>
@@ -62,7 +62,7 @@
           <nav id="onboardingNav" aria-label="Onboarding progress"></nav>
           <div class="map-footnote">
             <span>Local draft</span>
-            <p>Your answers stay in this local StrideOS state unless you explicitly connect or send data.</p>
+            <p>Your answers stay in this local StrideOS state unless you explicitly choose a permitted route or send data.</p>
             <button type="button" id="exploreDemo">Explore synthetic demo</button>
           </div>
         </aside>
@@ -91,12 +91,12 @@
       <section class="hero shell">
         <div class="hero-copy">
           <p class="eyebrow">Personal running coach / controlled by you</p>
-          <h1>A coach that can act.<br /><em>A harness that knows when not to.</em></h1>
+          <h1>Coaching skills that can reason.<br /><em>Control stays with the athlete.</em></h1>
           <p class="lede">
-            StrideOS connects training, recovery, food, and how you actually feel—then turns them into one evidence-backed next move. It reads freely. It asks before it changes your world.
+            StrideOS brings together training, recovery, food, and how you actually feel—then turns them into one evidence-backed next move. It reads evidence through currently available permitted routes. Provider writes stay blocked until permission and a tested executor are both proved.
           </p>
           <div class="hero-actions">
-            <button class="primary" data-scroll="console">Try the harness <span>↓</span></button>
+            <button class="primary" data-scroll="console">Try the reference coach <span>↓</span></button>
             <button class="text-button" data-scroll="rules">Inspect the rules</button>
           </div>
         </div>
@@ -121,7 +121,7 @@
         <div class="shell thesis-inner">
           <p>The control loop</p>
           <ol>
-            <li><span>Sense</span>Garmin + food + feel</li>
+            <li><span>Sense</span>Device exports + food + feel</li>
             <li><span>Reason</span>GPT-5.6 with evidence</li>
             <li><span>Gate</span>Rules check every action</li>
             <li><span>Act</span>Only after your approval</li>
@@ -132,7 +132,7 @@
       <section class="console-section shell" id="console">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Interactive harness</p>
+            <p class="eyebrow">Optional reference implementation</p>
             <h2>Ask once. See every decision.</h2>
           </div>
           <p id="consoleDisclosure">The demo uses synthetic athlete data. Add an OpenAI key locally to run the same flow live with GPT-5.6.</p>
@@ -217,7 +217,7 @@
               <div><dt id="goalLabel">Goal</dt><dd id="daysToRace">Not set</dd></div>
               <div><dt>Source</dt><dd id="calendarStatus">Checking evidence</dd></div>
             </dl>
-            <p class="connector-note" id="connectorNote">Checking whether an external calendar is connected.</p>
+            <p class="connector-note" id="connectorNote">Checking the selected provider route and session boundary.</p>
             <button class="plan-button" id="openPlanPanel">
               <span><strong id="planButtonTitle">Training plan</strong><small id="planButtonNote">Complete setup to build a proposal</small></span>
               <b>VIEW →</b>
@@ -245,8 +245,8 @@
             <div class="conversation" id="conversation" aria-live="polite">
               <div class="message assistant">
                 <small class="message-mode" id="initialMessageMode">Synthetic athlete · no external writes</small>
-                <p id="initialMessageText">This workspace starts safely: ask a question to create a real decision trace. In demo mode, Garmin writes are simulated and clearly labeled.</p>
-                <button class="inline-action" data-prompt="Should I keep today's run and send it to Garmin?">Check the decision →</button>
+                <p id="initialMessageText">This workspace starts safely: ask a question to create a real decision trace. In demo mode, simulated Garmin requests are clearly labeled and never reach an account.</p>
+                <button class="inline-action" data-prompt="Show today's run and simulate a Garmin request.">Test a simulated request →</button>
               </div>
             </div>
             <form class="composer" id="coachForm">
@@ -268,7 +268,7 @@
             </div>
             <div class="ledger" id="ledger"><div class="empty-ledger"><strong>Ask the coach to create a trace.</strong><p>Evidence, the rule gate, and any proposed action will appear here.</p></div></div>
             <div class="approval-card" id="approvalCard" hidden>
-              <div><span>Approval required</span><strong id="proposalText">Push “Aerobic rhythm · 8 km” to Garmin?</strong></div>
+              <div><span>Approval required</span><strong id="proposalText">Simulate the blocked Garmin request for “Aerobic rhythm · 8 km”?</strong></div>
               <label class="meal-confirmation" id="mealConfirmation" hidden>Anything to correct before logging?<textarea id="mealCorrections" maxlength="500" placeholder="e.g. one cup of rice, not two; sauce was separate"></textarea></label>
               <div class="approval-actions">
                 <button class="approve" id="approveDecision">Approve action</button>
@@ -283,14 +283,14 @@
         <div class="shell rules-grid">
           <div class="rules-copy">
             <p class="eyebrow">The compact</p>
-            <h2>The model reasons.<br />The harness decides what it may do.</h2>
+            <h2>The model reasons.<br />The rules decide what it may do.</h2>
             <p>Rules are versioned, inspectable, and deliberately boring. They stay outside the prompt so a persuasive answer can never quietly become permission.</p>
           </div>
           <div class="rule-list" id="ruleList">
-            <div class="rule-row"><span class="autonomous">AUTO</span><strong>Read authorized training data</strong><p>Reversible observation</p></div>
+            <div class="rule-row"><span class="autonomous">AUTO</span><strong>Read available, authorized evidence</strong><p>Reversible observation</p></div>
             <div class="rule-row"><span class="autonomous">AUTO</span><strong>Analyze a meal photo</strong><p>Estimate only</p></div>
             <div class="rule-row"><span class="confirm">ASK</span><strong>Log food or change a plan</strong><p>Needs athlete confirmation</p></div>
-            <div class="rule-row"><span class="confirm">ASK</span><strong>Push a workout to Garmin</strong><p>External side effect</p></div>
+            <div class="rule-row"><span class="stop">STOP</span><strong>Provider write without a permitted, tested route</strong><p>Unavailable in this build</p></div>
             <div class="rule-row"><span class="stop">STOP</span><strong>Medical red flags</strong><p>Route to qualified care</p></div>
           </div>
         </div>
@@ -331,7 +331,7 @@
               <span id="dropCopy"><b>＋</b><strong>Choose a meal or fridge photo</strong><small>PNG, JPG, or WEBP · max 8 MB</small></span>
             </label>
             <label class="note-field">Anything the image cannot show?<input id="foodNote" type="text" maxlength="500" placeholder="e.g. ingredients, oil, sauce, or actual portion" /></label>
-            <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with the harness</button>
+            <button type="button" class="primary analyze-button" id="analyzeFood">Analyze with StrideOS</button>
             <div class="meal-result" id="mealResult" hidden></div>
           </section>
           <section class="meal-history"><div class="saved-heading"><strong>Local fuel records</strong><span>DELETE ANYTIME</span></div><div id="mealHistory"></div></section>
@@ -372,8 +372,8 @@
         <header class="data-heading">
           <div>
             <p class="eyebrow">Evidence bay / local-first</p>
-            <h2 id="dataTitle">Connect what you use.<br /><em>Never fake a signal.</em></h2>
-            <p>StrideOS labels every source by what works now, what needs setup, and what is only planned. No watch is required.</p>
+            <h2 id="dataTitle">Use what you already have.<br /><em>Never fake a signal.</em></h2>
+            <p>StrideOS labels every route by what works now, what requires local or native setup, and what remains unavailable. No watch is required.</p>
           </div>
           <button class="dialog-close data-close" id="closeDataDialog" aria-label="Close data sources">×</button>
         </header>
@@ -387,7 +387,7 @@
         <div class="data-workbench">
           <section class="connector-section">
             <div class="workbench-heading">
-              <div><p class="panel-kicker">Connector truth</p><h3>Every route, exactly as it is.</h3></div>
+              <div><p class="panel-kicker">Provider route truth</p><h3>Every route, exactly as it is.</h3></div>
               <span id="connectorCount">Checking</span>
             </div>
             <div class="connector-grid" id="connectorGrid"></div>

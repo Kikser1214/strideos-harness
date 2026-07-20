@@ -1,12 +1,12 @@
 {
-  "version": "2026-07-17",
-  "principle": "Observe freely. Recommend with evidence. Change the athlete's world only with approval.",
+  "version": "2026-07-20-assisted-browser-v1",
+  "principle": "Observe permitted evidence. Recommend with evidence. Change the athlete's world only through a provider-permitted route and exact approval.",
   "boundaries": [
     {
       "id": "read_training_data",
       "action": "read_training_data",
       "mode": "autonomous",
-      "reason": "Reading authorized athlete data is reversible and does not alter the training plan."
+      "reason": "Reading athlete-authorized data is non-mutating. A browser read is eligible only through an enabled reviewed executor in an attended, provider-permitted session and must retain browser_read provenance."
     },
     {
       "id": "record_workout_feedback",
@@ -36,7 +36,20 @@
       "id": "push_garmin_workout",
       "action": "push_garmin_workout",
       "mode": "confirm",
-      "reason": "Writing to the athlete's Garmin calendar is an external side effect."
+      "reason": "The checked-in judge flow uses a Garmin-shaped simulation and still requires approval. No personal Garmin browser write is authorized by the current provider playbook."
+    },
+    {
+      "id": "write_provider_session",
+      "action": "write_provider_session",
+      "mode": "stop",
+      "enabledMode": "confirm",
+      "requiresExecutor": true,
+      "approvalEnvelope": {
+        "expires": true,
+        "maxWrites": 1,
+        "binds": ["decision", "provider", "route", "account", "operation", "payload", "attended_context"]
+      },
+      "reason": "No current provider playbook enables an attended write executor. A future executor requires provider permission plus an exact, expiring, one-use approval envelope; approval cannot create that route."
     },
     {
       "id": "medical_red_flag",

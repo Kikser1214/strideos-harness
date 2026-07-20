@@ -10,7 +10,7 @@ StrideOS nutrition support is optional and athlete-controlled. It organizes ordi
 - **Detailed** — confirmed meal estimates may show calorie and macro ranges. If a valid body weight was explicitly allowed for context, StrideOS may show an optional protein planning range; it does not calculate a generic calorie target.
 - **Number-free** — food, rhythm, appetite, hydration, and session context without calorie, macro, or body-weight targets.
 
-Number-free behavior wins over the requested mode when the athlete asks for it, marks weight as “do not use,” reports a previous or current tracking concern, is working under clinician guidance for that concern, or is under 18. A clinician-prescribed diet also creates a protected context: the harness may organize questions but must not contradict or replace that plan.
+Number-free behavior wins over the requested mode when the athlete asks for it, marks weight as “do not use,” reports a previous or current tracking concern, is working under clinician guidance for that concern, or is under 18. A clinician-prescribed diet also creates a protected context: the `support-fueling` skill may organize questions but must not contradict or replace that plan.
 
 ## Deterministic companion
 

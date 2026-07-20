@@ -1,0 +1,8 @@
+interface:
+  display_name: "Fuel and Recovery"
+  short_description: "Give optional practical fueling and recovery support."
+  brand_color: "#165DFF"
+  default_prompt: "Use $support-fueling to help with my running nutrition."
+
+policy:
+  allow_implicit_invocation: true

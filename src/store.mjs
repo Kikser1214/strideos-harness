@@ -10,6 +10,10 @@ function stateFile() {
   return process.env.STRIDEOS_STATE_FILE || defaultFile;
 }
 
+function decisionClaimDirectory() {
+  return `${stateFile()}.claims`;
+}
+
 function emptyState() {
   return { version: 7, decisions: [], onboarding: null, imports: [], checkins: [], workoutFeedback: [], plans: [], activePlanId: null, meals: [], automations: { overrides: {}, tests: {} } };
 }
@@ -81,6 +85,35 @@ export function updateDecision(id, update) {
   const index = state.decisions.findIndex((item) => item.id === id);
   if (index < 0) return null;
   state.decisions[index] = { ...state.decisions[index], ...update, updatedAt: new Date().toISOString() };
+  writeState(state);
+  return state.decisions[index];
+}
+
+export function claimDecisionExecution(id, { approvalNonce, update = {} } = {}) {
+  const safeId = String(id || "");
+  const safeNonce = String(approvalNonce || "");
+  if (!safeId || !safeNonce) return null;
+  const directory = decisionClaimDirectory();
+  fs.mkdirSync(directory, { recursive: true });
+  const claimKey = crypto.createHash("sha256").update(`${safeId}\0${safeNonce}`).digest("hex");
+  const claimFile = path.join(directory, `${claimKey}.claim`);
+  let descriptor;
+  try {
+    descriptor = fs.openSync(claimFile, "wx", 0o600);
+    fs.writeFileSync(descriptor, JSON.stringify({ decisionId: safeId, claimedAt: new Date().toISOString(), processId: process.pid }));
+  } catch (error) {
+    if (error?.code === "EEXIST") return null;
+    throw error;
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+
+  const state = readState();
+  const index = state.decisions.findIndex((item) => item.id === safeId);
+  if (index < 0 || state.decisions[index].status !== "awaiting_approval" || state.decisions[index].approvalEnvelope?.nonce !== safeNonce) {
+    return null;
+  }
+  state.decisions[index] = { ...state.decisions[index], ...update, status: "executing", updatedAt: new Date().toISOString() };
   writeState(state);
   return state.decisions[index];
 }
@@ -332,4 +365,5 @@ export function deleteWorkoutFeedback(id) {
 
 export function resetState() {
   writeState(emptyState());
+  fs.rmSync(decisionClaimDirectory(), { recursive: true, force: true });
 }

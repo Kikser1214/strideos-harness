@@ -1,0 +1,20 @@
+{
+  "name": "strideos",
+  "interface": {
+    "displayName": "StrideOS"
+  },
+  "plugins": [
+    {
+      "name": "strideos",
+      "source": {
+        "source": "local",
+        "path": "./plugins/strideos"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Health & Fitness"
+    }
+  ]
+}

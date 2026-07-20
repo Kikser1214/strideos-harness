@@ -1,0 +1,8 @@
+interface:
+  display_name: "StrideOS Coach"
+  short_description: "Onboard and coach an endurance athlete safely."
+  brand_color: "#165DFF"
+  default_prompt: "Use $coach-athlete to start or continue my StrideOS coaching."
+
+policy:
+  allow_implicit_invocation: true

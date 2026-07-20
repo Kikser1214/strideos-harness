@@ -1,10 +1,11 @@
 export function garminStatus() {
-  const configured = Boolean(process.env.GARMIN_BRIDGE_URL);
   return {
-    mode: configured ? "bridge" : "simulation",
-    configured,
-    label: configured ? "Garmin bridge configured" : "Garmin simulation",
-    connectionState: configured ? "adapter_configured" : "not_connected"
+    mode: "export_or_manual",
+    configured: false,
+    label: "Garmin export or manual entry",
+    connectionState: "no_permitted_direct_route",
+    assistedBrowsingClassification: "not_established",
+    workoutDeliverySupported: false
   };
 }
 
@@ -21,30 +22,6 @@ export async function pushWorkout({ decision }) {
       message: "Approval recorded. Synthetic judge workouts are always simulated; no external calendar changed."
     };
   }
-  const status = garminStatus();
-  if (!status.configured) {
-    return {
-      performed: false,
-      simulated: true,
-      message: "Approval recorded. Garmin write simulated; no external calendar changed."
-    };
-  }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000);
-  try {
-    const response = await fetch(process.env.GARMIN_BRIDGE_URL, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "content-type": "application/json",
-        ...(process.env.GARMIN_BRIDGE_TOKEN ? { authorization: `Bearer ${process.env.GARMIN_BRIDGE_TOKEN}` } : {})
-      },
-      body: JSON.stringify({ decisionId: decision.id, athleteId: resource.athleteId, workout: resource.workout })
-    });
-    if (!response.ok) throw new Error(`Garmin bridge rejected the write (${response.status}).`);
-    return { performed: true, simulated: false, message: "Workout sent through the configured Garmin bridge." };
-  } finally {
-    clearTimeout(timeout);
-  }
+  throw new TypeError("No provider-permitted individual Garmin workout-write route is currently established. Use a local structured preview and a manual provider action.");
 }

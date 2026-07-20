@@ -1,0 +1,8 @@
+interface:
+  display_name: "Plan Training"
+  short_description: "Build and adapt an evidence-led endurance plan."
+  brand_color: "#165DFF"
+  default_prompt: "Use $plan-training to build or review my training plan."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,68 +1,112 @@
-# Install StrideOS from a clean clone
+# Install StrideOS
 
-StrideOS supports a zero-account local demo on Windows, macOS, and Linux. You need Git and Node.js 20 or newer. A Garmin watch, wearable account, OpenAI API key, database, and cloud deployment are not required.
+StrideOS ships as an installable plugin package for ChatGPT Work mode and Codex. The repository also contains an optional local reference implementation for inspecting and testing the deterministic rules behind the skills.
 
-## One-command first run
+## Requirements
 
-Clone the public repository, enter it, then run the setup command:
+- Git;
+- Node.js 20 or newer;
+- Work mode or Codex in the ChatGPT desktop app, or Codex CLI, for the validated local-source path.
+
+No wearable, provider account, OpenAI API key, database, or cloud deployment is required.
+
+## Install the plugin from a clone
 
 ```bash
 git clone https://github.com/Kikser1214/strideos-harness.git
 cd strideos-harness
+npx plugins discover .
+npx plugins add ./plugins/strideos --target codex
+```
+
+Use the relative `./plugins/strideos` path from the repository root. This is portable and avoids local-path parsing problems in some Windows CLI environments.
+
+Windows PowerShell:
+
+```powershell
+git clone https://github.com/Kikser1214/strideos-harness.git
+Set-Location strideos-harness
+npx.cmd plugins discover .
+npx.cmd plugins add ./plugins/strideos --target codex
+```
+
+Discovery should report one plugin named `strideos` with five skills. The installer registers the package in the local Codex plugin cache and configuration. The clone also contains `.agents/plugins/marketplace.json`, which describes StrideOS to the ChatGPT desktop plugin directory. Restart the ChatGPT desktop app or begin a new Codex CLI session, then open a new Work/Codex task so the skills are loaded.
+
+[OpenAI's plugin documentation](https://learn.chatgpt.com/docs/plugins) currently supports plugins in Work mode on ChatGPT web, in Work mode or Codex in the ChatGPT desktop app, and through the Codex CLI plugin browser. Plugins are not available in Chat mode, the IDE extension, or mobile. A workspace administrator may further control installation and marketplace visibility.
+
+Try:
+
+> I want StrideOS to coach me. Start with first-time onboarding and recommend a safe starting week.
+
+## What is installed
+
+The plugin root is [`plugins/strideos`](../plugins/strideos):
+
+```text
+.codex-plugin/plugin.json
+assets/icon.svg
+skills/coach-athlete/
+skills/plan-training/
+skills/use-training-data/
+skills/support-fueling/
+skills/build-coach-room/
+LICENSE
+```
+
+The package contains coaching instructions, UI metadata, marketplace metadata, and focused references. It does not bundle or claim a provider MCP server, hosted backend, browser executor, provider write executor, native companion, or activity-file parser.
+
+## Verify the package
+
+From the repository root:
+
+```bash
+npm run test:plugin
+npx plugins discover .
+```
+
+The repository acceptance test checks the manifest, exact skill inventory, skill frontmatter, UI prompts, references, assets, provider model-context rules, and prohibited-route regression guards.
+
+Contributors can also run the Codex plugin-creator `validate_plugin.py` helper and skill-creator `quick_validate.py` helper when those system tools are available locally. The release procedure validates the source package, every skill, and the installed cache copy.
+
+## Run the optional local reference implementation
+
+Use this when you want the onboarding wizard, athlete dashboard, decision ledger, data-import previews, nutrition confirmation, and synthetic judge flow:
+
+```bash
 npm run setup
 ```
 
-`npm run setup` installs the locked dependency set, runs the setup doctor, and starts StrideOS at <http://localhost:4173>. The first page is the athlete-map onboarding. It never loads the synthetic sample as a personal profile.
+Windows PowerShell:
 
-Stop the server with `Ctrl+C`. Later starts only need:
+```powershell
+npm.cmd run setup
+```
+
+`setup` installs the locked dependency set, runs the setup doctor, and starts the local experience at <http://localhost:4173>. The first page is the real athlete-map onboarding. It never loads synthetic sample data as a personal profile.
+
+Stop the server with `Ctrl+C`. Later starts use:
 
 ```bash
 npm start
 ```
 
-## Windows PowerShell
-
-```powershell
-git clone https://github.com/Kikser1214/strideos-harness.git
-Set-Location strideos-harness
-npm.cmd run setup
-```
-
-If PowerShell execution policy blocks `npm.ps1`, use `npm.cmd` as shown. StrideOS is a native Node application and does not require WSL.
-
-## macOS
-
-Install a current Node.js LTS release with the official installer or your package manager, verify `node --version` reports 20 or newer, and run the common setup commands above. On Apple Silicon and Intel Macs, the included JavaScript dependency installs without a native compilation step.
-
-## Linux
-
-Use a maintained Node.js 20+ package for your distribution or a Node version manager. Do not rely on an older distribution-default Node. Verify versions, then run the common setup commands:
-
-```bash
-node --version
-npm --version
-npm run setup
-```
-
 ## Setup doctor
-
-Run this any time installation or startup is unclear:
 
 ```bash
 npm run doctor
 ```
 
-The doctor verifies the Node version, workspace, Garmin FIT SDK dependency, `.env` syntax without printing values, state-path writability, configured port, privacy/runtime gitignore rules, synthetic sample validity, license, privacy notice, and this install guide. A missing OpenAI key is informational, not a failure.
+The doctor verifies the Node version, workspace, Garmin FIT SDK dependency, `.env` syntax without printing values, state-path writability, configured port, privacy/runtime ignore rules, synthetic sample validity, license, privacy notice, and installation guide. A missing OpenAI key is informational.
 
-If the configured port is already occupied, stop the other process or choose another in `.env`:
+If the configured port is occupied, stop the other process or choose another in `.env`:
 
 ```dotenv
 PORT=4180
 ```
 
-## Optional live GPT-5.6 mode
+## Optional GPT-5.6 mode
 
-Demo mode is complete without an API key. To enable live coaching and real meal-image reasoning, copy the environment template and add your own server-side key:
+The deterministic experience works without an API key. To enable live coaching explanation and meal-image reasoning, copy the environment template and add the user's own server-side key.
 
 macOS/Linux:
 
@@ -76,17 +120,19 @@ Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-Set `OPENAI_API_KEY` in `.env`, keep `OPENAI_MODEL=gpt-5.6`, and restart. Personal context is sent only when the completed athlete profile also permits cloud processing. Never commit `.env`.
+Set `OPENAI_API_KEY`, keep the configured model, and restart. Personal context is sent only when the athlete also permits cloud processing. Never commit `.env`.
 
-## Optional device delivery
+## Training data and providers
 
-Device setup is deliberately not part of the zero-account first run. Complete onboarding, choose whether approved workouts should reach a device, and choose whether the agent may guide only or help with reviewed local setup. Garmin official, Garmin local community, Apple Watch, Android, and fallback routes are documented in [Self-service device connections](SELF_SERVICE_CONNECTORS.md).
+Provider setup is deliberately outside zero-account first run. The data skill resolves each read or write capability against the current source-backed playbook. It describes only provider-permitted individual routes and fails closed when permission, model-context use, or implementation is missing.
 
-Do not paste wearable passwords or MFA codes into chat or `.env`. The optional Garmin community adapter uses a separate user-selected Python script and local token directory; start it with `npm run connector:garmin:bridge` only after reviewing that script and its provider implications.
+The current plugin ships no provider browser executor. The athlete always completes login and MFA; the agent never handles credentials or session material. Garmin's current individual route is an athlete-selected official export with a supported local file or manual entry. Strava API data does not enter AI coaching under the reviewed policy, and signed-in browser automation is prohibited.
+
+See [Provider access routes](SELF_SERVICE_CONNECTORS.md) and [`rules/connector-playbooks.json`](../rules/connector-playbooks.json).
 
 ## Local state and reset
 
-By default StrideOS stores normalized local state in the operating system's temporary directory. For a durable path, set an absolute `STRIDEOS_STATE_FILE` in `.env`. The parent directory must be writable by the user running the server.
+The reference implementation stores normalized local state in the operating system's temporary directory by default. Set an absolute `STRIDEOS_STATE_FILE` in `.env` for a durable location. The parent directory must be writable by the user running the server.
 
 Reset to a true first run:
 
@@ -94,12 +140,8 @@ Reset to a true first run:
 npm run reset
 ```
 
-This clears the configured local StrideOS state: onboarding, plan lifecycle, decisions, normalized imports, check-ins, meal records, and automation proposal/test metadata. It does not delete source files or external account data.
+This clears the configured StrideOS state. It does not delete source files, the installed plugin, or external account data.
 
-## Synthetic sample and judge mode
+[`data/sample-profile.json`](../data/sample-profile.json) is synthetic documentation and test input. It is never imported automatically. FIT, GPX, TCX, and CSV files receive a preview before normalized summaries are saved; raw activity request bytes and raw meal images are not retained by the bundled state store.
 
-[`data/sample-profile.json`](../data/sample-profile.json) documents a complete synthetic beginner profile for contributors and tests. It is not imported automatically. The separate `data/demo-athlete.json` fixture powers the explicitly labeled no-setup judge trace only.
-
-Use **Data sources** for a no-watch workflow: manual pain/RPE/energy/sleep check-ins work immediately, and FIT/GPX/TCX/CSV files receive a preview before normalized summaries are saved. Raw activity files and raw meal images are not retained by the included state store.
-
-To open the dashboard from a phone or another computer, do not expose the default local server directly. Follow the [private companion mode](REMOTE_COMPANION.md) contract for access-key protection, HTTPS, a persistent state volume, and the installable PWA.
+For access from another device, do not expose the default local server directly. Follow [private companion mode](REMOTE_COMPANION.md) for HTTPS, access-key protection, persistent state, and PWA requirements.

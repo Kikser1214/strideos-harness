@@ -1,37 +1,28 @@
 import Image from "next/image";
 
-const dashboardUrl =
-  "https://strideos-coach-demo.gogov-nikola22.chatgpt.site/";
+const dashboardUrl = "https://strideos-coach-demo.gogov-nikola22.chatgpt.site/";
 const githubUrl = "https://github.com/Kikser1214/strideos-harness";
 
+const skills = [
+  ["coach-athlete", "Onboard, resume, and coordinate the athlete relationship."],
+  ["plan-training", "Build and adapt running, strength, recovery, and race plans."],
+  ["use-training-data", "Use permitted provider, file, and manual evidence routes."],
+  ["support-fueling", "Give optional practical fueling with explicit uncertainty."],
+  ["build-coach-room", "Create the athlete-controlled room for human review."],
+];
+
 const loop = [
-  {
-    number: "01",
-    title: "Sense",
-    body: "Bring workouts, recovery, meals, pain, and context together—from a watch, a file, a photo, or a conversation.",
-  },
-  {
-    number: "02",
-    title: "Reason",
-    body: "The agent turns scattered signals into one athlete model, then explains what matters before proposing a change.",
-  },
-  {
-    number: "03",
-    title: "Gate",
-    body: "Your rules stay in control. Training changes and external writes wait for explicit approval.",
-  },
-  {
-    number: "04",
-    title: "Act",
-    body: "Approve the next session, send it to your training stack, and keep the decision trail visible.",
-  },
+  ["01", "Sense", "Use only evidence the athlete chooses. Preserve source, observation time, retrieval time, and freshness."],
+  ["02", "Reason", "Turn the evidence into one athlete map, state what is uncertain, and explain the next recommendation."],
+  ["03", "Gate", "Check the exact intended action against deterministic safety, privacy, provider, and approval rules."],
+  ["04", "Verify", "Call a change performed only after the resulting local or external state is read back and confirmed."],
 ];
 
 const capabilities = [
-  ["Adaptive training", "Plans respond to readiness, pain, schedule, and completed work—not a rigid calendar."],
-  ["Strength included", "Running and strength live in one plan, with beginner-safe progressions and clear intent."],
-  ["Loose nutrition", "Use meal photos and simple preferences for practical guidance without turning life into a spreadsheet."],
-  ["Human coach review", "Invite a real coach or experienced friend to review the plan, suggest precise edits, and keep the athlete in charge of the final decision."],
+  ["Adaptive training", "Plans respond to recovery, pain, schedule, and confirmed work rather than a rigid calendar."],
+  ["Strength included", "Running and technique-first strength live in one plan with a clear purpose and progression boundary."],
+  ["Loose nutrition", "Use ordinary food, optional photos, and practical preferences without turning life into a spreadsheet."],
+  ["Human coach review", "Invite a real coach or experienced friend to suggest precise edits while the athlete keeps final authority."],
 ];
 
 export default function Home() {
@@ -43,64 +34,90 @@ export default function Home() {
           <span>StrideOS</span>
         </a>
         <nav aria-label="Primary navigation">
+          <a href="#install">Plugin</a>
           <a href="#how-it-works">How it works</a>
           <a href="#coach-mode">Coach Mode</a>
-          <a href="#capabilities">Capabilities</a>
-          <a href="#integrations">Integrations</a>
+          <a href="#integrations">Your accounts</a>
         </nav>
         <a className="nav-cta" href={githubUrl} target="_blank" rel="noreferrer">
-          View source <span aria-hidden="true">↗</span>
+          View source <span aria-hidden="true">+</span>
         </a>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow"><span /> Open-source agentic coaching</p>
-          <h1>Your whole training life.<br />One adaptive coach.</h1>
+          <p className="eyebrow"><span /> Five-skill ChatGPT + Codex plugin</p>
+          <h1>Train with AI.<br />Keep your people in the loop.</h1>
           <p className="hero-lede">
-            StrideOS is a rule-governed AI coaching harness that turns your
-            training, recovery, nutrition, and real life into one explainable
-            plan—without taking control away from you.
+            StrideOS installs five focused endurance-coaching skills in ChatGPT Work mode and Codex.
+            Build an athlete map, plan running and strength, use permitted
+            evidence, support fueling, and invite a real human into a private
+            coach room without giving the agent control of your accounts.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href={dashboardUrl} target="_blank" rel="noreferrer">
-              Open the live coach <span aria-hidden="true">→</span>
+            <a className="button button-primary" href="#install">
+              Install the plugin <span aria-hidden="true">-&gt;</span>
             </a>
-            <a className="button button-secondary" href={githubUrl} target="_blank" rel="noreferrer">
-              Explore on GitHub
+            <a className="button button-secondary" href={dashboardUrl} target="_blank" rel="noreferrer">
+              Open the live demo
             </a>
           </div>
-          <p className="hero-note">Built for Codex and ChatGPT · Watch optional · Athlete approved</p>
+          <p className="hero-note">Five skills / Open source / Local-first / Athlete controlled</p>
         </div>
 
         <div className="hero-visual">
-          <a className="real-dashboard" href={dashboardUrl} target="_blank" rel="noreferrer" aria-label="Open the real StrideOS personal training site">
-            <Image src="/dashboard-plan.png" width={2747} height={1951} priority sizes="(max-width: 1100px) 92vw, 52vw" alt="Real StrideOS personal site showing a four-week training plan and detailed threshold session" />
-            <span className="real-dashboard-label"><b>REAL PRODUCT VIEW</b><small>Training plan · weekly details · full block · history</small></span>
-            <span className="open-dashboard-badge">Open personal site <b>↗</b></span>
+          <a className="real-dashboard" href={dashboardUrl} target="_blank" rel="noreferrer" aria-label="Open the live StrideOS reference dashboard">
+            <Image src="/dashboard-plan.png" width={2747} height={1951} priority sizes="(max-width: 1100px) 92vw, 52vw" alt="Real StrideOS personal training view showing a four-week plan and detailed session" />
+            <span className="real-dashboard-label"><b>LIVE REFERENCE VIEW</b><small>Training plan / weekly details / full block / history</small></span>
+            <span className="open-dashboard-badge">Open live demo <b>+</b></span>
           </a>
         </div>
       </section>
 
       <section className="trust-strip" aria-label="Product principles">
-        <span>Open source</span><i />
+        <span>Installable plugin</span><i />
         <span>Local-first</span><i />
         <span>Approval-gated</span><i />
         <span>Built for real athletes</span>
+      </section>
+
+      <section className="plugin-section" id="install">
+        <div className="plugin-intro">
+          <p className="eyebrow light"><span /> The package</p>
+          <h2>Five skills.<br />One athlete-controlled system.</h2>
+          <p>Clone the repository, install `strideos`, restart the desktop app or CLI session, and begin in a new Work/Codex task. No wearable, database, hosted backend, or provider account is required.</p>
+          <a href={githubUrl} target="_blank" rel="noreferrer">Inspect the plugin source <span>-&gt;</span></a>
+        </div>
+        <div className="plugin-install" aria-label="StrideOS plugin installation command">
+          <div className="install-title"><span>INSTALL / CODEX</span><b>strideos</b></div>
+          <pre><code>{`git clone https://github.com/Kikser1214/strideos-harness.git
+cd strideos-harness
+npx plugins discover .
+npx plugins add ./plugins/strideos --target codex`}</code></pre>
+          <p>Restart the ChatGPT desktop app or Codex CLI, open a new Work/Codex task, and ask StrideOS to build your athlete map.</p>
+        </div>
+        <div className="skill-list" aria-label="Five StrideOS skills">
+          {skills.map(([name, body], index) => (
+            <article key={name}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div><h3>{name}</h3><p>{body}</p></div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="section loop-section" id="how-it-works">
         <div className="section-heading">
           <p className="eyebrow"><span /> The control loop</p>
           <h2>One athlete map.<br />One clear next step.</h2>
-          <p>StrideOS connects the parts traditional training apps leave scattered, then makes every recommendation inspectable.</p>
+          <p>Evidence, model reasoning, deterministic authority, and performed actions remain separate and inspectable.</p>
         </div>
         <div className="loop-grid">
-          {loop.map((item) => (
-            <article className="loop-card" key={item.number}>
-              <div className="loop-number">{item.number}</div>
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
+          {loop.map(([number, title, body]) => (
+            <article className="loop-card" key={number}>
+              <div className="loop-number">{number}</div>
+              <h3>{title}</h3>
+              <p>{body}</p>
             </article>
           ))}
         </div>
@@ -110,7 +127,7 @@ export default function Home() {
         <div className="runner-panel beginner-panel">
           <p className="panel-kicker">FROM THE FIRST RUN</p>
           <h2>A coach that knows when to simplify.</h2>
-          <p>New runners do not need a menu of training philosophies. They need a calm starting point, plain language, and progression they can actually absorb.</p>
+          <p>New runners need a calm starting point, plain language, strength support, and progression they can actually absorb.</p>
           <div className="week-preview">
             <div><b>M</b><span>Run/walk</span></div>
             <div><b>T</b><span>Strength</span></div>
@@ -151,50 +168,50 @@ export default function Home() {
 
       <section className="collaboration-section" id="coach-mode">
         <div className="collaboration-copy">
-          <p className="eyebrow"><span /> Coach Mode</p>
+          <p className="eyebrow"><span /> build-coach-room</p>
           <h2>Bring the people you trust into the loop.</h2>
-          <p className="collaboration-lede">Invite a real coach, training partner, or experienced friend to review the same plan you see. They can annotate exact sessions, question the load, and suggest precise edits—without silently changing your training.</p>
+          <p className="collaboration-lede">The athlete chooses what a real coach, training partner, or experienced friend can see. Reviewers comment and suggest; only the athlete can activate a change.</p>
           <div className="collaboration-steps">
-            <article><span>01</span><div><h3>Invite privately</h3><p>Share reviewer access with one person or a small training circle.</p></div></article>
-            <article><span>02</span><div><h3>Review in context</h3><p>Comments stay attached to the workout, week, or training decision they refer to.</p></div></article>
-            <article><span>03</span><div><h3>Suggest an edit</h3><p>StrideOS turns feedback into a visible before-and-after proposal with a reason.</p></div></article>
-            <article><span>04</span><div><h3>Athlete approves</h3><p>Only the athlete activates plan changes or sends an update to a device.</p></div></article>
+            <article><span>01</span><div><h3>Invite privately</h3><p>Choose one person or a small trusted training circle and limit the shared fields.</p></div></article>
+            <article><span>02</span><div><h3>Review in context</h3><p>Comments stay attached to the exact workout, week, or plan version they refer to.</p></div></article>
+            <article><span>03</span><div><h3>Suggest an edit</h3><p>StrideOS creates a visible before-and-after proposal without touching the active plan.</p></div></article>
+            <article><span>04</span><div><h3>Athlete approves</h3><p>Reviewers never receive plan activation, sharing, invitation, or provider authority.</p></div></article>
           </div>
         </div>
 
         <div className="coach-mode-board" aria-label="Shared athlete and coach review example">
           <div className="board-header">
-            <div><span className="board-label">SHARED TRAINING ROOM</span><strong>Sunday · Aerobic durability</strong></div>
+            <div><span className="board-label">SHARED TRAINING ROOM</span><strong>Sunday / Aerobic durability</strong></div>
             <div className="reviewers"><span>MK</span><span>CE</span><span>+1</span></div>
           </div>
           <div className="board-workout">
-            <div className="board-workout-title"><div><span>LONG RUN</span><h3>24 km · easy aerobic</h3></div><em>Review open</em></div>
+            <div className="board-workout-title"><div><span>LONG RUN</span><h3>24 km / easy aerobic</h3></div><em>Review open</em></div>
             <div className="distance-line"><i /><i /><i /><i /><i /><i /><i /></div>
-            <div className="board-metrics"><span><b>5:05–5:25</b><small>pace / km</small></span><span><b>40–50 g</b><small>carbs / hour</small></span><span><b>RPE 4</b><small>through 18 km</small></span></div>
+            <div className="board-metrics"><span><b>5:05-5:25</b><small>pace / km</small></span><span><b>40-50 g</b><small>carbs / hour</small></span><span><b>RPE 4</b><small>through 18 km</small></span></div>
           </div>
-          <div className="board-comment athlete-comment"><span>MK</span><div><strong>Milan · athlete</strong><p>The distance feels ambitious after last week’s calf tightness.</p></div></div>
-          <div className="board-comment coach-comment"><span>CE</span><div><strong>Coach Elena</strong><p>Agree. Keep the stimulus, reduce the cost: 21 km and reassess after Tuesday.</p></div></div>
+          <div className="board-comment athlete-comment"><span>MK</span><div><strong>Milan / athlete</strong><p>The distance feels ambitious after last week&apos;s calf tightness.</p></div></div>
+          <div className="board-comment coach-comment"><span>CE</span><div><strong>Coach Elena</strong><p>Keep the stimulus, reduce the cost: 21 km and reassess after Tuesday.</p></div></div>
           <div className="proposal-preview">
             <div><span>AGENT PROPOSAL</span><em>Awaiting athlete</em></div>
-            <strong>24 km <del>original</del> <b>→</b> 21 km <ins>proposed</ins></strong>
+            <strong>24 km <del>original</del> <b>-&gt;</b> 21 km <ins>proposed</ins></strong>
             <button type="button">Review exact change</button>
           </div>
-          <p className="board-permission">Reviewers advise · StrideOS drafts · Athlete decides</p>
+          <p className="board-permission">Reviewers advise / StrideOS drafts / Athlete decides</p>
         </div>
       </section>
 
       <section className="integration-section" id="integrations">
         <div className="integration-copy">
-          <p className="eyebrow light"><span /> Bring your own stack</p>
-          <h2>Your watch is a connector, not a requirement.</h2>
-          <p>Start manually, import files, or connect the tools you already use. StrideOS keeps each integration optional and makes every external write visible before it happens.</p>
-          <a href={githubUrl} target="_blank" rel="noreferrer">Read the integration guides <span>→</span></a>
+          <p className="eyebrow light"><span /> Use the tools you already have</p>
+          <h2>Keep your accounts. Add coaching skills.</h2>
+          <p>StrideOS exposes a route only when individual permission, model use, and implementation all support the exact capability. This release ships no provider browser or write executor. Supported exports, local files, native companions, and manual check-ins remain honest options.</p>
+          <a href={githubUrl} target="_blank" rel="noreferrer">Read the provider playbooks <span>-&gt;</span></a>
         </div>
         <div className="integration-list">
-          <article><div className="connector-icon">G</div><div><h3>Garmin</h3><p>Official pathway or an opt-in local community bridge.</p></div><span>Optional</span></article>
-          <article><div className="connector-icon">◉</div><div><h3>Apple Watch</h3><p>A companion pathway through Apple Health and WorkoutKit.</p></div><span>Optional</span></article>
-          <article><div className="connector-icon">H</div><div><h3>Health Connect</h3><p>Android health data through a user-owned companion.</p></div><span>Optional</span></article>
-          <article><div className="connector-icon">+</div><div><h3>Files & manual check-ins</h3><p>Useful coaching even when no wearable is connected.</p></div><span>Always available</span></article>
+          <article><div className="connector-icon">G</div><div><h3>Garmin Connect</h3><p>Use an athlete-selected official export with a supported local file, or enter data manually. Agent browsing and watch delivery remain unavailable.</p></div><span>Export / manual</span></article>
+          <article><div className="connector-icon">A</div><div><h3>Apple Watch</h3><p>An authorized user-owned iOS companion is required. Apple Health XML import is not implemented in this release.</p></div><span>Companion required</span></article>
+          <article><div className="connector-icon">H</div><div><h3>Health Connect</h3><p>An authorized Android companion is required. Health Connect backup import is not implemented in this release.</p></div><span>Companion required</span></article>
+          <article><div className="connector-icon">+</div><div><h3>Files and check-ins</h3><p>FIT, TCX, GPX, CSV, pain, effort, energy, sleep feel, and context work without a provider session.</p></div><span>Available now</span></article>
         </div>
       </section>
 
@@ -202,12 +219,12 @@ export default function Home() {
         <div className="control-card">
           <p className="eyebrow"><span /> Human control plane</p>
           <h2>The agent can propose.<br />Only you can approve.</h2>
-          <p>Plans, device writes, automations, and shared data remain behind explicit consent. Every important recommendation carries its reason and its boundary.</p>
+          <p>A provider write would also need current provider permission and a reviewed executor. Neither exists in this release, so approval alone can never make the route available.</p>
           <div className="control-tags"><span>Explainable</span><span>Reversible</span><span>Consent-first</span><span>Auditable</span></div>
         </div>
         <div className="decision-card">
           <div className="decision-head"><span>PLAN PROPOSAL</span><span className="pending">Pending approval</span></div>
-          <h3>Move Thursday’s quality session</h3>
+          <h3>Move Thursday&apos;s quality session</h3>
           <p>Recovery has improved, but calf soreness is still present. Keep today easy and reassess tomorrow morning.</p>
           <div className="decision-reason"><b>Why</b><span>Protect the key session without stacking load onto a pain signal.</span></div>
           <div className="decision-actions"><button type="button" className="decline">Keep current plan</button><button type="button" className="approve">Approve change</button></div>
@@ -217,18 +234,18 @@ export default function Home() {
       <section className="final-cta">
         <p className="eyebrow centered"><span /> Built in the open</p>
         <h2>Train with context.<br />Decide with confidence.</h2>
-        <p>Explore the working coach, inspect every rule, and build the version that fits your training life.</p>
+        <p>Install the five coaching skills, inspect every rule, and build the athlete room that fits your training life.</p>
         <div className="hero-actions centered-actions">
-          <a className="button button-primary" href={dashboardUrl} target="_blank" rel="noreferrer">Try the live demo <span>→</span></a>
-          <a className="button button-secondary" href={githubUrl} target="_blank" rel="noreferrer">Fork StrideOS</a>
+          <a className="button button-primary" href="#install">Install the plugin <span>-&gt;</span></a>
+          <a className="button button-secondary" href={dashboardUrl} target="_blank" rel="noreferrer">Try the live demo</a>
         </div>
       </section>
 
       <footer>
         <a className="brand" href="#top"><span className="brand-mark">S/</span><span>StrideOS</span></a>
-        <p>Open-source agentic coaching for runners.</p>
+        <p>Open-source five-skill coaching plugin for runners.</p>
         <div><a href={githubUrl} target="_blank" rel="noreferrer">GitHub</a><a href={dashboardUrl} target="_blank" rel="noreferrer">Live demo</a></div>
-        <small>Built for the OpenAI Buildathon · 2026</small>
+        <small>Built for OpenAI Build Week / 2026</small>
       </footer>
     </main>
   );

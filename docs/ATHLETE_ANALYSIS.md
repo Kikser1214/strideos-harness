@@ -66,4 +66,4 @@ Confidence communicates evidence quality. It is not the probability that a plan 
 
 Population guidance informs the product direction, not the individual feasibility label. The [WHO 2020 physical activity guidelines](https://www.who.int/publications/i/item/9789240015128) and the [US Physical Activity Guidelines summary](https://odphp.health.gov/our-work/nutrition-physical-activity/physical-activity-guidelines/current-guidelines/top-10-things-know) support gradually building activity and including muscle-strengthening work. The official [ePARmed-X+ / PAR-Q+ pathway](https://eparmedx.com/) is the referenced screening route when onboarding flags a safety concern.
 
-StrideOS remains a general wellness coaching harness. It does not diagnose, treat, or replace qualified medical, exercise, or dietetic care.
+StrideOS remains a package of general wellness coaching skills. Its internal deterministic policy does not diagnose, treat, or replace qualified medical, exercise, or dietetic care.

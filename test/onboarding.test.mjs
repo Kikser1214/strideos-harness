@@ -60,7 +60,7 @@ test("advanced named methods are not blindly assigned to a starter", () => {
 
 test("Apple Health is labeled as a native companion route", () => {
   const apple = listConnectors().find((connector) => connector.id === "apple_health");
-  assert.equal(apple.route, "ios_companion");
+  assert.equal(apple.route, "native_companion");
   assert.equal(apple.status, "companion_required");
 });
 

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { Decoder, Stream } from "@garmin/fitsdk";
+import { evaluateModelContextPolicy, loadConnectorPlaybooks } from "./connectors.mjs";
 
 export const MAX_IMPORT_BYTES = 8_000_000;
 const supportedExtensions = new Set([".fit", ".gpx", ".tcx", ".csv"]);
@@ -58,10 +59,68 @@ function activitySummary(activity) {
   return parts.join(" · ") || "Activity summary imported";
 }
 
+function importProviderContext({ providerId, routeId, disclosureAccepted = false, consentRecorded = false } = {}) {
+  const playbooks = loadConnectorPlaybooks();
+  const declaredProviderId = String(providerId || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 80) || null;
+  const provider = playbooks.providers.find((item) => item.id === declaredProviderId);
+  if (!provider) {
+    return {
+      providerId: "unknown",
+      declaredProviderId,
+      routeId: null,
+      provenance: "file_import",
+      ingestionRoute: "file_import",
+      modelContext: {
+        allowed: false,
+        purpose: "model_inference",
+        reason: "unknown_provider",
+        disclosureAccepted: disclosureAccepted === true,
+        consentRecorded: consentRecorded === true,
+        policyVersion: playbooks.schemaVersion
+      }
+    };
+  }
+
+  const fileRoutes = provider.permittedRoutes.filter((item) => item.type === "file_import" && item.providerPermittedForIndividual === true);
+  const selectedRoute = routeId
+    ? fileRoutes.find((item) => item.id === routeId)
+    : fileRoutes.length === 1 ? fileRoutes[0] : null;
+  if (!selectedRoute) throw new ImportError(`No provider-permitted local file route matches ${provider.label}.`, 422);
+  const modelDecision = evaluateModelContextPolicy({
+    providerId: provider.id,
+    routeId: selectedRoute.id,
+    purpose: "model_inference",
+    disclosureAccepted,
+    consentRecorded,
+    playbooks
+  });
+  return {
+    providerId: provider.id,
+    declaredProviderId: provider.id,
+    routeId: selectedRoute.id,
+    provenance: "file_import",
+    ingestionRoute: "file_import",
+    modelContext: {
+      ...modelDecision,
+      disclosureAccepted: disclosureAccepted === true,
+      consentRecorded: consentRecorded === true,
+      policyVersion: playbooks.schemaVersion,
+      providerReviewedAt: provider.reviewedAt
+    }
+  };
+}
+
 function normalizeActivity(input, context) {
   const activityAt = isoDate(input.activityAt);
   const activity = {
-    source: `file_${context.extension.slice(1)}`,
+    source: context.provider.providerId === "unknown" ? "unknown_provider" : context.provider.providerId,
+    providerId: context.provider.providerId,
+    declaredProviderId: context.provider.declaredProviderId,
+    routeId: context.provider.routeId,
+    provenance: context.provider.provenance,
+    ingestionRoute: context.provider.ingestionRoute,
+    modelContext: context.provider.modelContext,
+    fileSource: `file_${context.extension.slice(1)}`,
     format: context.extension.slice(1).toUpperCase(),
     fileName: context.fileName,
     activityAt,
@@ -294,16 +353,39 @@ function parseCsv(buffer, context) {
   return activities.map((activity, index) => index === 0 && warnings.length ? { ...activity, warnings: [...activity.warnings, ...warnings] } : activity);
 }
 
-export function parseActivityFile({ fileName, dataBase64 }) {
+export function parseActivityFile({
+  fileName,
+  dataBase64,
+  providerId = null,
+  routeId = null,
+  modelContextDisclosureAccepted = false,
+  modelContextConsentRecorded = false
+}) {
   const safeName = cleanFileName(fileName);
   const extension = path.extname(safeName).toLowerCase();
   if (!supportedExtensions.has(extension)) throw new ImportError("Choose a .fit, .gpx, .tcx, or .csv file.");
   const buffer = decodePayload(dataBase64);
-  const context = { fileName: safeName, extension };
+  const provider = importProviderContext({
+    providerId,
+    routeId,
+    disclosureAccepted: modelContextDisclosureAccepted,
+    consentRecorded: modelContextConsentRecorded
+  });
+  const context = { fileName: safeName, extension, provider };
   const parsers = { ".fit": parseFit, ".gpx": parseGpx, ".tcx": parseTcx, ".csv": parseCsv };
   const activities = parsers[extension](buffer, context);
   return {
-    file: { name: safeName, format: extension.slice(1).toUpperCase(), bytes: buffer.length, rawStored: false },
+    file: {
+      name: safeName,
+      format: extension.slice(1).toUpperCase(),
+      bytes: buffer.length,
+      rawStored: false,
+      providerId: provider.providerId,
+      declaredProviderId: provider.declaredProviderId,
+      routeId: provider.routeId,
+      provenance: provider.provenance,
+      modelContext: provider.modelContext
+    },
     activityCount: activities.length,
     activities,
     disclosure: "Preview only. Raw bytes are not stored. Confirm import to save these normalized summaries locally."

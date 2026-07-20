@@ -1,0 +1,434 @@
+{
+  "schemaVersion": "2026-07-20-assisted-browser-v1",
+  "lastReviewedAt": "2026-07-20",
+  "routePrecedence": [
+    "official_mcp",
+    "official_api",
+    "native_companion",
+    "assisted_browsing",
+    "file_import",
+    "manual"
+  ],
+  "policy": {
+    "individualOnly": true,
+    "failClosed": true,
+    "description": "A selectable route must be permitted by the provider for an individual user. Provider access restrictions are recorded as limitations, never converted into setup instructions.",
+    "assistedBrowsingClassifications": ["permitted", "prohibited", "not_established", "not_applicable"]
+  },
+  "assistedBrowsingContract": {
+    "surface": "codex_desktop",
+    "attendedOnly": true,
+    "supportsScheduled": false,
+    "supportsHeadless": false,
+    "loginOwner": "user",
+    "credentialHandling": "forbidden",
+    "readProvenance": "browser_read",
+    "writeApproval": "exact_one_time_expiring",
+    "executorEnabled": false,
+    "rawHtmlStored": false,
+    "sessionMaterialStored": false
+  },
+  "providers": [
+    {
+      "id": "garmin",
+      "label": "Garmin Connect",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "not_established",
+      "webAppUrl": "https://connect.garmin.com/",
+      "officialSources": [
+        "https://www.garmin.com/en-US/legal/terms-of-use/",
+        "https://developer.garmin.com/gc-developer-program/program-faq/",
+        "https://developer.garmin.com/gc-developer-program/",
+        "https://support.garmin.com/en-US/?faq=W1TvTPW8JZ6LfJSfK512Q8"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "garmin_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_activity"]
+        },
+        {
+          "id": "garmin_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": [
+        "Garmin does not expressly authorize attended AI/browser-agent operation. Current terms restrict processes that access or copy content through means not purposely made available, so assisted browsing fails closed.",
+        "Garmin Connect Developer Program access is business/application-reviewed rather than an ordinary individual self-service route."
+      ]
+    },
+    {
+      "id": "strava",
+      "label": "Strava",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "prohibited",
+      "webAppUrl": "https://www.strava.com/",
+      "officialSources": [
+        "https://www.strava.com/legal/terms",
+        "https://www.strava.com/legal/api_policy",
+        "https://support.strava.com/en-us/articles/15401531-strava-mcp-connector",
+        "https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "strava_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_activity"]
+        },
+        {
+          "id": "strava_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": [
+        "Current API policy blocks Strava API data in an AI application. Strava's official read-only MCP is the authorized agent route, but its current rollout does not support this ChatGPT/Codex surface.",
+        "Current Terms prohibit automated access or collection even when the user is logged in, so attended browser automation is not selectable."
+      ]
+    },
+    {
+      "id": "apple_health",
+      "label": "Apple Health / Watch",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "not_applicable",
+      "officialSources": [
+        "https://developer.apple.com/documentation/healthkit",
+        "https://developer.apple.com/documentation/workoutkit",
+        "https://support.apple.com/guide/iphone/share-your-health-data-iph5ede58c3d/ios",
+        "https://support.apple.com/en-us/102630"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "apple_companion",
+          "type": "native_companion",
+          "providerPermittedForIndividual": true,
+          "status": "companion_required",
+          "capabilities": ["read_activity", "read_recovery", "write_workout"],
+          "writeMode": "workoutkit_scheduling",
+          "readRecoveryMeaning": "authorized raw sleep and vital signals, not an Apple readiness score",
+          "limitations": ["Per-type system authorization required", "Health and fitness use only", "Prior express user consent required before disclosure"]
+        },
+        {
+          "id": "apple_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "format_adapter_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "limitations": ["Apple provides an XML export; the current StrideOS importer does not parse that archive yet"]
+        },
+        {
+          "id": "apple_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["No direct desktop or web HealthKit store access is available. Health data is unavailable on iCloud.com, and macOS has no HealthKit store; a user-provided XML export remains a separate file-import route."]
+    },
+    {
+      "id": "health_connect",
+      "label": "Android Health Connect",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "not_applicable",
+      "officialSources": [
+        "https://developer.android.com/health-and-fitness/health-connect/get-started",
+        "https://developer.android.com/health-and-fitness/health-connect/features/training-plans",
+        "https://support.google.com/android/answer/15323271?hl=en",
+        "https://support.google.com/android/answer/13770320?hl=en"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "health_connect_companion",
+          "type": "native_companion",
+          "providerPermittedForIndividual": true,
+          "status": "companion_required",
+          "capabilities": ["read_activity", "read_recovery", "write_workout"],
+          "writeMode": "planned_exercise_record",
+          "readRecoveryMeaning": "authorized raw sleep and vital records, not a provider readiness score",
+          "limitations": ["FEATURE_PLANNED_EXERCISE and WRITE_PLANNED_EXERCISE required", "A written plan does not prove that a watch or workout app will consume it"]
+        },
+        {
+          "id": "health_connect_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "format_validation_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "limitations": ["Android 14 or later", "Backup ZIP is documented for backup and restore rather than general interchange", "Health records are excluded", "No current StrideOS parser is claimed"]
+        },
+        {
+          "id": "health_connect_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["Health Connect has no desktop or web user surface. Its on-device store requires an authorized Android companion; an exported backup is a separate file route."]
+    },
+    {
+      "id": "fitbit",
+      "label": "Fitbit / Pixel Watch",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "not_established",
+      "officialSources": [
+        "https://developers.google.com/health",
+        "https://developers.google.com/health/setup",
+        "https://developers.google.com/health/policies/health-api-developer-user-data-policy",
+        "https://developers.google.com/health/policies/health-api-developer-terms-and-conditions",
+        "https://support.google.com/googlehealth/answer/14236615",
+        "https://support.google.com/product-documentation/answer/13511576?hl=en",
+        "https://support.google.com/accounts/answer/3024190"
+      ],
+      "modelContextPolicy": {
+        "status": "conditional",
+        "allowedRoutes": ["google_health_api", "fitbit_export"],
+        "inference": "visible_health_or_fitness_feature_with_disclosure_and_consent",
+        "training": "not_established",
+        "evaluation": "not_established"
+      },
+      "permittedRoutes": [
+        {
+          "id": "google_health_api",
+          "type": "official_api",
+          "providerPermittedForIndividual": true,
+          "status": "setup_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "inference_requires_disclosure_and_consent"
+        },
+        {
+          "id": "fitbit_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "inference_requires_disclosure_and_consent"
+        },
+        {
+          "id": "fitbit_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["No attended browser or official MCP route is established.", "Restricted health scopes, third-party inference disclosure, and user consent must be enforced; generalized model training or evaluation is not claimed."]
+    },
+    {
+      "id": "oura",
+      "label": "Oura",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "prohibited",
+      "officialSources": [
+        "https://ouraring.com/terms-and-conditions",
+        "https://cloud.ouraring.com/legal/api-agreement",
+        "https://cloud.ouraring.com/v2/docs",
+        "https://cloud.ouraring.com/docs/authentication",
+        "https://support.ouraring.com/hc/en-us/articles/42985877449619-Export-Share-Your-Oura-Data"
+      ],
+      "modelContextPolicy": {
+        "status": "mcp_only",
+        "allowedRoutes": ["oura_mcp"],
+        "training": "prohibited",
+        "evaluation": "prohibited",
+        "persistentCaching": "separate_written_authorization_required"
+      },
+      "permittedRoutes": [
+        {
+          "id": "oura_mcp",
+          "type": "official_mcp",
+          "providerPermittedForIndividual": true,
+          "status": "policy_review_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "mcp_only"
+        },
+        {
+          "id": "oura_api",
+          "type": "official_api",
+          "providerPermittedForIndividual": true,
+          "status": "policy_review_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "blocked_for_llm_context"
+        },
+        {
+          "id": "oura_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "policy_review_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "blocked_for_llm_context"
+        },
+        {
+          "id": "oura_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["Oura data used with an LLM must use Oura's authorized MCP path; public setup for this StrideOS surface is not currently documented.", "Browser, API, and export data must not enter LLM context; model training, evaluation, and persistent MCP caching are not permitted without separate authorization."]
+    },
+    {
+      "id": "whoop",
+      "label": "WHOOP",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "prohibited",
+      "officialSources": [
+        "https://www.whoop.com/us/en/whoop-terms-of-use/",
+        "https://developer.whoop.com/docs/introduction/",
+        "https://developer.whoop.com/docs/developing/getting-started/",
+        "https://developer.whoop.com/docs/developing/oauth",
+        "https://developer.whoop.com/docs/developing/app-approval/",
+        "https://developer.whoop.com/api-terms-of-use/",
+        "https://support.whoop.com/s/article/How-to-Export-Your-Data"
+      ],
+      "modelContextPolicy": {
+        "status": "not_established",
+        "allowedRoutes": [],
+        "inference": "policy_review_required",
+        "training": "not_established",
+        "evaluation": "not_established"
+      },
+      "permittedRoutes": [
+        {
+          "id": "whoop_oauth",
+          "type": "official_api",
+          "providerPermittedForIndividual": true,
+          "status": "policy_review_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "policy_review_required"
+        },
+        {
+          "id": "whoop_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "policy_review_required",
+          "capabilities": ["read_activity", "read_recovery"],
+          "modelContextPolicy": "local_only_until_policy_review"
+        },
+        {
+          "id": "whoop_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["WHOOP terms prohibit web scraping, harvesting, and extraction even with account-owner permission, so attended browsing is not selectable.", "Third-party disclosure needs explicit opt-in; caching, permanent copies, derivative works, and external AI use require policy review before model-context use."]
+    },
+    {
+      "id": "polar",
+      "label": "Polar",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "prohibited",
+      "officialSources": [
+        "https://www.polar.com/polar-api-v4/",
+        "https://www.polar.com/en/legal/polar-api-agreement",
+        "https://www.polar.com/en/legal/terms-of-use",
+        "https://support.polar.com/us-en/export-training-sessions-flow",
+        "https://support.polar.com/en/how-to-download-all-your-data-from-polar-flow"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "polar_oauth",
+          "type": "official_api",
+          "providerPermittedForIndividual": true,
+          "status": "setup_required",
+          "capabilities": ["read_activity", "read_recovery"]
+        },
+        {
+          "id": "polar_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_activity"]
+        },
+        {
+          "id": "polar_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["Polar's API agreement prohibits automated collection from Polar websites outside registered API-compatible software. Generic attended browser automation is not selectable.", "The current StrideOS route treats AccessLink as read-only unless a first-party write endpoint is separately documented."]
+    },
+    {
+      "id": "coros",
+      "label": "COROS",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "prohibited",
+      "officialSources": [
+        "https://support.coros.com/hc/en-us/articles/50841795180948-COROS-MCP-A-Guide-to-Connecting-Your-Training-Data-to-AI",
+        "https://www.coros.com/terms",
+        "https://support.coros.com/hc/en-us/articles/17085887816340-Submit-an-API-Application",
+        "https://support.coros.com/hc/en-us/articles/25002333092500-Requesting-a-Bulk-Export-of-COROS-Data"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "coros_mcp",
+          "type": "official_mcp",
+          "providerPermittedForIndividual": true,
+          "status": "setup_required",
+          "capabilities": ["read_activity", "read_recovery"]
+        },
+        {
+          "id": "coros_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_activity"]
+        },
+        {
+          "id": "coros_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": [
+        "The official COROS MCP is currently read-only.",
+        "Direct API access is application-reviewed and is not a dependable self-service individual route.",
+        "COROS terms prohibit automated web access without express written permission, so attended browsing is not selectable."
+      ]
+    },
+    {
+      "id": "suunto",
+      "label": "Suunto",
+      "reviewedAt": "2026-07-20",
+      "assistedBrowsingClassification": "prohibited",
+      "officialSources": [
+        "https://www.suunto.com/Terms-of-use/",
+        "https://apizone.suunto.com/faq",
+        "https://www.suunto.com/Support/faq-articles/suunto-app/what-type-of-files-can-i-export-from-the-suunto-app/"
+      ],
+      "permittedRoutes": [
+        {
+          "id": "suunto_export",
+          "type": "file_import",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_activity"]
+        },
+        {
+          "id": "suunto_manual",
+          "type": "manual",
+          "providerPermittedForIndividual": true,
+          "status": "available",
+          "capabilities": ["read_subjective"]
+        }
+      ],
+      "limitations": ["Suunto terms prohibit obtaining information by methods not expressly permitted and using unauthorized third-party software to access the service, so assisted browsing is not selectable.", "Suunto Cloud API access is partner-only rather than a personal self-service route."]
+    }
+  ]
+}

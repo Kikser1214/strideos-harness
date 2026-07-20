@@ -6,9 +6,9 @@ import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
-import { buildDecision, demoCoachDecision, loadPolicy, workoutResourceFromDashboard } from "./harness.mjs";
+import { buildDecision, buildProviderWriteStateBinding, demoCoachDecision, loadPolicy, providerWritePayloadHash, validateProviderWriteApproval, workoutResourceFromDashboard } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
-import { connectorFreshnessPolicy, sourcePriority } from "./connectors.mjs";
+import { connectorFreshnessPolicy, filterProviderEvidenceForModelContext, loadConnectorPlaybooks, resolveProviderRoutes, sourcePriority } from "./connectors.mjs";
 import { analyzeAthlete } from "./athlete-analysis.mjs";
 import { buildTrainingPlan } from "./training-plan.mjs";
 import { applyMealPolicy, buildNutritionCompanion } from "./nutrition.mjs";
@@ -16,7 +16,7 @@ import { buildDashboard } from "./dashboard.mjs";
 import { buildAutomationSetup, normalizeAutomationOverride, runAutomationPreview } from "./automations.mjs";
 import { ImportError, normalizeCheckin, parseActivityFile } from "./imports.mjs";
 import { buildWorkoutAdjustment, FeedbackError, normalizeWorkoutFeedback, workoutFeedbackCoachPrompt } from "./feedback.mjs";
-import { activatePlan, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, deleteWorkoutFeedback, findDecision, findPlan, findWorkoutFeedback, getActivePlan, getAutomationState, getOnboarding, listCheckins, listImports, listMeals, listPlans, listWorkoutFeedback, recentDecisions, resetOnboarding, saveAutomationOverride, saveAutomationTest, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, saveWorkoutFeedback, updateDecision } from "./store.mjs";
+import { activatePlan, claimDecisionExecution, confirmMeal, declineMeal, declinePlan, deleteCheckin, deleteImport, deleteMeal, deleteWorkoutFeedback, findDecision, findPlan, findWorkoutFeedback, getActivePlan, getAutomationState, getOnboarding, listCheckins, listImports, listMeals, listPlans, listWorkoutFeedback, readState, recentDecisions, resetOnboarding, saveAutomationOverride, saveAutomationTest, saveCheckin, saveDecision, saveImportedActivities, saveMealDraft, saveOnboarding, savePlanProposal, saveWorkoutFeedback, updateDecision } from "./store.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
@@ -84,9 +84,9 @@ function validateImage(dataUrl) {
   if (!png && !jpeg && !webp) throw new HttpError(400, "The uploaded bytes do not match the declared image type.");
 }
 
-function currentAthleteAnalysis(onboarding = getOnboarding()) {
+function currentAthleteAnalysis(onboarding = getOnboarding(), imports = listImports(), checkins = listCheckins()) {
   if (!onboarding?.profile) return null;
-  return analyzeAthlete({ profile: onboarding.profile, imports: listImports(), checkins: listCheckins() });
+  return analyzeAthlete({ profile: onboarding.profile, imports, checkins });
 }
 
 function currentNutritionCompanion(onboarding = getOnboarding()) {
@@ -108,14 +108,14 @@ function currentNutritionData(onboarding = getOnboarding()) {
   return companion ? { companion, meals: visibleMeals(companion) } : null;
 }
 
-function currentDashboard(onboarding = getOnboarding()) {
+function currentDashboard(onboarding = getOnboarding(), { imports = listImports(), checkins = listCheckins() } = {}) {
   return buildDashboard({
     onboarding,
-    analysis: currentAthleteAnalysis(onboarding),
+    analysis: currentAthleteAnalysis(onboarding, imports, checkins),
     activePlan: getActivePlan(),
     plans: listPlans(),
-    imports: listImports(),
-    checkins: listCheckins(),
+    imports,
+    checkins,
     workoutFeedback: listWorkoutFeedback(),
     nutrition: currentNutritionData(onboarding),
     connectors: { garmin: garminStatus() },
@@ -123,11 +123,41 @@ function currentDashboard(onboarding = getOnboarding()) {
   });
 }
 
+export function currentProviderWriteStateBinding() {
+  const state = readState();
+  return buildProviderWriteStateBinding({
+    athleteState: {
+      onboarding: state.onboarding,
+      imports: state.imports,
+      checkins: state.checkins,
+      workoutFeedback: state.workoutFeedback
+    },
+    planState: { plans: state.plans, activePlanId: state.activePlanId }
+  });
+}
+
+export function currentModelAthleteContext(onboarding = getOnboarding()) {
+  if (!onboarding?.profile) return null;
+  const allImports = listImports();
+  const policy = filterProviderEvidenceForModelContext(allImports);
+  const checkins = listCheckins();
+  return {
+    profile: onboarding.profile,
+    analysis: currentAthleteAnalysis(onboarding, policy.included, checkins),
+    dashboard: currentDashboard(onboarding, { imports: policy.included, checkins }),
+    modelContextEvidence: {
+      includedImportCount: policy.included.length,
+      excludedImportCount: policy.excluded.length,
+      excludedReasons: [...new Set(policy.excluded.map((item) => item.reason))]
+    }
+  };
+}
+
 function currentAutomationSetup(onboarding = getOnboarding()) {
   return buildAutomationSetup({ profile: onboarding?.completedAt ? onboarding.profile : null, automationState: getAutomationState() });
 }
 
-async function api(req, res, pathname) {
+async function api(req, res, pathname, runtime = {}) {
   if (req.method === "GET" && pathname === "/api/access") {
     return json(res, 200, { required: accessRequired(), mode: accessRequired() ? "private_companion" : "local" });
   }
@@ -317,13 +347,27 @@ async function api(req, res, pathname) {
 
   if (req.method === "POST" && pathname === "/api/imports/preview") {
     const body = await readJson(req);
-    return json(res, 200, parseActivityFile({ fileName: body.fileName, dataBase64: body.dataBase64 }));
+    return json(res, 200, parseActivityFile({
+      fileName: body.fileName,
+      dataBase64: body.dataBase64,
+      providerId: body.providerId,
+      routeId: body.routeId,
+      modelContextDisclosureAccepted: body.modelContext?.disclosureAccepted === true,
+      modelContextConsentRecorded: body.modelContext?.consentRecorded === true
+    }));
   }
 
   if (req.method === "POST" && pathname === "/api/imports") {
     const body = await readJson(req);
     if (body.consent !== true) throw new HttpError(422, "Confirm local summary storage before importing.");
-    const preview = parseActivityFile({ fileName: body.fileName, dataBase64: body.dataBase64 });
+    const preview = parseActivityFile({
+      fileName: body.fileName,
+      dataBase64: body.dataBase64,
+      providerId: body.providerId,
+      routeId: body.routeId,
+      modelContextDisclosureAccepted: body.modelContext?.disclosureAccepted === true,
+      modelContextConsentRecorded: body.modelContext?.consentRecorded === true
+    });
     const activities = saveImportedActivities(preview.activities);
     return json(res, 201, { activities, file: preview.file, rawStored: false });
   }
@@ -351,7 +395,7 @@ async function api(req, res, pathname) {
     if (!message) throw new HttpError(400, "Write a message first.");
     if (message.length > 2_000) throw new HttpError(400, "Keep the message under 2,000 characters.");
     const onboarding = getOnboarding();
-    const personal = onboarding?.completedAt ? { profile: onboarding.profile, analysis: currentAthleteAnalysis(onboarding), dashboard: currentDashboard(onboarding) } : null;
+    const personal = onboarding?.completedAt ? currentModelAthleteContext(onboarding) : null;
     if (process.env.OPENAI_API_KEY && !personal) throw new HttpError(409, "Complete athlete onboarding before live coaching.");
     if (process.env.OPENAI_API_KEY && onboarding.profile.delivery?.cloudProcessing !== true) throw new HttpError(403, "Enable cloud processing in Athlete setup before sending personal coaching context to GPT-5.6.");
     const result = await coach({ message, athlete: personal || demoAthlete });
@@ -363,7 +407,7 @@ async function api(req, res, pathname) {
       const action = requestedGarminWrite && !exactWorkout ? "read_training_data" : result.action;
       const proposal = requestedGarminWrite
         ? exactWorkout
-          ? `Push ${exactWorkout.workout.name} for ${exactWorkout.workout.durationMinutes} minutes to Garmin?`
+          ? `Review ${exactWorkout.workout.name} for ${exactWorkout.workout.durationMinutes} minutes as an exact local Garmin-entry preview.`
           : "No server-authorized running session is scheduled today, so no Garmin write was created."
         : result.proposal;
       decision = buildDecision({
@@ -375,16 +419,19 @@ async function api(req, res, pathname) {
       });
     } else decision = demoCoachDecision(message, personal?.dashboard || null, athleteId);
     const garminDeliveryAllowed = !personal || (
-      personal.profile.delivery?.workoutDelivery === true
+      garminStatus().workoutDeliverySupported === true
+      && personal.profile.delivery?.workoutDelivery === true
       && personal.profile.delivery?.workoutDeliveryTarget === "garmin"
       && personal.profile.delivery?.approvalMode !== "read_only"
     );
     if (decision.gate.action === "push_garmin_workout" && !garminDeliveryAllowed) {
       decision = buildDecision({
-        evidence: [...decision.evidence, "Garmin workout delivery is not enabled in the completed athlete profile."],
+        evidence: [...decision.evidence, garminStatus().workoutDeliverySupported === true ? "Garmin workout delivery is not enabled in the completed athlete profile." : "No provider-permitted individual Garmin workout-write route is currently established."],
         action: "read_training_data",
         context: {},
-        proposal: personal.profile.delivery?.workoutDelivery
+        proposal: garminStatus().workoutDeliverySupported !== true
+          ? "Keep the exact structured workout in StrideOS and use it as a manual reference. Garmin browser-agent delivery is unavailable under the current provider-permitted route policy."
+          : personal.profile.delivery?.workoutDelivery
           ? `Keep the workout in StrideOS. The selected destination is ${personal.profile.delivery.workoutDeliveryTarget.replaceAll("_", " ")}, not Garmin.`
           : "Keep the workout in StrideOS. Device delivery is off and no external write was created."
       });
@@ -456,7 +503,150 @@ async function api(req, res, pathname) {
     if (decision.status !== "awaiting_approval") throw new HttpError(409, "This decision is no longer awaiting approval.");
 
     let actionResult;
-    if (decision.gate.action === "push_garmin_workout") {
+    if (decision.gate.action === "write_provider_session") {
+      let approval;
+      try {
+        approval = validateProviderWriteApproval(decision, {
+          approvalNonce: body.approvalNonce,
+          scopeHash: body.scopeHash
+        });
+      } catch (error) {
+        if (error?.code === "expired") {
+          updateDecision(decision.id, { status: "expired", result: { performed: false, message: error.message } });
+        } else if (error?.code !== "approval_mismatch") {
+          updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The provider-write envelope is no longer valid. Create a fresh preview." } });
+        }
+        throw new HttpError(error?.code === "approval_mismatch" ? 422 : 409, error.message);
+      }
+
+      const executor = runtime.providerWriteExecutor;
+      if (!executor || typeof executor.inspect !== "function" || typeof executor.execute !== "function" || typeof executor.verify !== "function") {
+        updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "No attended provider-write executor with read-back verification is enabled." } });
+        throw new HttpError(409, "No attended provider-write executor with read-back verification is enabled.");
+      }
+
+      const playbooks = runtime.connectorPlaybooks || loadConnectorPlaybooks();
+      const expectedContext = approval.resource.browserContext;
+      const route = resolveProviderRoutes({
+        providerId: approval.resource.providerId,
+        capability: approval.resource.capability,
+        surface: expectedContext.surface,
+        attended: expectedContext.attended,
+        scheduled: expectedContext.scheduled,
+        headless: expectedContext.headless,
+        playbooks
+      }).find((item) => item.id === approval.resource.routeId && item.type === "assisted_browsing" && item.selectable);
+      if (!route) {
+        updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The approved provider route is not currently permitted and enabled." } });
+        throw new HttpError(409, "The approved provider route is not currently permitted and enabled.");
+      }
+
+      const currentStateBinding = currentProviderWriteStateBinding();
+      if (currentStateBinding.athleteStateVersion !== approval.resource.stateBinding.athleteStateVersion
+        || currentStateBinding.planStateVersion !== approval.resource.stateBinding.planStateVersion) {
+        updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "Athlete evidence or the training plan changed after preview. Review a fresh provider-write proposal." } });
+        throw new HttpError(409, "Athlete evidence or the training plan changed after preview. Review a fresh provider-write proposal.");
+      }
+
+      const claimedAt = new Date().toISOString();
+      const claimed = claimDecisionExecution(decision.id, {
+        approvalNonce: approval.envelope.nonce,
+        update: { executionClaimedAt: claimedAt, approvalNonceClaimed: approval.envelope.nonce }
+      });
+      if (!claimed) throw new HttpError(409, "This provider-write approval could not be claimed.");
+
+      try {
+        const actual = await executor.inspect({
+          decision: structuredClone(claimed),
+          envelope: structuredClone(approval.envelope),
+          resource: structuredClone(approval.resource)
+        });
+        const provider = playbooks.providers.find((item) => item.id === approval.resource.providerId);
+        const actualPage = actual?.pageUrl ? new URL(actual.pageUrl) : null;
+        const providerPage = provider?.webAppUrl ? new URL(provider.webAppUrl) : null;
+        const contextMatches = actual?.surface === "codex_desktop" && actual?.attended === true && actual?.scheduled === false && actual?.headless === false;
+        const scopeMatches = actual?.providerId === approval.resource.providerId
+          && actual?.routeId === approval.resource.routeId
+          && actual?.accountBinding === approval.resource.accountBinding
+          && actual?.capability === approval.resource.capability
+          && actual?.operation === approval.resource.operation
+          && actual?.target === approval.resource.target;
+        const originMatches = actualPage?.protocol === "https:" && providerPage && actualPage.origin === providerPage.origin;
+        if (!contextMatches || !scopeMatches || !originMatches) {
+          throw new HttpError(409, "The visible provider session no longer matches the approved account, route, target, operation, and attended context.");
+        }
+
+        const stateAfterInspection = currentProviderWriteStateBinding();
+        if (stateAfterInspection.athleteStateVersion !== approval.resource.stateBinding.athleteStateVersion
+          || stateAfterInspection.planStateVersion !== approval.resource.stateBinding.planStateVersion) {
+          throw new HttpError(409, "Athlete evidence or the training plan changed while the provider preview was being checked.");
+        }
+
+        const result = await executor.execute({
+          decision: structuredClone(claimed),
+          envelope: structuredClone(approval.envelope),
+          providerId: approval.resource.providerId,
+          routeId: approval.resource.routeId,
+          accountBinding: approval.resource.accountBinding,
+          capability: approval.resource.capability,
+          operation: approval.resource.operation,
+          target: approval.resource.target,
+          stateBinding: structuredClone(approval.resource.stateBinding),
+          payload: structuredClone(approval.resource.payload),
+          payloadHash: providerWritePayloadHash(approval.resource.payload),
+          maxWrites: 1
+        });
+        if (result?.performed !== true || result?.writeCount !== 1 || typeof result?.providerRecordId !== "string" || !result.providerRecordId.trim()) {
+          throw new HttpError(409, "The provider executor did not return one completed write with a provider record identifier.");
+        }
+
+        const verification = await executor.verify({
+          decision: structuredClone(claimed),
+          envelope: structuredClone(approval.envelope),
+          resource: structuredClone(approval.resource),
+          execution: structuredClone(result)
+        });
+        const verifiedPage = verification?.pageUrl ? new URL(verification.pageUrl) : null;
+        const verifiedOriginMatches = verifiedPage?.protocol === "https:" && providerPage && verifiedPage.origin === providerPage.origin;
+        const verifiedScopeMatches = verification?.providerId === approval.resource.providerId
+          && verification?.routeId === approval.resource.routeId
+          && verification?.accountBinding === approval.resource.accountBinding
+          && verification?.capability === approval.resource.capability
+          && verification?.operation === approval.resource.operation
+          && verification?.target === approval.resource.target
+          && verification?.providerRecordId === result.providerRecordId;
+        let verifiedPayloadMatches = false;
+        try {
+          verifiedPayloadMatches = providerWritePayloadHash(verification?.observedPayload) === providerWritePayloadHash(approval.resource.payload);
+        } catch {
+          verifiedPayloadMatches = false;
+        }
+        const verifiedAt = new Date(verification?.verifiedAt || "");
+        const verificationTimeMatches = !Number.isNaN(verifiedAt.getTime())
+          && verifiedAt.getTime() >= new Date(claimedAt).getTime()
+          && verifiedAt.getTime() <= Date.now() + 5_000;
+        if (verification?.verified !== true
+          || verification?.matchingWriteCount !== 1
+          || !verifiedOriginMatches
+          || !verifiedScopeMatches
+          || !verifiedPayloadMatches
+          || !verificationTimeMatches) {
+          throw new HttpError(409, "The completed provider write could not be verified by a separate visible read-back.");
+        }
+        actionResult = {
+          performed: true,
+          simulated: false,
+          writeCount: 1,
+          providerRecordId: result.providerRecordId,
+          verifiedAt: verifiedAt.toISOString(),
+          message: String(verification.message || result.message || "One attended provider write completed and was verified.").slice(0, 500)
+        };
+      } catch (error) {
+        updateDecision(decision.id, { status: "stopped", approvalConsumedAt: claimedAt, result: { performed: false, message: "The attended provider write stopped and this approval cannot be replayed." } });
+        if (error instanceof HttpError) throw error;
+        throw new HttpError(409, "The attended provider write stopped and this approval cannot be replayed.");
+      }
+    } else if (decision.gate.action === "push_garmin_workout") {
       const onboarding = getOnboarding();
       if (decision.resource?.workout?.source === "approved_training_plan" && (
         onboarding?.profile?.delivery?.workoutDelivery !== true
@@ -468,6 +658,9 @@ async function api(req, res, pathname) {
         throw new HttpError(409, "The approved decision has no exact server-authored workout to send.");
       }
       if (source === "approved_training_plan") {
+        if (garminStatus().workoutDeliverySupported !== true) {
+          throw new HttpError(409, "No provider-permitted individual Garmin workout-write route is currently established.");
+        }
         const onboarding = getOnboarding();
         const athleteId = onboarding?.profile?.personal?.preferredName || "local-athlete";
         const currentResource = onboarding?.completedAt ? workoutResourceFromDashboard(currentDashboard(onboarding), athleteId) : null;
@@ -476,7 +669,14 @@ async function api(req, res, pathname) {
           throw new HttpError(409, "The workout is no longer current. Review the latest plan, pain, and recovery evidence.");
         }
       }
-      actionResult = await pushWorkout({ decision });
+      const claimed = updateDecision(decision.id, { status: "executing", executionClaimedAt: new Date().toISOString() });
+      if (!claimed) throw new HttpError(409, "This provider-write approval could not be claimed.");
+      try {
+        actionResult = await pushWorkout({ decision: claimed });
+      } catch (error) {
+        updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The provider action stopped before any external change." } });
+        throw error;
+      }
     }
     else if (decision.gate.action === "change_training_plan") {
       const plan = decision.resource?.type === "training_plan" ? activatePlan(decision.resource.id) : null;
@@ -487,9 +687,11 @@ async function api(req, res, pathname) {
       const meal = confirmMeal(decision.resource.id, { corrections: body.mealConfirmation.corrections });
       if (!meal) throw new HttpError(409, "This meal estimate is no longer awaiting confirmation.");
       actionResult = { performed: true, simulated: false, mealId: meal.id, message: "Confirmed estimate added to the local fuel log." };
-    } else actionResult = { performed: true, simulated: !process.env.OPENAI_API_KEY, message: "Estimate added to the local fuel log." };
+    } else {
+      throw new HttpError(409, "This action has no enabled executor.");
+    }
 
-    const updated = updateDecision(decision.id, { status: "approved", result: actionResult });
+    const updated = updateDecision(decision.id, { status: "approved", approvalConsumedAt: decision.gate.action === "write_provider_session" ? new Date().toISOString() : undefined, result: actionResult });
     return json(res, 200, { decision: updated, result: actionResult.message, simulated: actionResult.simulated });
   }
 
@@ -516,14 +718,15 @@ function staticFile(res, pathname) {
   return true;
 }
 
-export function createServer() {
+export function createServer({ providerWriteExecutor = null, connectorPlaybooks = null } = {}) {
+  const runtime = { providerWriteExecutor, connectorPlaybooks };
   return http.createServer(async (req, res) => {
     const pathname = new URL(req.url, `http://${req.headers.host || "localhost"}`).pathname;
     try {
       if (pathname.startsWith("/api/")) {
         const publicEndpoint = req.method === "GET" && ["/api/access", "/api/health"].includes(pathname);
         if (!publicEndpoint && !accessAuthorized(req)) return json(res, 401, { error: "Enter the private companion access key." }, { "www-authenticate": "Bearer realm=\"StrideOS\"" });
-        return await api(req, res, pathname);
+        return await api(req, res, pathname, runtime);
       }
       if (staticFile(res, pathname)) return;
       res.writeHead(404, { ...securityHeaders(), "content-type": "text/plain; charset=utf-8" });

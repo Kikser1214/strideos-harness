@@ -135,7 +135,7 @@ function dataAnalysis(profile) {
     needsFallback: !["manual", "none"].includes(primary.id) && !(primary.canRead && primary.status === "available"),
     fallback: primary.id === "manual" || primary.id === "none" ? "manual" : "manual_or_file_import",
     note: ["apple_health", "health_connect"].includes(primary.id)
-      ? "This source needs a native companion app. Start with manual check-ins, file import, or Strava while that connector is unavailable."
+      ? "This source needs an authorized native companion. Start with a permitted provider export or manual check-ins until that route is ready."
       : primary.note
   };
 }
@@ -220,7 +220,7 @@ function workoutDeliveryAnalysis(profile) {
   const setupMode = profile.delivery?.connectorSetupMode || "not_now";
   const connectorId = target === "apple_watch" ? "apple_health" : target;
   const connector = connectorCatalog().find((item) => item.id === connectorId) || null;
-  const adapterConfigured = connector?.workoutDelivery?.status === "adapter_configured";
+  const attendedAvailable = connector?.workoutDelivery?.route === "Attended web session";
   return {
     requested,
     target,
@@ -228,15 +228,17 @@ function workoutDeliveryAnalysis(profile) {
     agentMayGuide: setupMode !== "not_now",
     agentMayPerformLocalSetup: setupMode === "allow_local_setup_after_review",
     connector,
-    canPushNow: requested && adapterConfigured,
+    canPushNow: false,
     approval: requested ? "Every exact workout write still requires its own approval." : "Workout delivery is off.",
     note: !requested
       ? "Keep workouts inside StrideOS until the athlete enables device delivery."
       : !connector
         ? "Research the selected provider and keep a manual or file fallback; do not claim device delivery."
-        : adapterConfigured
-          ? "An adapter is configured, but connection and athlete authorization still need proof before the first write."
-          : "Guide the athlete through the selected connector route. Setup permission does not authorize credentials, account changes, or workout writes."
+        : attendedAvailable
+          ? "The route is an attended provider session. The user signs in; the agent may act only after a dry-run preview and one exact write approval."
+          : connector.workoutDelivery?.supportedHere === false
+            ? "No provider-permitted workout-delivery route is available here. Keep the structured workout local and use a manual destination workflow."
+            : "Guide the athlete through a provider-permitted individual route. Setup permission does not authorize credentials, account changes, or workout writes."
   };
 }
 

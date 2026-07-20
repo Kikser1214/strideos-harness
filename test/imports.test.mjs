@@ -39,6 +39,33 @@ test("CSV import supports several normalized activity rows", () => {
   assert.equal(result.activities[1].sport, "Walk");
 });
 
+test("file imports preserve provider provenance and model-context consent separately", () => {
+  const csv = "date,type,distance_km,duration_minutes\n2026-07-16T06:00:00Z,Run,5.2,30\n";
+  const unknown = parseActivityFile({ fileName: "history.csv", dataBase64: encoded(csv) }).activities[0];
+  assert.equal(unknown.providerId, "unknown");
+  assert.equal(unknown.provenance, "file_import");
+  assert.equal(unknown.ingestionRoute, "file_import");
+  assert.equal(unknown.modelContext.allowed, false);
+
+  const blockedFitbit = parseActivityFile({ providerId: "fitbit", fileName: "history.csv", dataBase64: encoded(csv) }).activities[0];
+  assert.equal(blockedFitbit.providerId, "fitbit");
+  assert.equal(blockedFitbit.routeId, "fitbit_export");
+  assert.equal(blockedFitbit.modelContext.reason, "model_context_disclosure_required");
+
+  const allowedFitbit = parseActivityFile({
+    providerId: "fitbit",
+    fileName: "history.csv",
+    dataBase64: encoded(csv),
+    modelContextDisclosureAccepted: true,
+    modelContextConsentRecorded: true
+  }).activities[0];
+  assert.equal(allowedFitbit.modelContext.allowed, true);
+
+  const oura = parseActivityFile({ providerId: "oura", fileName: "history.csv", dataBase64: encoded(csv) }).activities[0];
+  assert.equal(oura.modelContext.allowed, false);
+  assert.equal(oura.modelContext.reason, "blocked_for_llm_context");
+});
+
 test("CSV import recognizes explicit duration_minutes columns", () => {
   const csv = "date,name,distance_km,duration_minutes\n2026-07-18T07:00:00Z,Easy run,4.2,31\n";
   const result = parseActivityFile({ fileName: "minutes.csv", dataBase64: encoded(csv) });
