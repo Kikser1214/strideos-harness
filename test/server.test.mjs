@@ -19,8 +19,8 @@ const permittedBrowserFixture = {
   providers: [{
     id: "fixture_web", label: "Synthetic permitted web provider", webAppUrl: "https://provider.invalid/",
     permittedRoutes: [{
-      id: "fixture_browser", type: "assisted_browsing", providerPermittedForIndividual: true, status: "available_attended",
-      executorImplemented: true, capabilities: ["read_activity", "write_workout"]
+      id: "fixture_browser", type: "attended_browser", providerPermittedForIndividual: true, status: "host_dependent",
+      executorImplemented: true, capabilities: ["read_activity", "workout_create"]
     }]
   }]
 };

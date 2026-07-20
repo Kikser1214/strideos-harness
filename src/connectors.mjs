@@ -7,11 +7,13 @@ const routeLabels = {
   official_api: "Official self-service API",
   native_companion: "User-owned native companion",
   assisted_browsing: "Attended web session",
+  attended_browser: "Attended web session",
   file_import: "Provider export and local import",
   manual: "Manual check-in"
 };
 
 const selectableStatuses = new Set(["available", "available_attended", "setup_required", "companion_required"]);
+const attendedBrowserTypes = new Set(["assisted_browsing", "attended_browser"]);
 const modelPurposes = new Set(["model_inference", "model_training", "model_evaluation"]);
 const nonModelPurposes = new Set(["access", "local_analysis"]);
 const routeModelBlocks = new Set(["blocked_for_llm_context", "local_only_until_policy_review", "policy_review_required"]);
@@ -19,10 +21,23 @@ const upstreamPolicySource = "rules/connector-playbooks.json";
 
 function routeClass(type) {
   if (type === "official_mcp" || type === "official_api" || type === "native_companion") return "official";
-  if (type === "assisted_browsing") return "assisted_browser";
+  if (isAttendedBrowserRouteType(type)) return "assisted_browser";
   if (type === "file_import") return "file";
   if (type === "manual") return "manual";
   return "unknown";
+}
+
+export function isAttendedBrowserRouteType(type) {
+  return attendedBrowserTypes.has(type);
+}
+
+function isWriteCapability(capability) {
+  return capability === "workout_create" || String(capability || "").startsWith("write_");
+}
+
+function routeStatusSelectable(route) {
+  return selectableStatuses.has(route.status)
+    || (isAttendedBrowserRouteType(route.type) && route.status === "host_dependent");
 }
 
 function availableReason(type) {
@@ -82,7 +97,10 @@ export function loadConnectorPlaybooks() {
 }
 
 function routeSupports(route, capability) {
-  return !capability || route.capabilities?.includes(capability) || route.capabilities?.includes("*");
+  if (!capability || route.capabilities?.includes("*")) return true;
+  if (route.capabilities?.includes(capability)) return true;
+  return (capability === "write_workout" && route.capabilities?.includes("workout_create"))
+    || (capability === "workout_create" && route.capabilities?.includes("write_workout"));
 }
 
 export function assistedBrowsingAvailable({
@@ -105,7 +123,7 @@ export function assistedBrowsingAvailable({
 }
 
 function browserRouteAllowed(route, { surface, attended, scheduled, headless, browserToolAvailable }) {
-  if (route.type !== "assisted_browsing") return true;
+  if (!isAttendedBrowserRouteType(route.type)) return true;
   return assistedBrowsingAvailable({ surface, attended, scheduled, headless, browserToolAvailable });
 }
 
@@ -239,22 +257,28 @@ export function resolveProviderRoutes({
     .filter((route) => routeSupports(route, capability))
     .filter((route) => browserRouteAllowed(route, { surface, attended, scheduled, headless, browserToolAvailable: hostBrowserAvailable }))
     .map((route) => {
-      const modelContext = evaluateModelContextPolicy({ providerId, routeId: route.id, purpose, disclosureAccepted, consentRecorded, playbooks });
+      const browserRoute = isAttendedBrowserRouteType(route.type);
+      const modelContext = browserRoute
+        ? attendedBrowserModelContext(purpose)
+        : evaluateModelContextPolicy({ providerId, routeId: route.id, purpose, disclosureAccepted, consentRecorded, playbooks });
       const omittedByLocalPreference = installationOmitsRecommendation(route, localRecommendationPreferences);
-      const selectable = selectableStatuses.has(route.status) && modelContext.allowed && !omittedByLocalPreference;
+      const statusSelectable = routeStatusSelectable(route);
+      const selectable = statusSelectable && modelContext.allowed && !omittedByLocalPreference;
       return {
         ...route,
         providerId,
         label: routeLabels[route.type] || route.type,
         routeClass: routeClass(route.type),
-        routeOrigin: "upstream_playbook",
+        routeOrigin: route.type === "attended_browser" ? "host_assisted_browser" : "upstream_playbook",
         recommendationOnly: true,
         recommendationNonExclusive: true,
-        executionAuthority: "provider_or_host",
-        policyProvenance: upstreamPolicyProvenance(playbooks, provider),
-        ...(route.type === "assisted_browsing" ? {
+        executionAuthority: browserRoute ? "host" : "provider_or_host",
+        policyProvenance: route.type === "attended_browser"
+          ? assistedBrowserPolicyProvenance(surface)
+          : upstreamPolicyProvenance(playbooks, provider),
+        ...(browserRoute ? {
           browserContract: browserContract(playbooks),
-          ...(capability?.startsWith("write_") ? {
+          ...(isWriteCapability(capability) ? {
             writeContract: { dryRunRequired: true, approval: "exact_one_time_expiring", maxWritesPerApproval: 1, verificationRequired: true }
           } : {})
         } : {}),
@@ -263,7 +287,7 @@ export function resolveProviderRoutes({
           ? availableReason(route.type)
           : omittedByLocalPreference
             ? "recommendation_omitted_by_local_preference"
-            : !selectableStatuses.has(route.status)
+            : !statusSelectable
               ? "missing_implementation"
               : modelContextReasonClassification(modelContext.reason),
         selectable
@@ -277,7 +301,7 @@ export function resolveProviderRoutes({
     headless,
     browserToolAvailable: hostBrowserAvailable
   });
-  const browser = browserAvailable && !upstream.some((route) => route.type === "assisted_browsing")
+  const browser = browserAvailable && !upstream.some((route) => isAttendedBrowserRouteType(route.type))
     ? universalBrowserRoute(provider, capability, playbooks, hostWebAppUrl)
     : null;
   if (browser) {
@@ -302,7 +326,10 @@ export function resolveProviderRoutes({
     });
   }
 
-  return upstream.sort((a, b) => (rank.get(a.type) ?? 999) - (rank.get(b.type) ?? 999));
+  const routeRank = (type) => rank.get(type)
+    ?? (type === "attended_browser" ? rank.get("assisted_browsing") : undefined)
+    ?? 999;
+  return upstream.sort((a, b) => routeRank(a.type) - routeRank(b.type));
 }
 
 export function resolveProviderRoute(options = {}) {
@@ -339,9 +366,9 @@ export function resolveProviderRouteDecision({
 } = {}) {
   if (userDirectedCapability?.explicit === true) {
     const kind = userDirectedCapability.kind || "host_capability";
-    const browserLike = kind === "assisted_browsing" || kind === "computer_use" || kind === "browser";
+    const browserLike = isAttendedBrowserRouteType(kind) || kind === "computer_use" || kind === "browser";
     const writeRequested = userDirectedCapability.operation === "write"
-      || String(userDirectedCapability.capability || options.capability || "").startsWith("write_");
+      || isWriteCapability(userDirectedCapability.capability || options.capability);
     return {
       outcome: "delegate_to_host",
       reasonClassification: "outside_plugin_scope",
@@ -396,7 +423,7 @@ export function resolveProviderRouteDecision({
   if (configuredRoute) {
     if (installationOmitsRecommendation(configuredRoute, options.recommendationPreferences || options.installationPolicy)) {
       reasonClassification = "recommendation_omitted_by_local_preference";
-    } else if (!selectableStatuses.has(configuredRoute.status)) {
+    } else if (!routeStatusSelectable(configuredRoute)) {
       reasonClassification = "missing_implementation";
     } else {
       const modelContext = evaluateModelContextPolicy({
@@ -466,7 +493,7 @@ export function browserReadProvenance({
     installationPolicy,
     playbooks
   })
-    .find((item) => item.type === "assisted_browsing" && item.id === routeId && item.selectable);
+    .find((item) => isAttendedBrowserRouteType(item.type) && item.id === routeId && item.selectable);
   if (!route) {
     throw new TypeError(`The current host does not expose the required attended browser capability for ${providerId || "this provider"}.`);
   }
@@ -520,12 +547,13 @@ export function filterProviderEvidenceForModelContext(records = [], { purpose = 
       && record?.routeId === `${provider.id}_assisted_browser`
       && record?.routeClass === "assisted_browser"
       && record?.routeOrigin === "host_assisted_browser";
-    const expectedProvenance = route?.type === "assisted_browsing" || hostBrowserRecord ? "browser_read" : route?.type || null;
+    const browserRecord = isAttendedBrowserRouteType(route?.type) || hostBrowserRecord;
+    const expectedProvenance = browserRecord ? "browser_read" : route?.type || null;
     if (!expectedProvenance || record?.provenance !== expectedProvenance || record?.ingestionRoute !== expectedProvenance) {
       excluded.push({ id: record?.id || null, providerId: record?.providerId || "unknown", routeId: record?.routeId || null, reason: "missing_or_mismatched_provenance" });
       continue;
     }
-    if (hostBrowserRecord) {
+    if (browserRecord) {
       const observedAt = Date.parse(record?.observedAt || "");
       const retrievedAt = Date.parse(record?.retrievedAt || "");
       const freshnessTimestamp = Date.parse(record?.freshnessTimestamp || "");
@@ -535,7 +563,7 @@ export function filterProviderEvidenceForModelContext(records = [], { purpose = 
         continue;
       }
     }
-    const decision = hostBrowserRecord
+    const decision = browserRecord
       ? attendedBrowserModelContext(purpose)
       : evaluateModelContextPolicy({
         providerId: record?.providerId,
@@ -554,14 +582,14 @@ export function filterProviderEvidenceForModelContext(records = [], { purpose = 
 function connectorStatus(provider, preferredRead, preferredWrite) {
   const preferred = preferredRead || preferredWrite;
   if (!preferred) return "manual_only";
-  if (preferred.type === "assisted_browsing") return "attended_session_available";
+  if (isAttendedBrowserRouteType(preferred.type)) return "attended_session_available";
   if (preferred.type === "native_companion") return "companion_required";
   if (preferred.type === "file_import" || preferred.type === "manual") return "file_or_manual";
   return preferred.status;
 }
 
 function connectorNote(provider, preferredRead, preferredWrite) {
-  if (preferredRead?.type === "assisted_browsing" || preferredWrite?.type === "assisted_browsing") {
+  if (isAttendedBrowserRouteType(preferredRead?.type) || isAttendedBrowserRouteType(preferredWrite?.type)) {
     return "Works in an attended web session that the user signs into. Reads keep browser_read provenance; every visible write needs one exact approval.";
   }
   if (preferredRead?.type === "official_mcp") {
@@ -591,20 +619,20 @@ export function listConnectors({ surface = null, attended = false, hostCapabilit
       label: routeLabels[route.type] || route.type,
       recommended: index === 0,
       status: route.status,
-      attendedOnly: route.type === "assisted_browsing",
-      executorImplemented: route.type !== "assisted_browsing" ? true : null,
-      executionAuthority: route.type === "assisted_browsing" ? "host" : "provider_or_host"
+      attendedOnly: isAttendedBrowserRouteType(route.type),
+      executorImplemented: isAttendedBrowserRouteType(route.type) ? null : true,
+      executionAuthority: isAttendedBrowserRouteType(route.type) ? "host" : "provider_or_host"
     }));
     const hostWebAppUrl = hostCapabilities?.providerWebAppUrls?.[provider.id]
       || hostCapabilities?.providerWebAppUrl
       || provider.webAppUrl
       || null;
-    if (hostWebAppUrl) methods.push({
+    if (hostWebAppUrl && !provider.permittedRoutes.some((route) => isAttendedBrowserRouteType(route.type))) methods.push({
       id: `${provider.id}_assisted_browser`,
       type: "assisted_browsing",
       label: routeLabels.assisted_browsing,
       recommended: false,
-      status: preferredRead?.type === "assisted_browsing" || preferredWrite?.type === "assisted_browsing" ? "available_attended" : "host_capability_required",
+      status: isAttendedBrowserRouteType(preferredRead?.type) || isAttendedBrowserRouteType(preferredWrite?.type) ? "available_attended" : "host_capability_required",
       attendedOnly: true,
       executorImplemented: null,
       executionAuthority: "host"
@@ -622,8 +650,8 @@ export function listConnectors({ surface = null, attended = false, hostCapabilit
       workoutDelivery: preferredWrite ? {
         status: preferredWrite.status,
         route: preferredWrite.label,
-        supportedHere: preferredWrite.type === "assisted_browsing",
-        attendedOnly: preferredWrite.type === "assisted_browsing",
+        supportedHere: isAttendedBrowserRouteType(preferredWrite.type),
+        attendedOnly: isAttendedBrowserRouteType(preferredWrite.type),
         approval: "exact_one_time"
       } : hostWebAppUrl
         ? { status: "host_capability_required", supportedHere: false, attendedOnly: true, approval: "exact_one_time", availableWhen: "the current host exposes attended browser or computer use" }

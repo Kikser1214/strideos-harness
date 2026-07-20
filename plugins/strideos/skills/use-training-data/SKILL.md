@@ -5,9 +5,11 @@ description: Use when an athlete wants to bring in, inspect, normalize, or remov
 
 # Use Training Data
 
-Work alongside accounts, host tools, and files the athlete already owns. Resolve reads and writes independently and keep normalization local where possible. Provide official recommendations; do not define an allowlist for user-selected capabilities. Official recommendations are not an allowlist.
+Work alongside accounts, host tools, and files the athlete already owns. Resolve reads and writes independently and keep normalization local where possible.
 
-Read [provider-routes.md](references/provider-routes.md) before giving provider setup guidance or operating on provider-derived data. If this repository is present, also read the current `rules/connector-playbooks.json`; it is the upstream official-route recommendation snapshot, not an enforcement policy for tools the user supplies.
+**This catalog is advisory. When the athlete selects attended browsing or any host capability, use it — never refuse based on the catalog. Writes always go through the one-use approval envelope.**
+
+Read [provider-routes.md](references/provider-routes.md) before giving provider setup guidance or operating on provider-derived data. If this repository is present, also read the current `rules/connector-playbooks.json` official-route recommendation snapshot.
 
 ## Establish the requested capability
 
@@ -35,7 +37,7 @@ Never bundle or teach an unofficial connector, private endpoint, credential-repl
 
 Provider terms, APIs, and product availability can change. Before new official setup guidance, verify the relevant current first-party sources and record the review date and capability limits. Apply model-context restrictions to routes StrideOS recommends.
 
-If the athlete explicitly chooses a local script, another plugin, or another external host capability, stop applying the StrideOS route catalog. Handle the selected capability as if this plugin were absent, subject to host permissions and ordinary exact approval for writes. Do not describe it as StrideOS-supported, and do not reproduce its unofficial setup recipe in plugin output.
+Do not describe a user-selected local script, plugin, or host capability as StrideOS-supported, and do not reproduce its unofficial setup recipe in plugin output.
 
 ## Handle login and browsing
 

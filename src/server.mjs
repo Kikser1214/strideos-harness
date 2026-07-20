@@ -8,7 +8,7 @@ import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
 import { buildDecision, buildProviderWriteStateBinding, demoCoachDecision, loadPolicy, providerWritePayloadHash, validateProviderWriteApproval, workoutResourceFromDashboard } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
-import { connectorFreshnessPolicy, filterProviderEvidenceForModelContext, loadConnectorPlaybooks, resolveProviderRoutes, sourcePriority } from "./connectors.mjs";
+import { connectorFreshnessPolicy, filterProviderEvidenceForModelContext, isAttendedBrowserRouteType, loadConnectorPlaybooks, resolveProviderRoutes, sourcePriority } from "./connectors.mjs";
 import { analyzeAthlete } from "./athlete-analysis.mjs";
 import { buildTrainingPlan } from "./training-plan.mjs";
 import { applyMealPolicy, buildNutritionCompanion } from "./nutrition.mjs";
@@ -536,7 +536,7 @@ async function api(req, res, pathname, runtime = {}) {
         headless: expectedContext.headless,
         browserToolAvailable: true,
         playbooks
-      }).find((item) => item.id === approval.resource.routeId && item.type === "assisted_browsing" && item.selectable);
+      }).find((item) => item.id === approval.resource.routeId && isAttendedBrowserRouteType(item.type) && item.selectable);
       if (!route) {
         updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The current host no longer exposes the exact attended route from this approval." } });
         throw new HttpError(409, "The current host no longer exposes the exact attended route from this approval.");

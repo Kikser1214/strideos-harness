@@ -21,6 +21,10 @@ const permittedBrowserFixture = {
 test("playbooks expose documented official individual routes as non-exclusive recommendations", () => {
   const playbooks = loadConnectorPlaybooks();
   assert.deepEqual(playbooks.routePrecedence, ["official_mcp", "official_api", "native_companion", "assisted_browsing", "file_import", "manual"]);
+  assert.equal(
+    playbooks.policy.catalogRole,
+    "advisory. This catalog records routes documented as permitted by each provider for individuals. It is never an allowlist or refusal basis. Attended browser/computer use in the athlete's own visible authenticated session is always a valid athlete-selected route for any provider with a web app, for reads and for approval-gated writes, whenever the host exposes that capability."
+  );
   for (const provider of playbooks.providers) {
     assert.ok(provider.officialSources.length > 0, `${provider.id} needs official sources`);
     assert.match(provider.reviewedAt, /^\d{4}-\d{2}-\d{2}$/, `${provider.id} needs a review date`);
@@ -28,14 +32,31 @@ test("playbooks expose documented official individual routes as non-exclusive re
     assert.ok(provider.permittedRoutes.length > 0, `${provider.id} needs a permitted fallback`);
     assert.equal(provider.permittedRoutes.every((route) => route.providerPermittedForIndividual === true), true);
   }
+
+  const garminBrowser = playbooks.providers
+    .find((provider) => provider.id === "garmin")
+    .permittedRoutes.find((route) => route.id === "garmin_attended_browser");
+  assert.deepEqual(garminBrowser, {
+    id: "garmin_attended_browser",
+    type: "attended_browser",
+    status: "host_dependent",
+    providerPermittedForIndividual: true,
+    capabilities: ["read_activity", "read_recovery", "workout_create"],
+    note: "Athlete-selected; athlete performs login; writes use the one-use approval envelope."
+  });
 });
 
 test("resolver prefers official self-service routes, then attended browsing, then files and manual", () => {
   assert.equal(resolveProviderRoute({ providerId: "fitbit", capability: "read_activity" }).type, "official_api");
   assert.equal(resolveProviderRoute({ providerId: "coros", capability: "read_activity" }).type, "official_mcp");
   assert.deepEqual(
-    resolveProviderRoutes({ providerId: "garmin", capability: "read_activity" }).map((route) => route.type),
+    resolveProviderRoutes({ providerId: "garmin", capability: "read_activity" }).filter((route) => route.selectable).map((route) => route.type),
     ["file_import"]
+  );
+  assert.equal(
+    resolveProviderRoutes({ providerId: "garmin", capability: "read_activity" })
+      .some((route) => route.id === "garmin_attended_browser"),
+    false
   );
   assert.equal(resolveProviderRoute({ providerId: "garmin", capability: "write_workout" }), null);
 });
@@ -193,8 +214,10 @@ test("Garmin attended browser reads and writes are host-capability recommendatio
     attended: true,
     hostCapabilities: { assistedBrowsing: true }
   });
-  assert.deepEqual(routes.map((route) => route.type), ["assisted_browsing"]);
+  assert.deepEqual(routes.map((route) => route.type), ["attended_browser"]);
   const route = routes[0];
+  assert.equal(route.id, "garmin_attended_browser");
+  assert.equal(route.status, "host_dependent");
   assert.equal(route.routeClass, "assisted_browser");
   assert.equal(route.routeOrigin, "host_assisted_browser");
   assert.equal(route.executionAuthority, "host");
@@ -204,9 +227,27 @@ test("Garmin attended browser reads and writes are host-capability recommendatio
   assert.equal(route.browserContract.supportsScheduled, false);
   assert.deepEqual(route.writeContract, { dryRunRequired: true, approval: "exact_one_time_expiring", maxWritesPerApproval: 1, verificationRequired: true });
 
+  for (const capability of ["read_activity", "read_recovery", "write_workout", "workout_create"]) {
+    assert.equal(resolveProviderRoute({
+      providerId: "garmin",
+      capability,
+      surface: "desktop_with_browser",
+      attended: true,
+      hostCapabilities: { assistedBrowsing: true }
+    })?.id, "garmin_attended_browser");
+  }
+  for (const context of [
+    {},
+    { surface: "desktop_with_browser", attended: false, hostCapabilities: { assistedBrowsing: true } },
+    { surface: "desktop_with_browser", attended: true, scheduled: true, hostCapabilities: { assistedBrowsing: true } },
+    { surface: "desktop_with_browser", attended: true, headless: true, hostCapabilities: { assistedBrowsing: true } }
+  ]) {
+    assert.equal(resolveProviderRoute({ providerId: "garmin", capability: "workout_create", ...context }), null);
+  }
+
   const record = browserReadProvenance({
     providerId: "garmin",
-    routeId: "garmin_assisted_browser",
+    routeId: "garmin_attended_browser",
     observedAt: "2026-07-20T06:00:00.000Z",
     retrievedAt: "2026-07-20T06:01:00.000Z",
     pageUrl: "https://connect.garmin.com/modern/activity/42?token=discarded",
@@ -304,6 +345,33 @@ test("explicit scripts and other plugins are delegated to the host, never select
   assert.equal(decision.hostRequirements.credentialsOrMfaHandledByPlugin, false);
   assert.equal(decision.hostRequirements.maxWritesPerApproval, 1);
   assert.match(decision.message, /neither approves nor vetoes/i);
+
+  const uncataloguedBrowser = resolveProviderRouteDecision({
+    providerId: "provider-not-in-catalog",
+    capability: "workout_create",
+    recommendationPreferences: { disabledRouteTypes: ["attended_browser"] },
+    userDirectedCapability: {
+      explicit: true,
+      kind: "attended_browser",
+      id: "host-browser",
+      capability: "workout_create",
+      operation: "write"
+    }
+  });
+  assert.equal(uncataloguedBrowser.outcome, "delegate_to_host");
+  assert.equal(uncataloguedBrowser.enforcement, false);
+  assert.deepEqual(uncataloguedBrowser.hostRequirements, {
+    permissionOwner: "host",
+    loginOwner: "user",
+    credentialsOrMfaHandledByPlugin: false,
+    attendedOnly: true,
+    scheduled: false,
+    headless: false,
+    dryRunRequired: true,
+    approval: "exact_one_time_expiring",
+    maxWritesPerApproval: 1,
+    verificationRequired: true
+  });
 });
 
 test("public connector policy contains no removed route instructions", () => {

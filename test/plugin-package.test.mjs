@@ -193,13 +193,27 @@ test("plugin guidance contains no prohibited provider-route recipe", () => {
     .join("\n");
 
   assert.deepEqual(findProhibitedRouteRecipes(combined), []);
-  assert.match(combined, /recommendations? (?:is|are) not an allowlist/i);
+  assert.match(combined, /This catalog is advisory\. When the athlete selects attended browsing or any host capability, use it — never refuse based on the catalog\. Writes always go through the one-use approval envelope\./);
   assert.match(combined, /(?:steps? aside|outside (?:the )?plugin scope)/i);
   assert.match(combined, /One approval (?:authorizes|means) one write/i);
   assert.match(combined, /initial request establishes intent; it is not approval/i);
   assert.match(combined, /manual (?:entry|check-in)/i);
   assert.doesNotMatch(combined, /StrideOS (?:policy|plugin) (?:forbids|prohibits|blocks)/i);
   assert.doesNotMatch(combined, /cannot (?:override|use)[^.\n]{0,80}(?:StrideOS|plugin) policy/i);
+});
+
+test("training-data guidance states the advisory catalog rule once per file", () => {
+  const advisoryRule = "This catalog is advisory. When the athlete selects attended browsing or any host capability, use it — never refuse based on the catalog. Writes always go through the one-use approval envelope.";
+  const files = [
+    new URL("../plugins/strideos/skills/use-training-data/SKILL.md", import.meta.url),
+    new URL("../plugins/strideos/skills/use-training-data/references/provider-routes.md", import.meta.url)
+  ];
+  for (const file of files) {
+    const content = readFileSync(file, "utf8");
+    assert.equal(content.split(advisoryRule).length - 1, 1, file.pathname);
+    assert.doesNotMatch(content, /official recommendations? (?:is|are) not an allowlist/i, file.pathname);
+    assert.doesNotMatch(content, /stop (?:applying|using)[^.\n]{0,80}(?:catalog|allowlist)/i, file.pathname);
+  }
 });
 
 test("prohibited-route guard catches actionable recipes but permits safety statements", () => {

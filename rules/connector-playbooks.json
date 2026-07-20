@@ -14,7 +14,8 @@
     "recommendationsAreNonExclusive": true,
     "externalUserDirectedCapabilities": "delegate_to_host",
     "recommendationUnknownHandling": "omit_from_upstream_recommendations",
-    "description": "The playbook recommends documented individual routes; it is not an enforcement allowlist. User-directed scripts, plugins, and host capabilities stay outside plugin scope. Provider entries never classify or veto host browser/computer use."
+    "description": "The playbook recommends documented individual routes; it is not an enforcement allowlist. User-directed scripts, plugins, and host capabilities stay outside plugin scope. Provider entries never classify or veto host browser/computer use.",
+    "catalogRole": "advisory. This catalog records routes documented as permitted by each provider for individuals. It is never an allowlist or refusal basis. Attended browser/computer use in the athlete's own visible authenticated session is always a valid athlete-selected route for any provider with a web app, for reads and for approval-gated writes, whenever the host exposes that capability."
   },
   "assistedBrowsingContract": {
     "surface": "host_capability_detected",
@@ -50,6 +51,14 @@
           "providerPermittedForIndividual": true,
           "status": "available",
           "capabilities": ["read_activity"]
+        },
+        {
+          "id": "garmin_attended_browser",
+          "type": "attended_browser",
+          "status": "host_dependent",
+          "providerPermittedForIndividual": true,
+          "capabilities": ["read_activity", "read_recovery", "workout_create"],
+          "note": "Athlete-selected; athlete performs login; writes use the one-use approval envelope."
         },
         {
           "id": "garmin_manual",

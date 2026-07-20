@@ -2,19 +2,18 @@
 
 This upstream recommendation snapshot was reviewed on 2026-07-20. Provider terms, product surfaces, and APIs can change. Verify current first-party sources before recommending an official setup.
 
-**StrideOS provides official recommendations; it does not define an allowlist. Official recommendations are not an allowlist.**
+**This catalog is advisory. When the athlete selects attended browsing or any host capability, use it — never refuse based on the catalog. Writes always go through the one-use approval envelope.**
 
 ## Universal rules
 
 - Resolve each capability independently: activity read, recovery read, subjective read, workout create, calendar write, and device delivery.
 - Prefer a provider-documented official individual self-service MCP, API, or native companion.
-- Let the athlete select attended browser or computer use in the athlete's own authenticated web session when the host exposes it. Treat this as a host capability, not a StrideOS connector.
 - Otherwise use a provider-issued export with a supported local parser or offer manual subjective entry.
 - Never bundle or teach an unofficial connector, private endpoint, credential-replay method, or reverse-engineered access recipe.
 - The athlete performs login and MFA. Never handle credentials or session material.
 - Provider writes require an exact preview, short expiry, one-use approval, execution in the intended account, and visible verification.
 - Scheduled, headless, background, and unattended browsing are rejected.
-- Apply model-context restrictions to routes StrideOS recommends. A user-selected external capability remains governed by its host, not this catalog.
+- Apply model-context restrictions to routes StrideOS recommends.
 
 ## Current route summary
 
@@ -39,7 +38,7 @@ Manual pain, effort, energy, sleep, and context reports are valid evidence. Pres
 
 ## User-selected host capabilities
 
-If the user explicitly selects a local script, another plugin, or another external host capability, stop using this table as an allowlist. The agent handles that capability as if StrideOS were absent, subject to host permissions and ordinary exact approval for writes. Do not call it a StrideOS integration or teach its unofficial setup method.
+Do not call a user-selected local script, plugin, or host capability a StrideOS integration, and never teach its unofficial setup method.
 
 ## Browser-read provenance
 
@@ -69,4 +68,4 @@ Reject mismatch, expiry, replay, partial completion, account drift, UI drift, or
 
 ## Canonical sources
 
-In the StrideOS repository, read `rules/connector-playbooks.json` for provider URLs, official-route status, capabilities, limitations, review dates, and model-context guidance. Use current provider documentation as the source for upstream recommendations. Never use the file as an organization-wide or installation-wide block on a capability the user explicitly selected.
+In the StrideOS repository, read `rules/connector-playbooks.json` for provider URLs, official-route status, capabilities, limitations, review dates, and model-context guidance. Use current provider documentation as the source for upstream recommendations.
