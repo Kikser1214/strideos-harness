@@ -6,7 +6,7 @@ Record one clean first run, then edit to the timeline below. Use 1080p or higher
 
 - Reset the local StrideOS profile and use the labeled synthetic athlete for onboarding.
 - Prepare a clean `codex plugin list` result showing the `strideos@strideos` marketplace entry, beside a passing `npm run test:plugin` result proving six skills.
-- Prepare the plugin manifest, the exact `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, `schedule-coaching`, and `build-coach-room` folders, plus a read-only schedule preview and the coach-room reviewer-diff view for one fast product proof.
+- Prepare the plugin manifest, the exact `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, `schedule-coaching`, and `build-coach-room` folders, plus a read-only schedule preview and the Training Circle reviewer-diff view for one fast product proof.
 - Prepare one exact structured local workout preview from an approved StrideOS plan.
 - Sign into the intended Garmin Connect account yourself before recording. Crop or blur account identity and unrelated training data; never show login or MFA.
 - Keep the Garmin Connect page visible while the agent performs one attended, approval-gated workout/calendar write through the host browser or computer-use capability.
@@ -25,7 +25,7 @@ Record one clean first run, then edit to the timeline below. Use 1080p or higher
 | 1:32–1:52 | Exact structured Garmin workout shown as a dry-run preview; athlete gives the one-write approval | “The approved plan becomes an exact dry run: account, workout steps, targets, and date. One approval authorizes this one write.” |
 | 1:52–2:06 | Agent opens the already authenticated Garmin Connect session and fills/saves the structured workout | “I signed in. The agent uses my visible session, never handles my credentials, and performs only the write I approved.” |
 | 2:06–2:16 | Garmin calendar/watch view shows the exact workout on the intended date | “The result is not assumed—the same workout is visibly verified on my calendar.” |
-| 2:16–2:34 | `build-coach-room` comment and exact revision suggestion | “The build-coach-room skill lets a real coach or experienced friend review the shared plan and suggest an exact edit. Only the athlete can accept it.” |
+| 2:16–2:34 | Training Circle comment and exact revision suggestion | “The Training Circle is built by the build-coach-room skill. A real coach or experienced friend can review the shared plan and suggest an exact edit. Only the athlete can accept it.” |
 | 2:34–2:45 | Enter “sharp chest pain and dizziness” | “A safety signal stops the normal coaching path. The model cannot talk its way around the rule.” |
 | 2:45–2:53 | Plugin manifest, six skills, ownership document, and passing package checks | “StrideOS provides official recommendations, not an allowlist. It is open source, editable, and every external write stays explicit.” |
 | 2:53–2:55 | GitHub + MIT title card | “StrideOS is open source.” |
@@ -55,7 +55,7 @@ StrideOS provides official recommendations; it does not define an allowlist. The
 - Add **USER SIGNED IN · ONE APPROVAL · ONE WRITE** during the attended Garmin action.
 - Add **VISIBLE RESULT VERIFIED** over the calendar/watch result.
 - Add **ONE PLUGIN · SIX SKILLS** over the marketplace-listing and manifest beat.
-- Label the collaborative view **BUILD-COACH-ROOM · ATHLETE APPROVES**.
+- Label the collaborative view **TRAINING CIRCLE · BUILD-COACH-ROOM SKILL · ATHLETE APPROVES**.
 - Show `npm run verify` only after it completes.
 - If a fallback judge trace is used instead of the live attended write, label it **SIMULATION · NO EXTERNAL CHANGE** and do not mix it with the real-write claim.
 
@@ -64,5 +64,5 @@ StrideOS provides official recommendations; it does not define an allowlist. The
 - **Title:** StrideOS — train with AI, keep people in the loop
 - **Subtitle:** OpenAI Build Week 2026 · Codex + GPT-5.6
 - **YouTube title:** StrideOS | OpenAI Build Week 2026 Demo
-- **Description first line:** An open-source six-skill endurance coaching plugin for Codex, with attended account workflows, exact one-write approval, scheduled coaching rhythms, and an athlete-controlled coach room.
+- **Description first line:** An open-source six-skill endurance coaching plugin for Codex, with attended account workflows, exact one-write approval, scheduled coaching rhythms, and an athlete-controlled Training Circle.
 - Add the public repository URL and MIT license note to the description.

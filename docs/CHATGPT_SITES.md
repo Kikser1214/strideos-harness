@@ -1,18 +1,18 @@
 # ChatGPT Work and Sites contract
 
-StrideOS ships as one six-skill plugin for ChatGPT Work mode and Codex. Its skills may work conversationally, prepare optional scheduled coaching rhythms, create a coach-room projection, or use the optional local reference implementation, while deterministic authority boundaries remain consistent across every surface.
+StrideOS ships as one six-skill plugin for ChatGPT Work mode and Codex. Its skills may work conversationally, prepare optional scheduled coaching rhythms, create a Training Circle projection, or use the optional local reference implementation, while deterministic authority boundaries remain consistent across every surface.
 
 ## Product surfaces
 
 1. **The installed StrideOS plugin** provides six focused skills: `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, `schedule-coaching`, and `build-coach-room`.
 2. **The Codex or ChatGPT conversation** is the everyday coaching surface. It runs onboarding, asks follow-up questions, explains uncertainty, proposes plans, collects RPE and pain, and returns every material change to an explicit authority boundary.
-3. **The coach room** is the visual and collaborative projection produced by `build-coach-room`: an athlete-controlled local dashboard, Site, or other explicitly chosen private-capable surface with scoped reviewer access, exact comments, and proposed revisions.
+3. **The Training Circle** is the visual and collaborative projection produced by `build-coach-room`: an athlete-controlled local dashboard, Site, or other explicitly chosen private-capable surface with scoped reviewer access, exact comments, and proposed revisions.
 4. **The optional Node/PWA reference implementation** makes the deterministic onboarding, planning, import, nutrition, dashboard, and approval behavior inspectable. It is not the shipped product identity and is not required to use the plugin.
 5. **Scheduled coaching** is prepared by `schedule-coaching` as a human-readable schedule preview, manual test, and exact read-only prompt. When available, the native Scheduled/automation tool performs creation or updates after review; StrideOS does not hand-write raw automation directives or infer that installation happened, and unattended execution cannot mutate state or use assisted browsing.
 6. **Attended browser/computer use** is the universal second provider tier when the current ChatGPT, Work, Codex, or other AI surface exposes it. The user signs in, reads retain `browser_read` provenance and freshness, and every write receives one exact approval.
 7. **The deterministic state boundary** remains in control of the optional reference runtime. Neither chat language nor a client-side Site control may silently activate a plan, claim workout completion, log food, or perform an external write.
 
-The installed plugin remains the everyday product surface. A coach room never receives or reuses a provider session. StrideOS provides official recommendations; it does not define an allowlist. Explicitly supplied scripts, plugins, and adapters remain outside StrideOS route guidance.
+The installed plugin remains the everyday product surface. A Training Circle never receives or reuses a provider session. StrideOS provides official recommendations; it does not define an allowlist. Explicitly supplied scripts, plugins, and adapters remain outside StrideOS route guidance.
 
 Work web may use a plugin that is already installed or shared through the workspace, but it cannot read this repository's local folder or start the optional local Node/PWA. Clean-clone installation, local state, file imports, and the full reference runtime require ChatGPT desktop or Codex CLI with access to the athlete's machine.
 
@@ -46,7 +46,7 @@ Comments attach to the exact server-authoritative workout or plan snapshot and c
 
 Pain and safety rules still win. An annotation at or above the configured pain boundary pauses normal progression even if athlete and coach both prefer to continue.
 
-## Production coach-room data model (not shipped)
+## Production Training Circle data model (not shipped)
 
 The durable shared version should use platform-backed persistence:
 
@@ -81,6 +81,6 @@ The synthetic Site also does not prove a live provider write. Test that separate
 StrideOS separates two Site purposes:
 
 - the existing **public project site** for the story, installation, documentation, demo video, privacy, and GitHub link;
-- an athlete-owned coach room created through `build-coach-room`, which may be a local artifact or Site and becomes production-private only after identity, access control, durable persistence, invitations, expiry, revocation, and deletion are proved.
+- an athlete-owned Training Circle created through `build-coach-room`, which may be a local artifact or Site and becomes production-private only after identity, access control, durable persistence, invitations, expiry, revocation, and deletion are proved.
 
-The public site is useful for discovery but is not required to use the plugin. A coach room is optional and created only after onboarding and sharing consent.
+The public site is useful for discovery but is not required to use the plugin. A Training Circle is optional and created only after onboarding and sharing consent.

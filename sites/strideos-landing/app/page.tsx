@@ -9,7 +9,7 @@ const skills = [
   ["use-training-data", "Recommend official routes and use athlete-selected host tools."],
   ["support-fueling", "Give optional practical fueling with explicit uncertainty."],
   ["schedule-coaching", "Prepare read-only morning, workout, and weekly rhythms."],
-  ["build-coach-room", "Create the athlete-controlled room for human review."],
+  ["build-coach-room", "Create the athlete-controlled Training Circle for human review."],
 ];
 
 const loop = [
@@ -37,7 +37,7 @@ export default function Home() {
         <nav aria-label="Primary navigation">
           <a href="#install">Plugin</a>
           <a href="#how-it-works">How it works</a>
-          <a href="#coach-mode">Coach Mode</a>
+          <a href="#coach-mode">Training Circle</a>
           <a href="#integrations">Your accounts</a>
         </nav>
         <a className="nav-cta" href={githubUrl} target="_blank" rel="noreferrer">
@@ -53,7 +53,7 @@ export default function Home() {
             StrideOS installs six focused endurance-coaching skills in ChatGPT Work mode and Codex.
             Build an athlete map, plan running and strength, use athlete-selected
             evidence, support fueling, prepare read-only coaching rhythms, and
-            invite a real human into a private coach room without giving the agent control of your accounts.
+            invite a real human into a Training Circle without giving the agent control of your accounts.
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#install">
@@ -153,7 +153,7 @@ codex plugin add strideos@strideos`}</code></pre>
       <section className="section capabilities-section" id="capabilities">
         <div className="section-heading compact">
           <p className="eyebrow"><span /> More than a running plan</p>
-          <h2>The whole week belongs in the room.</h2>
+          <h2>The whole week belongs in the Training Circle.</h2>
         </div>
         <div className="capability-grid">
           {capabilities.map(([title, body], index) => (
@@ -172,16 +172,16 @@ codex plugin add strideos@strideos`}</code></pre>
           <h2>Bring the people you trust into the loop.</h2>
           <p className="collaboration-lede">The athlete chooses what a real coach, training partner, or experienced friend can see. Reviewers comment and suggest; only the athlete can activate a change.</p>
           <div className="collaboration-steps">
-            <article><span>01</span><div><h3>Invite privately</h3><p>Choose one person or a small trusted training circle and limit the shared fields.</p></div></article>
+            <article><span>01</span><div><h3>Invite privately</h3><p>Choose one person or a small trusted Training Circle and limit the shared fields.</p></div></article>
             <article><span>02</span><div><h3>Review in context</h3><p>Comments stay attached to the exact workout, week, or plan version they refer to.</p></div></article>
             <article><span>03</span><div><h3>Suggest an edit</h3><p>StrideOS creates a visible before-and-after proposal without touching the active plan.</p></div></article>
             <article><span>04</span><div><h3>Athlete approves</h3><p>Reviewers never receive plan activation, sharing, invitation, or provider authority.</p></div></article>
           </div>
         </div>
 
-        <div className="coach-mode-board" aria-label="Shared athlete and coach review example">
+        <div className="coach-mode-board" aria-label="Training Circle review example">
           <div className="board-header">
-            <div><span className="board-label">SHARED TRAINING ROOM</span><strong>Sunday / Aerobic durability</strong></div>
+            <div><span className="board-label">TRAINING CIRCLE</span><strong>Sunday / Aerobic durability</strong></div>
             <div className="reviewers"><span>MK</span><span>CE</span><span>+1</span></div>
           </div>
           <div className="board-workout">
@@ -234,7 +234,7 @@ codex plugin add strideos@strideos`}</code></pre>
       <section className="final-cta">
         <p className="eyebrow centered"><span /> Built in the open</p>
         <h2>Train with context.<br />Decide with confidence.</h2>
-        <p>Install the six coaching skills, inspect every rule, and build the athlete room that fits your training life.</p>
+        <p>Install the six coaching skills, inspect every rule, and build the Training Circle that fits your training life.</p>
         <div className="hero-actions centered-actions">
           <a className="button button-primary" href="#install">Install the plugin <span>-&gt;</span></a>
           <a className="button button-secondary" href={dashboardUrl} target="_blank" rel="noreferrer">Try the live demo</a>

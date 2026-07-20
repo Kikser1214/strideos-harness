@@ -40,7 +40,7 @@ Collect only information that can change safety, recommendation, delivery, or co
 7. athlete-owned evidence sources and desired data-sharing scope;
 8. coaching style, preferred explanation depth, and whether StrideOS should recommend a method;
 9. optional nutrition mode and photo-processing choices;
-10. optional dashboard, coach-room, automation, and workout-destination preferences.
+10. optional dashboard, Training Circle, automation, and workout-destination preferences.
 
 Allow optional answers to be skipped. Complete every required safety answer before prescribing running or strength work.
 
@@ -59,7 +59,7 @@ Allow optional answers to be skipped. Complete every required safety answer befo
 - Use `$use-training-data` for imports, provider route decisions, freshness, provenance, or workout delivery questions.
 - Use `$support-fueling` only when the athlete opts into nutrition or recovery-food guidance.
 - Use `$schedule-coaching` for morning briefs, pre-workout checks, post-workout reflections, weekly reviews, or any request to create or manage a recurring coaching rhythm.
-- Use `$build-coach-room` for a private dashboard, Sites experience, reviewer invitation, or coach feedback flow.
+- Use `$build-coach-room` for a private Training Circle, Sites experience, reviewer invitation, or coach feedback flow.
 
 ## Close each coaching turn
 

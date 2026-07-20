@@ -15,7 +15,7 @@ Apps for Your Life
 
 ## Tagline
 
-An open-source, local-first six-skill endurance coaching plugin for ChatGPT Work mode and Codex—with a private coach room and provider recommendations that never become an allowlist.
+An open-source, local-first six-skill endurance coaching plugin for ChatGPT Work mode and Codex—with a Training Circle and provider recommendations that never become an allowlist.
 
 ## Inspiration
 
@@ -23,7 +23,7 @@ Training evidence is fragmented across a watch, a plan, meal photos, and the ath
 
 ## What it does
 
-StrideOS ships six focused plugin skills for ChatGPT Work mode and Codex: `coach-athlete` builds the athlete map and coordinates the coaching loop; `plan-training` researches methods and proposes running plus strength blocks; `use-training-data` recommends official evidence routes and hands explicitly selected browser, computer, script, or plugin capabilities back to the host; `support-fueling` provides optional, athlete-controlled nutrition support; `schedule-coaching` prepares preview-first morning, pre-workout, post-workout, and weekly rhythms; and `build-coach-room` creates a scoped local dashboard or private Site for human review.
+StrideOS ships six focused plugin skills for ChatGPT Work mode and Codex: `coach-athlete` builds the athlete map and coordinates the coaching loop; `plan-training` researches methods and proposes running plus strength blocks; `use-training-data` recommends official evidence routes and hands explicitly selected browser, computer, script, or plugin capabilities back to the host; `support-fueling` provides optional, athlete-controlled nutrition support; `schedule-coaching` prepares preview-first morning, pre-workout, post-workout, and weekly rhythms; and `build-coach-room` creates a scoped local dashboard or private Site as a Training Circle for human review.
 
 StrideOS starts by building an athlete map for someone who may not know how to train. It asks about current movement, running history, safety, goals, real-life schedule, strength experience and equipment, data sources, coaching preferences, and optional nutrition. A deterministic analysis returns starting stage, deadline pressure, declared-versus-observed load, available time, recovery constraints, missing evidence, confidence, an explicit strength recommendation, provider-route truth, and any safety gate before a plan exists.
 
@@ -31,7 +31,7 @@ From there, StrideOS creates a deterministic four-week running and strength prop
 
 The dashboard projects that server-authoritative state into one screen: today's approved session or an honest recovery/upcoming/empty state, current-week running and strength load, fresh subjective feedback, observed activities, goal window, fuel mode, source labels, and the approval ledger. Pending plans never masquerade as workouts, observed files are not silently counted as completed sessions, and missing wearable data never becomes a synthetic personal readiness score.
 
-The `build-coach-room` skill is the central collaboration feature. It can create an athlete-controlled local dashboard or private-capable Site where a real coach, experienced runner, or trusted friend reviews the same plan, comments on an exact session, and suggests a structured edit. Reviewers cannot activate a plan, widen sharing, invite others, or operate a provider account. The checked-in coach-room Site is explicitly a synthetic product template until real identity, private persistence, invitations, and revocation are bound to the chosen hosting surface.
+The Training Circle is built by the `build-coach-room` skill. It can create an athlete-controlled local dashboard or private-capable Site where a real coach, experienced runner, or trusted friend reviews the same plan, comments on an exact session, and suggests a structured edit. Reviewers cannot activate a plan, widen sharing, invite others, or operate a provider account. The checked-in Training Circle Site is explicitly a synthetic product template until real identity, private persistence, invitations, and revocation are bound to the chosen hosting surface.
 
 StrideOS also turns authorized training signals, pain and RPE feedback, and meal images into a single evidence-backed next move. GPT-5.6 handles multimodal understanding and reasoning. A deterministic policy outside the model then classifies the intended action as autonomous, approval-required, or stopped. The decision ledger shows the entire path: evidence → reason → rule gate → action.
 
@@ -45,7 +45,7 @@ For Garmin, StrideOS recommends the official athlete export plus manual input, t
 
 ## How we built it
 
-The project was created from scratch during OpenAI Build Week with Codex. The shipped product is a validation-ready `.codex-plugin` package containing six focused `SKILL.md` modules, UI metadata, scoped references, an icon, and an MIT license. The repository's small Node.js server and responsive PWA are an optional deterministic reference implementation for inspecting onboarding, state transitions, imports, approval gates, and the coach-room interaction. They are not required to use the skills.
+The project was created from scratch during OpenAI Build Week with Codex. The shipped product is a validation-ready `.codex-plugin` package containing six focused `SKILL.md` modules, UI metadata, scoped references, an icon, and an MIT license. The repository's small Node.js server and responsive PWA are an optional deterministic reference implementation for inspecting onboarding, state transitions, imports, approval gates, and the Training Circle interaction. They are not required to use the skills.
 
 The reference implementation uses Garmin's official FIT JavaScript SDK, a versioned onboarding schema, atomic local persistence, deterministic analysis and action gates, and the OpenAI Responses API. Provider playbooks document official routes, and the resolver recommends official self-service API/MCP/companion routes first, then attended browser/computer use when the current host exposes it, followed by provider exports and manual input. The optional reference runtime ships no provider-specific browser or live provider-write executor, but that implementation boundary never vetoes a capability selected on the host. GPT-5.6 receives text and image inputs and returns strict schema-constrained outputs; the model never grants itself permission to act.
 
@@ -92,7 +92,7 @@ Trust improves when the system shows both what it knows and what it is not autho
 
 ## What's next
 
-- Bind coach-room identity, private persistence, invitations, expiry, and revocation to a production-capable hosting surface.
+- Bind Training Circle identity, private persistence, invitations, expiry, and revocation to a production-capable hosting surface.
 - Add official provider-specific executors when documented access exists and the implementation passes the full acceptance contract; keep attended browser/computer use host-provided and surface-detected.
 - Complete the iOS HealthKit and Android Health Connect companion routes.
 - Add first-class Strava MCP setup as compatible ChatGPT/Codex surfaces expose it; attended host browser/computer use remains a separate surface-dependent option.

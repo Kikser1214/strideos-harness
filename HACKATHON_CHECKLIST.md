@@ -26,7 +26,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [ ] Record a public YouTube demo shorter than three minutes, with audio explaining both Codex and GPT-5.6 use.
 - [ ] Complete the synthetic beginner, scheduled-coaching, and presentation rehearsals in ChatGPT Work on the web using `docs/CLOUD_WORK_TEST.md`.
 - [x] Create and push the public GitHub repository.
-- [x] README leads with plugin installation, the exact six-skill package, coach-room behavior, demo data, testing, and Codex collaboration details.
+- [x] README leads with plugin installation, the exact six-skill package, Training Circle behavior, demo data, testing, and Codex collaboration details.
 - [x] The checked-in `plugins/strideos` package contains a real manifest, six focused skills, UI metadata, references, an icon, and its MIT license.
 - [x] Repository-marketplace listing, source validation, installed-plugin validation, and the exact six-skill inventory are covered by the release workflow, `codex plugin list`, and `npm run test:plugin`.
 - [x] Judges can run the project without a Garmin device, account, or API key.
@@ -78,7 +78,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] The isolated clean-state browser rehearsal completed all 11 onboarding steps, plan proposal/approval, active dashboard, desktop/mobile layouts, and a read-only automation preview.
 - [x] Architecture, plugin-first judging guidance, final English copy, screenshot captions, and the under-three-minute video script are checked into the public repository.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
-- [ ] Capture final marketplace-listing/six-skill and coach-room reviewer-diff screenshots for the Devpost gallery.
+- [ ] Capture final marketplace-listing/six-skill and Training Circle reviewer-diff screenshots for the Devpost gallery.
 - [ ] Record the Garmin host-browser proof: approved plan, exact structured preview, user signs into Garmin, one approved visible write, and verified result; keep the optional reference-runtime simulation clearly labeled.
 
 ## Prize reality check

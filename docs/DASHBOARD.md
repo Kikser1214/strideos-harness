@@ -38,7 +38,7 @@ The same screen links to the full plan, data-source setup, optional fuel compani
 
 The **Coach's margin** attaches a short athlete note to the exact approved session shown on the today card. Keep, adjust, move, and cannot-do states can include practical reasons, a requested direction, an optional pain score, and free text. The note becomes fresh evidence immediately because its Save action is explicit, but it never edits the plan. **Ask coach to revise** starts a new coaching turn with the note, session snapshot, and approval boundary included.
 
-This local margin is not the complete shared coach room. The shipped `build-coach-room` skill can create an athlete-controlled local artifact or private-capable Site with scoped reviewer access, exact comments, structured proposed diffs, and athlete-only approval. If the selected surface cannot prove identity, private persistence, invitations, and revocation, it must be labeled as a demo or local artifact rather than production-private.
+This local margin is not the complete shared Training Circle. The shipped `build-coach-room` skill can create an athlete-controlled local artifact or private-capable Site with scoped reviewer access, exact comments, structured proposed diffs, and athlete-only approval. If the selected surface cannot prove identity, private persistence, invitations, and revocation, it must be labeled as a demo or local artifact rather than production-private.
 
 Pain at 4/10 or higher pauses the active block for review. Other annotations leave the approved block intact until a separate plan proposal is explicitly approved.
 

@@ -127,6 +127,35 @@ test("repository marketplace exposes StrideOS to supported plugin browsers", () 
   assert.equal(entry.category, "Health & Fitness");
 });
 
+test("public copy uses Training Circle and the exact repository contract", () => {
+  const readme = readFileSync(join(root, "README.md"), "utf8");
+  const landingPage = readFileSync(join(root, "sites", "strideos-landing", "app", "page.tsx"), "utf8");
+  const landingLayout = readFileSync(join(root, "sites", "strideos-landing", "app", "layout.tsx"), "utf8");
+  const demoPage = readFileSync(join(root, "sites", "athlete-coach-demo", "app", "page.tsx"), "utf8");
+  const pluginManifest = readFileSync(manifestPath, "utf8");
+  const buildCircleSkill = readFileSync(join(pluginRoot, "skills", "build-coach-room", "SKILL.md"), "utf8");
+  const buildCircleAgent = readFileSync(join(pluginRoot, "skills", "build-coach-room", "agents", "openai.yaml"), "utf8");
+  const notices = readFileSync(join(root, "THIRD_PARTY_NOTICES.md"), "utf8");
+
+  assert.match(readme, /> An open-source, local-first endurance coaching plugin for ChatGPT Work mode and Codex\.\r?\n\r?\n\*\*The model is never the permission system\.\*\*/);
+  assert.match(readme, /Built with Codex and GPT-5\.6 for OpenAI Build Week 2026\./);
+  assert.ok(readme.indexOf("codex plugin marketplace add") < readme.indexOf("**Supported surfaces.**"));
+  assert.match(readme, /The Training Circle is built by the `build-coach-room` skill\./);
+  assert.match(readme, /\| Garmin Connect \| Official export \+ file import; attended browser session in the athlete's own login \(reads, and writes via one-use approval\) when the host provides browser use \| Official API is business-reviewed; StrideOS ships no Garmin client and never handles credentials \|/);
+  assert.match(readme, /Attended browser\/computer use is a host capability the athlete may choose for any provider; see 'Works alongside the accounts the athlete already has' above\./);
+  assert.doesNotMatch(readme, /user-selected host capabilities? (?:are|is) outside|outside this recommendation table|outside this table/i);
+
+  const productCopy = [readme, landingPage, landingLayout, demoPage, pluginManifest, buildCircleSkill, buildCircleAgent]
+    .join("\n")
+    .replaceAll("build-coach-room", "")
+    .replaceAll("coach-room-contract.md", "");
+  assert.match(productCopy, /Training Circle/);
+  assert.doesNotMatch(productCopy, /(?:private\s+)?coach[- ]room/i);
+
+  assert.match(notices, /does not grant StrideOS permission to redistribute the SDK/i);
+  assert.match(notices, /npm install` or `npm ci` downloads Garmin's official `@garmin\/fitsdk` package/i);
+});
+
 test("StrideOS exposes the complete focused skill set", () => {
   const skillsRoot = join(pluginRoot, "skills");
   const actual = readdirSync(skillsRoot)

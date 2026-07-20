@@ -23,7 +23,8 @@ test("server-renders the plugin-first StrideOS landing page", async () => {
   assert.match(html, /Train with AI\./);
   assert.match(html, /Keep your people in the loop\./);
   assert.match(html, /installs six focused endurance-coaching skills/i);
-  assert.match(html, /private coach room/i);
+  assert.match(html, /Training Circle/i);
+  assert.doesNotMatch(html, /(?:private )?coach room/i);
   assert.match(html, /codex plugin marketplace add Kikser1214\/strideos-harness --ref main/i);
   assert.match(html, /codex plugin add strideos@strideos/i);
   assert.match(html, /@strideos Build my athlete map/i);

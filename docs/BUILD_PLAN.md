@@ -200,7 +200,7 @@ Status: **complete — July 20, 2026**.
 Deliverables:
 
 - a validation-ready `plugins/strideos/.codex-plugin/plugin.json` manifest with accurate UI metadata and no unshipped MCP or app claims;
-- six focused skills: athlete coaching, training plans, training data, fueling, scheduled coaching rhythms, and coach-room collaboration;
+- six focused skills: athlete coaching, training plans, training data, fueling, scheduled coaching rhythms, and Training Circle collaboration;
 - concise skill references for onboarding authority, method research, official provider recommendations, ownership/extensions, nutrition boundaries, and human-review permissions;
 - plugin assets and a package-level MIT license;
 - repository marketplace metadata for the ChatGPT desktop plugin directory;

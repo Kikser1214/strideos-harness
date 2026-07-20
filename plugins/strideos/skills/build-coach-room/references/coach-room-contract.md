@@ -1,4 +1,4 @@
-# Coach room collaboration contract
+# Training Circle collaboration contract
 
 Use this reference when creating a local dashboard, hosted Site, invitation, role, comment, or shared plan review.
 
@@ -6,7 +6,7 @@ Use this reference when creating a local dashboard, hosted Site, invitation, rol
 
 ### Athlete
 
-- owns the room and sharing scope;
+- owns the Training Circle and sharing scope;
 - approves or declines plan changes;
 - can invite, revoke, and delete;
 - chooses whether nutrition, body context, health signals, and provider labels are shared;
@@ -25,7 +25,7 @@ Use this reference when creating a local dashboard, hosted Site, invitation, rol
 - turns a reviewer suggestion into an athlete-visible proposal;
 - cannot silently accept a suggestion or expand sharing.
 
-## Minimum room information architecture
+## Minimum Training Circle information architecture
 
 1. **Today** — exact session, purpose, detail, status, athlete note, and pending change.
 2. **Week** — all sessions, strength, rest, adaptations, and weekly goal.
@@ -44,7 +44,7 @@ Nutrition and body context are hidden unless the athlete explicitly includes the
 3. A suggested edit becomes a new structured proposal with before/after detail and rationale.
 4. The existing plan remains unchanged.
 5. The athlete approves or declines the exact proposal.
-6. The room shows the resulting state and retains an audit trail.
+6. The Training Circle shows the resulting state and retains an audit trail.
 
 An annotation such as “today's workout does not fit” is evidence, not permission to move, cancel, or replace the workout.
 
@@ -59,11 +59,11 @@ An annotation such as “today's workout does not fit” is evidence, not permis
 - delete controls for comments and shared normalized records;
 - clear explanation of what the selected hosting surface stores.
 
-If the chosen surface cannot provide identity, access control, durable persistence, revocation, and direct-link protection, label the output as a demo or local artifact. Do not call it a production-private coach room.
+If the chosen surface cannot provide identity, access control, durable persistence, revocation, and direct-link protection, label the output as a demo or local artifact. Do not call it a production-private Training Circle.
 
 ## Acceptance checks
 
-- An uninvited person cannot open the room.
+- An uninvited person cannot open the Training Circle.
 - A reviewer sees only the approved scope.
 - Refresh preserves comments and decisions when persistence is claimed.
 - Revocation removes access.

@@ -158,7 +158,7 @@ export default function Home() {
         <nav className="primary-nav" aria-label="Main navigation">
           <NavButton active={view === "today"} label="Today" glyph="01" onClick={() => setView("today")} />
           <NavButton active={view === "plan"} label="Training plan" glyph="02" onClick={() => setView("plan")} />
-          <NavButton active={view === "coach"} label="Coach room" glyph="03" badge="2" onClick={() => setView("coach")} />
+          <NavButton active={view === "coach"} label="Training Circle" glyph="03" badge="2" onClick={() => setView("coach")} />
           <NavButton active={view === "onboarding"} label="Onboarding replay" glyph="04" onClick={() => setView("onboarding")} />
         </nav>
 
@@ -186,7 +186,7 @@ export default function Home() {
         <nav className="mobile-nav" aria-label="Mobile navigation">
           <button className={view === "today" ? "active" : ""} onClick={() => setView("today")}><span>01</span>Today</button>
           <button className={view === "plan" ? "active" : ""} onClick={() => setView("plan")}><span>02</span>Plan</button>
-          <button className={view === "coach" ? "active" : ""} onClick={() => setView("coach")}><span>03</span>Coach</button>
+          <button className={view === "coach" ? "active" : ""} onClick={() => setView("coach")}><span>03</span>Training Circle</button>
           <button className={view === "onboarding" ? "active" : ""} onClick={() => setView("onboarding")}><span>04</span>Onboarding</button>
         </nav>
 
@@ -243,7 +243,7 @@ function TodayView({ role, notes, draft, setDraft, addNote, decision, setDecisio
       </div>
 
       <section className="shared-review">
-        <div className="section-heading"><div><p>SHARED REVIEW</p><h2>One concern, one precise proposal</h2></div><button className="text-button">Open coach room →</button></div>
+        <div className="section-heading"><div><p>SHARED REVIEW</p><h2>One concern, one precise proposal</h2></div><button className="text-button">Open Training Circle →</button></div>
         <div className="review-grid">
           <div className="thread-preview">
             {notes.slice(-2).map((note, index) => <Comment key={`${note.author}-${index}`} note={note} />)}
@@ -330,7 +330,7 @@ function CoachView({ role, notes, draft, setDraft, addNote, decision, setDecisio
   const [inviteState, setInviteState] = useState<"idle" | "ready">("idle");
   return (
     <div className="content">
-      <PageIntro eyebrow="COACH ROOM · SHARED PRIVATELY" title="One plan. Two perspectives. Athlete in control." copy="Comments are attached to an exact workout snapshot. Feedback can trigger a proposal, never a silent change." />
+      <PageIntro eyebrow="TRAINING CIRCLE · SHARED PRIVATELY" title="One plan. Two perspectives. Athlete in control." copy="Comments are attached to an exact workout snapshot. Feedback can trigger a proposal, never a silent change." />
       <div className="coach-layout">
         <section className="comment-panel">
           <div className="card-heading"><div><p>Sunday · long run</p><h3>24 km aerobic durability</h3></div><span className="status-badge warning">Review open</span></div>

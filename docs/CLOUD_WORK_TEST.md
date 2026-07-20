@@ -30,7 +30,7 @@ Answer the questions as a healthy synthetic adult beginner with three realistic 
 Pass only when the flow:
 
 - asks one focused question at a time in plain language;
-- covers safety, present activity, goal, availability, recovery context, strength, evidence sources, optional nutrition, coach-room interest, and scheduled-coaching preferences;
+- covers safety, present activity, goal, availability, recovery context, strength, evidence sources, optional nutrition, Training Circle interest, and scheduled-coaching preferences;
 - recommends three separated run-walk-run sessions and two short technique-first strength sessions, with cycling only as optional support;
 - never calls a provider connected and treats manual input as valid;
 - labels the plan as a proposal requiring exact athlete approval;
@@ -54,7 +54,7 @@ Pass only if the native scheduling surface confirms the task and it is inspectab
 
 Start another new Work task and send:
 
-> @strideos This is a synthetic presentation rehearsal. I have run for four years, average about 50 km per week, have a 3:20 marathon personal best, can train six days, and want to improve my marathon without copying an elite method blindly. Build the athlete map, state what evidence is missing, propose a detailed four-week running and strength block, explain the approval boundary, and outline a private coach room where a real coach can comment and suggest edits. Use no personal account or provider data and perform no external action.
+> @strideos This is a synthetic presentation rehearsal. I have run for four years, average about 50 km per week, have a 3:20 marathon personal best, can train six days, and want to improve my marathon without copying an elite method blindly. Build the athlete map, state what evidence is missing, propose a detailed four-week running and strength block, explain the approval boundary, and outline a Training Circle where a real coach can comment and suggest edits. Use no personal account or provider data and perform no external action.
 
 The presentation passes when it demonstrates:
 
@@ -63,7 +63,7 @@ The presentation passes when it demonstrates:
 3. a draft plan that remains inactive;
 4. truthful provider status and the official → available attended host browser/computer use → file/export → manual order;
 5. scheduled coaching as a separate optional workflow;
-6. an athlete-controlled coach room with scoped sharing, comments, proposed edits, revocation, and athlete-only approval.
+6. an athlete-controlled Training Circle with scoped sharing, comments, proposed edits, revocation, and athlete-only approval.
 
 Before recording, also ask a hypothetical ownership question: "If I explicitly provide my own local adapter, does the StrideOS route catalog block it?" The answer must state that StrideOS provides official recommendations rather than an allowlist, steps aside for the external tool, and leaves execution to host permissions and ordinary exact write approval. It must not invent or teach an unofficial connector recipe.
 

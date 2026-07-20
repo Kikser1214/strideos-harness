@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "StrideOS",
     "shortDescription": "Open-source endurance coaching skills.",
-    "longDescription": "StrideOS helps an athlete onboard, interpret training evidence, build and adapt an endurance plan, use optional fueling support, prepare coaching rhythms, and create a private coach room. It recommends official data routes without restricting user-selected scripts, plugins, browser tools, computer use, or other host capabilities.",
+    "longDescription": "StrideOS helps an athlete onboard, interpret training evidence, build and adapt an endurance plan, use optional fueling support, prepare coaching rhythms, and create a Training Circle. It recommends official data routes without restricting user-selected scripts, plugins, browser tools, computer use, or other host capabilities.",
     "developerName": "Nikola Gogov",
     "category": "Health & Fitness",
     "capabilities": [
@@ -33,7 +33,7 @@
     "defaultPrompt": [
       "Build my athlete map and recommend a safe starting week.",
       "Review my recent training, propose next week, and prepare my coaching schedule.",
-      "Create a private coach room I control."
+      "Create a Training Circle I control."
     ],
     "brandColor": "#165DFF",
     "composerIcon": "./assets/icon.svg",

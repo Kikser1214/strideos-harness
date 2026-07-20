@@ -1,6 +1,6 @@
 # StrideOS architecture
 
-StrideOS ships as an installable six-skill plugin for ChatGPT Work mode and Codex. The plugin is the product; the Node/PWA, deterministic engines, and Sites projects in this repository are optional reference implementations that make its rules testable and its coach-room experience visible.
+StrideOS ships as an installable six-skill plugin for ChatGPT Work mode and Codex. The plugin is the product; the Node/PWA, deterministic engines, and Sites projects in this repository are optional reference implementations that make its rules testable and its Training Circle experience visible.
 
 The architecture separates model reasoning from state-change authority. A skill may gather context, explain, and propose. Deterministic rules own the optional reference runtime's state transitions. Provider access is capability-specific and may use an official connector, an available attended host-browser capability, a file/manual route, or a user-supplied external tool.
 
@@ -67,7 +67,7 @@ flowchart LR
   RV -->|stale or disallowed| SP
 
   ST --> DB["Optional local dashboard"]
-  CR --> ROOM["Local or Sites coach room"]
+  CR --> ROOM["Local or Sites Training Circle"]
   ST --> ROOM
 
   PR --> Q{"Official route available?"}
@@ -134,7 +134,7 @@ This contract applies whenever the current host exposes browser or computer use:
 - a separate post-write inspection must visibly verify the intended result before StrideOS calls it performed;
 - account mismatch, UI drift, changed safety/plan state, expiry, or an extra write stops execution.
 
-## Coach-room boundary
+## Training Circle boundary
 
 The athlete owns sharing. A reviewer receives only the approved fields and date range. Comments attach to immutable workout, week, or plan snapshots. A suggested edit becomes a new before/after proposal. Reviewers cannot activate plans, invite others, widen sharing, or operate provider accounts.
 
@@ -148,7 +148,7 @@ The athlete owns sharing. A reviewer receives only the approved fields and date 
 | Zero-setup judge trace | Off | Labeled synthetic fixture | Fixture reads; provider writes always simulated |
 | Personal local reference | Off | Completed local athlete map | Supported file/manual/local reads; external tools remain user-owned |
 | Live reference reasoning | On after cloud opt-in and provider model-use checks | Bounded permitted athlete context | Still no implicit provider authority |
-| Generated coach room | Optional | Athlete-approved projection | No provider session, credential, or provider action |
+| Generated Training Circle | Optional | Athlete-approved projection | No provider session, credential, or provider action |
 | Scheduled brief | Optional | Read-only local projection | No attended browsing, plan activation, food log, or external write |
 | Attended provider session | Optional | Current validated athlete state plus the visible user-authenticated account | Host capability required; reads normalized, writes exact and one-use |
 | User-supplied script/plugin/adapter | Product-surface dependent | Defined by the selected external tool | StrideOS guidance steps aside; host permissions and ordinary write approval apply |

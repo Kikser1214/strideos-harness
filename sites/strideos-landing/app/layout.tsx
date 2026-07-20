@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StrideOS - Six-skill endurance coaching plugin",
-  description: "Install six local-first ChatGPT Work and Codex coaching skills for training, data, fueling, scheduled rhythms, and a private human coach room.",
+  description: "Install six local-first ChatGPT Work and Codex coaching skills for training, data, fueling, scheduled rhythms, and a Training Circle.",
   openGraph: {
     title: "StrideOS - Train with AI. Keep your people in the loop.",
-    description: "An installable open-source ChatGPT Work and Codex plugin with six coaching skills, read-only scheduled rhythms, and an athlete-controlled room for real human feedback.",
+    description: "An installable open-source ChatGPT Work and Codex plugin with six coaching skills, read-only scheduled rhythms, and an athlete-controlled Training Circle for real human feedback.",
     type: "website",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "StrideOS six-skill endurance coaching plugin" }],
   },

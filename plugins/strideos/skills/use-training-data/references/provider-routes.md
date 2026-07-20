@@ -20,13 +20,13 @@ This upstream recommendation snapshot was reviewed on 2026-07-20. Provider terms
 
 | Provider | Current individual route for StrideOS | Current limitation |
 | --- | --- | --- |
-| Garmin Connect | Athlete-selected official export with a supported local file; manual check-in | Developer access is application/business reviewed; user-selected host capabilities are outside this table |
-| Strava | Official Strava MCP where available; athlete-initiated export; manual check-in | Prefer the MCP for structured reads; user-selected host capabilities are outside this table |
+| Garmin Connect | Official export + file import; attended browser session in the athlete's own login (reads, and writes via one-use approval) when the host provides browser use | Official API is business-reviewed; StrideOS ships no Garmin client and never handles credentials |
+| Strava | Official Strava MCP where available; athlete-initiated export; manual check-in | Prefer the MCP for structured reads |
 | Apple Health / Watch | Authorized iOS HealthKit/WorkoutKit companion; manual check-in | A native companion and per-type system permission are required; XML archive parsing is not bundled |
 | Android Health Connect | Authorized Android companion; manual check-in | On-device authorization and a native companion are required; backup archives are not claimed as supported imports |
 | Fitbit / Google Health | Official API setup or athlete export after required disclosure and consent; manual check-in | Restricted scopes and model-use disclosure must be enforced |
-| Oura | Official Oura MCP when compatible; manual subjective entry | Keep current model-use and retention requirements visible; user-selected host capabilities are outside this table |
-| WHOOP | Official API/export after current consent, retention, and model-use review; manual subjective entry | Do not teach an unofficial connector; user-selected host capabilities are outside this table |
+| Oura | Official Oura MCP when compatible; manual subjective entry | Keep current model-use and retention requirements visible |
+| WHOOP | Official API/export after current consent, retention, and model-use review; manual subjective entry | Do not teach an unofficial connector |
 | Polar | Official API setup where permitted, official export, or manual entry | Treat writes as unavailable until the selected capability proves them |
 | COROS | Official read-only MCP, official export, or manual entry | Direct API access is reviewed; the MCP is read-only |
 | Suunto | Official export or manual entry | Cloud API is partner-oriented |

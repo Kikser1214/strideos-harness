@@ -2,25 +2,25 @@
 
 > An open-source, local-first endurance coaching plugin for ChatGPT Work mode and Codex.
 
-StrideOS is a package of coaching skills—not another training-account app. It helps an athlete build a complete athlete map, use training evidence from tools and accounts they choose, plan running and strength work, use optional fueling support, and create a private coach room that can be shared with a real coach, experienced runner, or trusted friend.
+**The model is never the permission system.**
+
+StrideOS is a package of coaching skills—not another training-account app. It helps an athlete build a complete athlete map, use training evidence from tools and accounts they choose, plan running and strength work, use optional fueling support, and create a Training Circle that can be shared with a real coach, experienced runner, or trusted friend.
 
 The athlete stays in control. StrideOS may explain and propose; it does not silently activate a plan, log uncertain food, expand sharing, or perform an external write. The plugin is an editable package, not a central authority over the athlete's computer or accounts.
 
 ![StrideOS four-week training plan and detailed session view](sites/strideos-landing/public/dashboard-plan.png)
 
-Built from scratch for **OpenAI Build Week 2026** with Codex and GPT-5.6. Licensed under MIT.
+Built with Codex and GPT-5.6 for OpenAI Build Week 2026. Licensed under MIT.
 
 ## Install the plugin
-
-According to [OpenAI's plugin documentation](https://learn.chatgpt.com/docs/plugins), installed or workspace-shared plugins are supported in Work mode on ChatGPT web, in Work mode or Codex in the ChatGPT desktop app, and in Codex CLI. They are not available in Chat mode, the IDE extension, or mobile. Work web cannot read a folder on your computer, and workspace policy may control which personal plugins are available.
-
-For an anywhere-access setup backed by the public GitHub repository, add the StrideOS repository marketplace, verify its listing, and install the plugin for Codex CLI:
 
 ```bash
 codex plugin marketplace add Kikser1214/strideos-harness --ref main
 codex plugin list
 codex plugin add strideos@strideos
 ```
+
+**Supported surfaces.** According to [OpenAI's plugin documentation](https://learn.chatgpt.com/docs/plugins), installed or workspace-shared plugins work in Work mode on ChatGPT web, in Work mode or Codex in the ChatGPT desktop app, and in Codex CLI—not in Chat mode, the IDE extension, or mobile. Work web cannot read a local folder, and workspace policy may control personal plugins.
 
 To inspect or develop the cloned source locally, register the repository root as the marketplace instead:
 
@@ -53,15 +53,17 @@ These are broad intent boundaries, not six single-purpose features. Strength, ru
 | `strideos:use-training-data` | Recommends documented provider routes, uses athlete-selected host tools or explicitly supplied local adapters, preserves provenance and freshness, and gates every provider write; tested file parsing lives in the optional reference runtime |
 | `strideos:support-fueling` | Provides opt-in loose, guided, detailed, or number-free fueling support, including uncertain meal and fridge images |
 | `strideos:schedule-coaching` | Designs optional morning, pre-workout, post-workout, and weekly coaching rhythms; previews and manually tests read-only prompts, then uses the native Scheduled tool when available without claiming installation before confirmation |
-| `strideos:build-coach-room` | Builds an athlete-controlled local dashboard or private Site with scoped human review and athlete-only approval |
+| `strideos:build-coach-room` | Builds an athlete-controlled local dashboard or private Site as a Training Circle with scoped human review and athlete-only approval |
+
+The Training Circle is built by the `build-coach-room` skill.
 
 The skills are self-contained enough to use conversationally. This repository also includes a deterministic local reference implementation and two Sites templates so contributors and judges can inspect and test the rules behind the coaching behavior.
 
 ## What makes StrideOS different
 
-### A real coach can join the room
+### A real coach can join the Training Circle
 
-The private coach room is the central collaboration feature. The athlete decides:
+The Training Circle is the central collaboration feature. The athlete decides:
 
 - who is invited;
 - which workouts, dates, and fields they can see;
@@ -116,16 +118,18 @@ These are the public routes the skill can explain or help the athlete configure,
 
 | Provider | Official route StrideOS recommends | Important limit |
 | --- | --- | --- |
-| Garmin Connect | Athlete-selected official export; manual check-in | Developer access is application/business reviewed; a user-selected host capability is outside this recommendation table |
-| Strava | Official Strava MCP where available; athlete-initiated export; manual check-in | Prefer the official MCP for structured reads; a user-selected host capability is outside this recommendation table |
+| Garmin Connect | Official export + file import; attended browser session in the athlete's own login (reads, and writes via one-use approval) when the host provides browser use | Official API is business-reviewed; StrideOS ships no Garmin client and never handles credentials |
+| Strava | Official Strava MCP where available; athlete-initiated export; manual check-in | Prefer the official MCP for structured reads |
 | Apple Health / Watch | Authorized iOS companion; manual check-in | HealthKit/WorkoutKit and per-type system permission require a native companion |
 | Android Health Connect | Authorized Android companion; manual check-in | On-device authorization and a native companion are required |
 | Fitbit / Google Health | Official API setup or athlete export with required disclosure and consent; manual check-in | Restricted scopes and model-use consent must be enforced |
-| Oura | Official Oura MCP when compatible; manual subjective entry | Keep current model-use and retention requirements visible; user-selected host capabilities are outside this table |
-| WHOOP | Official API/export after current consent, retention, and model-use review; manual subjective entry | Do not teach an unofficial connector; user-selected host capabilities are outside this table |
+| Oura | Official Oura MCP when compatible; manual subjective entry | Keep current model-use and retention requirements visible |
+| WHOOP | Official API/export after current consent, retention, and model-use review; manual subjective entry | Do not teach an unofficial connector |
 | Polar | Official API setup where permitted, official export, or manual entry | Do not imply a write until the selected route proves it |
 | COROS | Official read-only MCP, official export, or manual entry | MCP reads are preferred; it does not create workouts |
 | Suunto | Official export or manual entry | Cloud API access is partner-oriented |
+
+Attended browser/computer use is a host capability the athlete may choose for any provider; see 'Works alongside the accounts the athlete already has' above.
 
 The source-backed upstream recommendation catalog is [`rules/connector-playbooks.json`](rules/connector-playbooks.json). It records capability, model-context considerations, route status, first-party sources, limitations, and review date. It is not an enforcement boundary for a fork or an explicitly supplied local adapter.
 
@@ -153,8 +157,6 @@ StrideOS keeps model reasoning separate from authority:
 4. **Propose** — show the exact recommendation or state change and explain why.
 5. **Approve or stop** — activate only the exact approved local change; external writes additionally need a real selected tool and one exact approval.
 6. **Verify** — call an action performed only after its resulting state is read back or visibly attested.
-
-The model is never the permission system.
 
 ## Run the optional local reference implementation
 
@@ -200,13 +202,13 @@ plugins/strideos/                     Installable StrideOS plugin package
   skills/use-training-data/          Provider routes, imports, and provenance
   skills/support-fueling/            Optional fueling and photo boundaries
   skills/schedule-coaching/          Preview-first scheduled coaching rhythms
-  skills/build-coach-room/           Private human-coach collaboration
+  skills/build-coach-room/           Training Circle collaboration
 rules/onboarding-schema.json         First-run question inventory
 rules/connector-playbooks.json       Source-backed official recommendation catalog
 rules/harness-policy.json            Deterministic action boundaries
 src/                                 Local reference engine and HTTP API
 public/                              Local reference interface and PWA assets
-sites/athlete-coach-demo/            Synthetic coach-room product template
+sites/athlete-coach-demo/            Synthetic Training Circle product template
 sites/strideos-landing/              Public project website
 docs/                                Architecture, install, research, demo, and release guides
 test/                                Unit, HTTP, provider-policy, and plugin-package tests
@@ -234,7 +236,7 @@ Coverage includes beginner onboarding, safety stops, strength recommendations, t
 
 - StrideOS provides general wellness coaching, not diagnosis or treatment.
 - No unofficial provider client, private-endpoint recipe, or provider-specific browser executor ships in this release. Attended host browser/computer use and explicitly supplied local adapters remain available when the user chooses them and the host permits them.
-- The coach-room Site is a product template until real identity, private persistence, invitations, and revocation are bound to a production surface.
+- The Training Circle Site is a product template until real identity, private persistence, invitations, and revocation are bound to a production surface.
 - Scheduled tasks may summarize and ask questions; they cannot browse a provider, activate a plan, log food, or perform an external write.
 - The repository contains synthetic athlete data only.
 
