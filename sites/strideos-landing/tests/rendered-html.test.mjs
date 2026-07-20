@@ -18,14 +18,18 @@ test("server-renders the plugin-first StrideOS landing page", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>StrideOS - Five-skill endurance coaching plugin<\/title>/i);
-  assert.match(html, /Five-skill ChatGPT \+ Codex plugin/i);
+  assert.match(html, /<title>StrideOS - Six-skill endurance coaching plugin<\/title>/i);
+  assert.match(html, /Six-skill ChatGPT \+ Codex plugin/i);
   assert.match(html, /Train with AI\./);
   assert.match(html, /Keep your people in the loop\./);
-  assert.match(html, /installs five focused endurance-coaching skills/i);
+  assert.match(html, /installs six focused endurance-coaching skills/i);
   assert.match(html, /private coach room/i);
-  assert.match(html, /npx plugins add \.\/plugins\/strideos --target codex/i);
-  for (const skill of ["coach-athlete", "plan-training", "use-training-data", "support-fueling", "build-coach-room"]) assert.match(html, new RegExp(skill));
+  assert.match(html, /codex plugin marketplace add Kikser1214\/strideos-harness --ref main/i);
+  assert.match(html, /codex plugin add strideos@strideos/i);
+  assert.match(html, /@strideos Build my athlete map/i);
+  assert.match(html, /Plugins Directory/i);
+  for (const skill of ["coach-athlete", "plan-training", "use-training-data", "support-fueling", "schedule-coaching", "build-coach-room"]) assert.match(html, new RegExp(skill));
+  assert.match(html, /Prepare read-only morning, workout, and weekly rhythms/i);
   assert.match(html, /dashboard-plan\.png/);
   assert.match(html, /LIVE REFERENCE VIEW/);
   assert.match(html, /Install the plugin/);
@@ -36,9 +40,11 @@ test("server-renders the plugin-first StrideOS landing page", async () => {
   assert.match(html, /Only you can approve/);
   assert.match(html, /Apple Health XML import is not implemented/i);
   assert.match(html, /Health Connect backup import is not implemented/i);
-  assert.match(html, /Agent browsing and watch delivery remain unavailable/i);
-  assert.match(html, /approval alone can never make the route available/i);
+  assert.match(html, /recommendations are not an allowlist/i);
+  assert.match(html, /Garmin session you signed into/i);
+  assert.match(html, /one approval for one visible action/i);
+  assert.match(html, /never disables another tool you choose/i);
   assert.doesNotMatch(html, /community bridge|unofficial/i);
-  assert.doesNotMatch(html, /Approve one Garmin write|Garmin Connect tab|workout builder|watch calendar|one-use Garmin/i);
+  assert.doesNotMatch(html, /private endpoint|credential replay|workout builder|one-use Garmin/i);
   assert.doesNotMatch(html, /Threshold intervals|react-loading-skeleton|Your site is taking shape/i);
 });

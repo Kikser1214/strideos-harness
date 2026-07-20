@@ -1,6 +1,6 @@
 # StrideOS landing page
 
-The public promotional site for [StrideOS](https://github.com/Kikser1214/strideos-harness), an open-source, rule-governed AI coaching harness for runners.
+The public promotional site for [StrideOS](https://github.com/Kikser1214/strideos-harness), an open-source six-skill endurance coaching plugin package for ChatGPT and Codex.
 
 The landing page explains the product control loop, athlete approval model, beginner and experienced-runner use cases, and optional device integrations. It links to the live coach dashboard without changing or replacing that demo.
 

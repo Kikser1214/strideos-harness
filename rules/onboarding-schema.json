@@ -155,7 +155,7 @@
     {
       "id": "delivery",
       "title": "Make it useful every day",
-      "description": "Choose a dashboard, optional scheduled briefings, and whether approved workouts should reach a device. Nothing is authorized, scheduled, or written without a permitted route and your approval.",
+      "description": "Choose a dashboard, optional scheduled briefings, and whether approved workouts should reach a device. Nothing is authorized, scheduled, or written without a selected provider or host capability and your approval.",
       "fields": [
         { "id": "dashboard", "label": "Create the personal dashboard?", "type": "boolean", "required": true },
         { "id": "workoutDelivery", "label": "Send approved workouts to your device or training calendar?", "type": "boolean", "required": true },

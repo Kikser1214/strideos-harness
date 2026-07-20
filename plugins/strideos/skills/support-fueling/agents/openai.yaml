@@ -5,4 +5,4 @@ interface:
   default_prompt: "Use $support-fueling to help with my running nutrition."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

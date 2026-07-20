@@ -17,7 +17,7 @@ const permittedBrowserFixture = {
   routePrecedence: ["official_mcp", "official_api", "native_companion", "assisted_browsing", "file_import", "manual"],
   assistedBrowsingContract: { executorEnabled: true },
   providers: [{
-    id: "fixture_web", label: "Synthetic permitted web provider", assistedBrowsingClassification: "permitted", webAppUrl: "https://provider.invalid/",
+    id: "fixture_web", label: "Synthetic permitted web provider", webAppUrl: "https://provider.invalid/",
     permittedRoutes: [{
       id: "fixture_browser", type: "assisted_browsing", providerPermittedForIndividual: true, status: "available_attended",
       executorImplemented: true, capabilities: ["read_activity", "write_workout"]
@@ -74,7 +74,7 @@ test("bootstrap reports connector truthfully", () => withServer(async (base) => 
   const data = await response.json();
   assert.equal(response.status, 200);
   assert.equal(data.mode, "demo");
-  assert.equal(data.connectors.garmin.mode, "export_or_manual");
+  assert.equal(data.connectors.garmin.mode, "reference_runtime_only");
   assert.equal(data.connectors.garmin.configured, false);
   assert.equal(data.connectors.garmin.workoutDeliverySupported, false);
   assert.equal(data.needsOnboarding, true);
@@ -127,14 +127,14 @@ test("personal demo coaching does not invent a Garmin workout without an active 
   assert.match(coached.decision.evidence.join(" "), /No active training block/i);
 }));
 
-test("personal Garmin requests fail closed before an approval is offered", () => withServer(async (base) => {
+test("the optional runtime delegates a personal Garmin request before offering an in-runtime approval", () => withServer(async (base) => {
   await post(base, "/api/onboarding", { profile: completeProfile({ personal: { preferredName: "Mia" }, delivery: { workoutDelivery: true, workoutDeliveryTarget: "garmin", connectorSetupMode: "allow_local_setup_after_review" } }), complete: true });
   activateTodaysRunningPlan();
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
   assert.equal(coached.decision.gate.action, "read_training_data");
   assert.equal(coached.decision.status, "completed");
   assert.equal(coached.decision.resource, null);
-  assert.match(coached.decision.proposal, /Garmin agent delivery is unavailable/i);
+  assert.match(coached.decision.proposal, /reference runtime has no delivery executor/i);
 }));
 
 test("new pain evidence removes the workout from local Garmin guidance", () => withServer(async (base) => {
@@ -155,7 +155,7 @@ test("a personal plan cannot create a Garmin write when device delivery is off",
   activateTodaysRunningPlan({ id: "plan_local_only", sessionId: "local_only_run", title: "Local-only run" });
   const coached = await (await post(base, "/api/coach", { message: "Send today's run to Garmin" })).json();
   assert.equal(coached.decision.gate.action, "read_training_data");
-  assert.match(coached.decision.proposal, /Garmin agent delivery is unavailable/i);
+  assert.match(coached.decision.proposal, /reference runtime has no delivery executor/i);
 }));
 
 test("onboarding schema and connector truth are available", () => withServer(async (base) => {
@@ -510,7 +510,7 @@ test("provider write is not reported performed without a separate exact read-bac
   }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
 });
 
-test("provider writes fail closed without an executor and consume no phantom write", () => withServer(async (base) => {
+test("the reference runtime reports a missing executor and consumes no phantom write", () => withServer(async (base) => {
   const decision = providerWriteDecision();
   saveDecision(decision);
   const response = await post(base, "/api/decisions/approve", {

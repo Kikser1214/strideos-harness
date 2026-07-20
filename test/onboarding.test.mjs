@@ -83,4 +83,6 @@ test("device workout delivery requires a target and preserves separate setup con
   assert.equal(analysis.workoutDelivery.agentMayPerformLocalSetup, true);
   assert.equal(analysis.workoutDelivery.canPushNow, false);
   assert.match(analysis.workoutDelivery.approval, /every exact workout/i);
+  assert.match(analysis.workoutDelivery.note, /current host may offer an attended provider session/i);
+  assert.doesNotMatch(analysis.workoutDelivery.note, /No provider-permitted/i);
 });

@@ -135,7 +135,7 @@ function dataAnalysis(profile) {
     needsFallback: !["manual", "none"].includes(primary.id) && !(primary.canRead && primary.status === "available"),
     fallback: primary.id === "manual" || primary.id === "none" ? "manual" : "manual_or_file_import",
     note: ["apple_health", "health_connect"].includes(primary.id)
-      ? "This source needs an authorized native companion. Start with a permitted provider export or manual check-ins until that route is ready."
+      ? "This source needs an authorized native companion. Start with an official provider export or manual check-ins until that route is ready."
       : primary.note
   };
 }
@@ -220,7 +220,7 @@ function workoutDeliveryAnalysis(profile) {
   const setupMode = profile.delivery?.connectorSetupMode || "not_now";
   const connectorId = target === "apple_watch" ? "apple_health" : target;
   const connector = connectorCatalog().find((item) => item.id === connectorId) || null;
-  const attendedAvailable = connector?.workoutDelivery?.route === "Attended web session";
+  const attendedAvailable = connector?.workoutDelivery?.attendedOnly === true;
   return {
     requested,
     target,
@@ -233,12 +233,12 @@ function workoutDeliveryAnalysis(profile) {
     note: !requested
       ? "Keep workouts inside StrideOS until the athlete enables device delivery."
       : !connector
-        ? "Research the selected provider and keep a manual or file fallback; do not claim device delivery."
+        ? "Research the selected provider's official routes or use a capability the athlete explicitly selects on the current host; do not claim that StrideOS bundles device delivery."
         : attendedAvailable
-          ? "The route is an attended provider session. The user signs in; the agent may act only after a dry-run preview and one exact write approval."
+          ? "The current host may offer an attended provider session. The user signs in; the agent may act only after a dry-run preview and one exact write approval."
           : connector.workoutDelivery?.supportedHere === false
-            ? "No provider-permitted workout-delivery route is available here. Keep the structured workout local and use a manual destination workflow."
-            : "Guide the athlete through a provider-permitted individual route. Setup permission does not authorize credentials, account changes, or workout writes."
+            ? "This catalog has no official self-service workout-write recommendation. A user-selected host capability remains outside the catalog; otherwise keep the structured workout local and use a manual destination workflow."
+            : "Guide the athlete through an official individual route. Setup permission does not authorize credentials, account changes, or workout writes."
   };
 }
 

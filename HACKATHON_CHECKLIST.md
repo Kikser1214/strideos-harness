@@ -24,10 +24,11 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] Category selected: **Apps for Your Life**.
 - [x] English project description drafted in `DEVPOST.md`.
 - [ ] Record a public YouTube demo shorter than three minutes, with audio explaining both Codex and GPT-5.6 use.
+- [ ] Complete the synthetic beginner, scheduled-coaching, and presentation rehearsals in ChatGPT Work on the web using `docs/CLOUD_WORK_TEST.md`.
 - [x] Create and push the public GitHub repository.
-- [x] README leads with plugin installation, the exact five-skill package, coach-room behavior, demo data, testing, and Codex collaboration details.
-- [x] The checked-in `plugins/strideos` package contains a real manifest, five focused skills, UI metadata, references, an icon, and its MIT license.
-- [x] Plugin discovery, source validation, installed-cache validation, and the exact five-skill inventory are covered by the release workflow and `npm run test:plugin`.
+- [x] README leads with plugin installation, the exact six-skill package, coach-room behavior, demo data, testing, and Codex collaboration details.
+- [x] The checked-in `plugins/strideos` package contains a real manifest, six focused skills, UI metadata, references, an icon, and its MIT license.
+- [x] Repository-marketplace listing, source validation, installed-plugin validation, and the exact six-skill inventory are covered by the release workflow, `codex plugin list`, and `npm run test:plugin`.
 - [x] Judges can run the project without a Garmin device, account, or API key.
 - [ ] Run `/feedback` in the Codex task where the majority of the core functionality was built; add that session ID to Devpost.
 - [x] Capture repository-ready desktop, mobile, dashboard, plan, and fuel screenshots with honest demo labels.
@@ -37,7 +38,7 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 ## Current engineering status
 
 - [x] StrideOS ships as an installable ChatGPT Work/Codex plugin rather than presenting the optional Node/PWA reference implementation as the product.
-- [x] The five skills are exactly `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, and `build-coach-room`.
+- [x] The six skills are exactly `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, `schedule-coaching`, and `build-coach-room`.
 - [x] `build-coach-room` defines scoped human review, exact comments and proposed diffs, athlete-only approval, and honest demo labeling when identity or durable private persistence is not available.
 - [x] First-run athlete-map onboarding covers baseline activity, safety, goals, strength, schedule, data, coaching preference, nutrition, and delivery.
 - [x] Onboarding drafts persist; completion returns deterministic running, strength, provider-route, nutrition, and automation recommendations.
@@ -65,20 +66,20 @@ Official source: [OpenAI Build Week rules](https://openai.devpost.com/rules)
 - [x] The dashboard shows server-authoritative today/week/strength/fuel state, source freshness, and useful setup, pending, review, safety, recovery, and upcoming states.
 - [x] Observed activity remains separate from claimed plan completion, and no synthetic readiness score is substituted for a completed athlete profile.
 - [x] The optional reference dashboard is covered by deterministic unit/API tests and real-browser desktop/mobile checks.
-- [x] Morning, pre-workout, post-workout, and weekly Scheduled proposals are timezone-aware, editable, copyable, and explicitly not auto-installed.
+- [x] Morning, pre-workout, post-workout, and weekly Scheduled proposals are timezone-aware, human-readable, editable, manually testable, and handed to the native Scheduled flow without a false installation claim.
 - [x] Every scheduled prompt has a manual test path, read-only command contract, no-update behavior, safety override, and zero external writes.
-- [x] A clean clone discovers and installs the plugin from `./plugins/strideos`; `npm run setup` and `npm run doctor` separately validate and start the optional reference implementation.
+- [x] The GitHub repository or a local clone can be added as a Codex marketplace, exposing `strideos@strideos`; `npm run setup` and `npm run doctor` separately validate and start the optional reference implementation.
 - [x] Windows, macOS, and Linux clean-install instructions, optional live mode, persistent state, reset, and a non-auto-loaded synthetic sample are documented.
 - [x] Corrupt local JSON state is moved to a recoverable ignored backup before StrideOS starts with an empty state.
-- [x] Garmin requests remain bound to an exact server-authored local workout preview and are revalidated against new evidence; provider automation fails closed because permission is not established, while synthetic judge writes remain simulations.
-- [x] Onboarding separately asks about workout delivery, destination, and setup help; the resolver exposes only provider-permitted and implemented routes, and no attended-browser provider executor ships in the current build.
-- [x] Security headers, content type, malformed JSON, oversized input, traversal, duplicate action, static accessibility, persistence, route precedence, browser classification, executor filtering, and Garmin fail-closed boundaries have automated coverage.
-- [x] The post-change local release gate passes the current plugin, policy, unit, API, persistence, and accessibility suites. The last successful `npm audit --omit=dev` reported zero vulnerabilities on July 18, 2026; the lockfile has not changed, but refresh the advisory check immediately before submission.
+- [x] Garmin requests remain bound to an exact server-authored local workout preview and are revalidated against new evidence; the reference runtime remains a simulation, while a user-selected attended browser/computer or other host capability is never vetoed by the plugin.
+- [x] Onboarding separately asks about workout delivery, destination, and setup help; the resolver recommends official routes, suggests attended browser/computer use when the host exposes it, and never treats its catalog as an allowlist.
+- [x] Security headers, content type, malformed JSON, oversized input, traversal, duplicate action, static accessibility, persistence, route precedence, host-capability detection, executor filtering, and non-exclusive Garmin boundaries have automated coverage.
+- [x] The post-change local release gate passes the current plugin, recommendation catalog, unit, API, persistence, and accessibility suites. `npm audit --omit=dev` was refreshed on July 20, 2026 and reported zero vulnerabilities.
 - [x] The isolated clean-state browser rehearsal completed all 11 onboarding steps, plan proposal/approval, active dashboard, desktop/mobile layouts, and a read-only automation preview.
 - [x] Architecture, plugin-first judging guidance, final English copy, screenshot captions, and the under-three-minute video script are checked into the public repository.
 - [ ] Live GPT-5.6 reasoning and image analysis still require an API-key verification pass.
-- [ ] Capture final plugin-discovery/five-skill and coach-room reviewer-diff screenshots for the Devpost gallery.
-- [ ] Record the Garmin fail-closed proof: approved plan, exact structured local preview, resolver block, and manual-entry option or labeled synthetic simulation with no external change.
+- [ ] Capture final marketplace-listing/six-skill and coach-room reviewer-diff screenshots for the Devpost gallery.
+- [ ] Record the Garmin host-browser proof: approved plan, exact structured preview, user signs into Garmin, one approved visible write, and verified result; keep the optional reference-runtime simulation clearly labeled.
 
 ## Prize reality check
 

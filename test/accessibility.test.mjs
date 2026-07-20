@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const html = fs.readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+const app = fs.readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
 
 function matches(pattern) {
   return [...html.matchAll(pattern)];
@@ -29,4 +30,17 @@ test("static images and buttons have accessible names", () => {
     assert.ok(aria || text, "Every button needs visible text or aria-label");
   }
   assert.match(html, /<textarea\b[^>]*id="coachInput"[^>]*aria-label="[^"]+"/);
+});
+
+test("automation UI copies a human-readable schedule instead of a raw recurrence rule", () => {
+  assert.match(app, /Copy setup prompt/);
+  assert.doesNotMatch(app, /Copy prompt \+ RRULE|task\.schedule\.rrule/);
+});
+
+test("reference UI presents host browsing as an option rather than a plugin veto", () => {
+  assert.match(app, /user-selected host tools remain available/i);
+  assert.match(app, /Attended host option/i);
+  assert.doesNotMatch(app, /no permitted browser-agent route|No reviewed browser executor|No attended-browser provider write is enabled/i);
+  assert.match(html, /catalog never becomes an allowlist/i);
+  assert.doesNotMatch(html, /currently available permitted routes|Provider writes stay blocked/i);
 });

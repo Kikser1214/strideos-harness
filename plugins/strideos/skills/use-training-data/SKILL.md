@@ -5,9 +5,9 @@ description: Use when an athlete wants to bring in, inspect, normalize, or remov
 
 # Use Training Data
 
-Work alongside accounts and files the athlete already owns. Resolve reads and writes independently, keep normalization local where possible, and fail closed when a provider route is not clearly permitted and implemented.
+Work alongside accounts, host tools, and files the athlete already owns. Resolve reads and writes independently and keep normalization local where possible. Provide official recommendations; do not define an allowlist for user-selected capabilities. Official recommendations are not an allowlist.
 
-Read [provider-routes.md](references/provider-routes.md) before giving provider setup guidance or operating on provider-derived data. If this repository is present, also read the current `rules/connector-playbooks.json`; it is the canonical route snapshot.
+Read [provider-routes.md](references/provider-routes.md) before giving provider setup guidance or operating on provider-derived data. If this repository is present, also read the current `rules/connector-playbooks.json`; it is the upstream official-route recommendation snapshot, not an enforcement policy for tools the user supplies.
 
 ## Establish the requested capability
 
@@ -22,27 +22,29 @@ Ask what the athlete needs, not merely which brand they use:
 
 Resolve each capability separately. A valid read route does not imply a write route.
 
-## Resolve the route
+## Recommend or use a route
 
-Use this precedence only among routes that are provider-permitted for an individual, compatible with model use, and implemented on the current surface:
+When the athlete asks StrideOS to recommend or set up a route, use this precedence:
 
-1. official self-service MCP, API, or user-owned native companion;
-2. attended browsing for the exact operation only when the provider permits it and a reviewed executor is enabled;
+1. provider-documented official self-service MCP, API, or user-owned native companion;
+2. user-selected attended browser or computer use in the athlete's visible authenticated session when the host exposes that capability;
 3. provider-issued export and supported local file import;
 4. manual entry.
 
-Do not teach a prohibited access method. Do not convert partner-only access, an open browser tab, a configured client, or user approval into permission.
+Never bundle or teach an unofficial connector, private endpoint, credential-replay method, or reverse-engineered access recipe. Do not claim that an external adapter or tool ships with StrideOS.
 
-Provider terms, APIs, and product availability can change. Before new setup guidance, verify the relevant current first-party sources and record the review date and capability limits. An export is a fallback only when both access to that export and its intended use in model context are permitted. If either is ambiguous, keep provider-derived files out of the conversation and offer manual subjective entry.
+Provider terms, APIs, and product availability can change. Before new official setup guidance, verify the relevant current first-party sources and record the review date and capability limits. Apply model-context restrictions to routes StrideOS recommends.
+
+If the athlete explicitly chooses a local script, another plugin, or another external host capability, stop applying the StrideOS route catalog. Handle the selected capability as if this plugin were absent, subject to host permissions and ordinary exact approval for writes. Do not describe it as StrideOS-supported, and do not reproduce its unofficial setup recipe in plugin output.
 
 ## Handle login and browsing
 
 - The athlete opens the provider page and completes login and MFA personally.
 - Never ask for, type, inspect, copy, log, or store a password, MFA code, cookie, session token, recovery code, or browser-storage value.
 - Assisted browsing must remain visible, attended, and interruptible. Reject Scheduled, headless, background, and unattended use.
-- This plugin ships no provider browser executor. Do not claim a browser read or write is supported merely because Codex has a browser.
+- Use only browser or computer-use capabilities the current host actually exposes. Treat the session as temporary, not as a persistent provider connection.
 
-For a future permitted, reviewed browser read, retain only normalized evidence with provider, `browser_read` provenance, observed time, retrieval time, freshness, and a sanitized source path. Never retain raw HTML or session material.
+For a browser read, retain only normalized evidence with provider, `browser_read` provenance, observed time, retrieval time, freshness, and a sanitized source path. Never retain raw HTML or session material.
 
 ## Import local evidence
 
@@ -60,7 +62,7 @@ Manual check-ins are a valid primary source. Missing wearable data lowers confid
 
 ## Gate every write
 
-A provider write is available only when current provider permission, a reviewed executor, the intended account, and the exact operation are all established. Show a non-mutating preview bound to provider, account, operation, target, payload hash, athlete state, and expiry. One approval authorizes one write. Reject expired, altered, mismatched, repeated, scheduled, or partially completed actions and require a new preview.
+A provider write is available only when the selected host tool or user-supplied capability can perform the exact operation in the intended account. Show a non-mutating preview bound to provider, account, operation, target, payload hash, athlete state, and expiry. One approval authorizes one write. Reject expired, altered, mismatched, repeated, scheduled, or partially completed actions and require a new preview.
 
 After execution, verify the visible provider result before saying it was performed. If no write route exists, provide a structured workout for manual entry without claiming delivery.
 

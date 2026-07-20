@@ -2,7 +2,7 @@
 
 Last reviewed: 2026-07-20
 
-This document records the sources behind the `coach-athlete` first-run questions and prevents the five-skill plugin or optional reference interface from promising provider routes that are not both permitted and implemented.
+This document records the sources behind the `coach-athlete` first-run questions and keeps official provider recommendations, host capabilities, and user-supplied tools clearly separated.
 
 ## Safety and general activity
 
@@ -16,22 +16,23 @@ This document records the sources behind the `coach-athlete` first-run questions
 
 ## Provider route matrix
 
-A playbook exposes only routes that current first-party sources permit for an individual user. Official self-service API/MCP/native access is preferred. Attended browsing comes next only when the provider permits it and a reviewed executor is implemented, followed by official export/local import and manual entry. Partner-only or unimplemented access is a documented limitation, not a selectable route.
+StrideOS provides official recommendations; it does not define an allowlist. A playbook exposes only provider-documented official routes. Official self-service API/MCP/native access is preferred, followed by attended browser/computer use when the current AI surface exposes it, official export/local import, and manual entry. A user-supplied script, plugin, or adapter remains outside the recommendation layer.
 
 | Source | Useful signals or actions | Honest individual route | Limitations shown during onboarding |
 | --- | --- | --- | --- |
-| Garmin Connect | exported activity evidence and manual context | Athlete-selected official export and local file import; manual | Attended AI/browser operation is not established as permitted, so reads and writes fail closed; developer access is application/business reviewed rather than ordinary self-service; no workout, calendar, or watch delivery is claimed |
-| Strava | exported activity history and routes | Athlete-initiated official export; manual | API-to-AI use and automated signed-in browsing are blocked under current Strava rules |
+| Garmin Connect | exported activity evidence and manual context | Athlete-selected official export and local file import; manual | Developer access is application/business reviewed; attended host browser/computer use is the universal second tier, including one approved workout/calendar write |
+| Strava | activity history and routes | Official Strava MCP where available; athlete-initiated official export; manual | Prefer the MCP for structured reads; do not teach an unofficial API substitute; attended host browser/computer use remains available |
 | Apple Watch / Apple Health | workouts, activity, heart rate, sleep, and other authorized HealthKit types | User-authorized iOS companion; XML export after an adapter exists; manual | No desktop/web HealthKit store; permission is per type; recovery means raw authorized signals, not a provider score |
 | Android Health Connect | activity, body measurements, nutrition, sleep, and vitals | User-authorized Android companion; backup archive only after format validation; manual | Android-only on-device store; planned-exercise writes do not prove watch delivery; recovery means raw authorized records |
-| Fitbit / Pixel Watch | provider-supported health and activity data | Official Google Health API with scoped setup, disclosure, and consent; official export; manual | No browser/MCP route established; public use may require verification; no generalized model training/evaluation claim |
-| Oura | sleep, readiness, and activity where permitted | Official Oura MCP only after public setup/policy validation; manual | Oura data may enter LLM context only through MCP; browser/API/export-to-LLM routes remain nonselectable |
-| WHOOP | recovery, strain, sleep, and workouts where permitted | Official API/export only after model-context policy review; manual | Browser automation prohibited; opt-in, caching, derivative-work, and external-AI limits require enforcement |
+| Fitbit / Pixel Watch | provider-supported health and activity data | Official Google Health API with scoped setup, disclosure, and consent; official export; manual | Public API use may require verification; attended host browser/computer use remains available |
+| Oura | sleep, readiness, and activity | Official Oura MCP where compatible; manual | Keep current model-use and retention requirements visible; attended host browser/computer use remains available |
+| WHOOP | recovery, strain, sleep, and workouts | Official API/export after current consent, retention, and model-use review; manual | Do not teach an unofficial connector; attended host browser/computer use remains available |
 | Polar | training and health data where permitted | Verified individual AccessLink route when current terms allow; otherwise official export/manual | Planned workout delivery must not be inferred from read access |
-| COROS | activity, health, recovery, fitness, and calendar data | Official user-authorized read-only COROS MCP; official export; manual | MCP is read-only; direct API access is application-reviewed; web automation is prohibited without written permission |
+| COROS | activity, health, recovery, fitness, and calendar data | Official user-authorized read-only COROS MCP; official export; manual | MCP is read-only; direct API access is application-reviewed; attended host browser/computer use remains available |
 | Suunto | activities and device-vendor data visible to the athlete | Official export/manual | Partner-only API access remains unavailable and is not a setup option |
 | FIT / GPX / TCX / CSV | exported activities and user-provided history | Local file import | Point-in-time data; user must refresh it |
-| Browser-read contract | future relevant values from a permitted, executor-backed attended session | Codex desktop, user-authenticated, attended only; none enabled now | Must store `source: <providerId>`, `provenance: "browser_read"`, and `ingestionRoute: "browser_read"`; no raw HTML, cookies, or session material; never scheduled/headless |
+| Attended browser/computer use | relevant visible values and one approved visible write | Any interactive AI surface that exposes the capability; user-authenticated and attended | Store `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, and freshness; no raw session material; never scheduled/headless |
+| User-supplied script/plugin/tool | capability selected by the athlete | Outside StrideOS route guidance | Agent handles it through the host as if StrideOS were absent; not bundled or supported by upstream |
 | Manual check-in | pain, RPE, energy, sleep feel, barriers, and context a watch cannot know | Built in | Subjective by design; always retained with source and timestamp |
 
 Primary platform sources:
@@ -43,6 +44,7 @@ Primary platform sources:
 - [Strava API Policy](https://www.strava.com/legal/api_policy)
 - [Strava Terms of Service](https://www.strava.com/legal/terms)
 - [Strava data export](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export)
+- [Strava MCP connector](https://support.strava.com/en-us/articles/15401531-strava-mcp-connector)
 - [Apple HealthKit authorization](https://developer.apple.com/documentation/HealthKit/authorizing-access-to-health-data)
 - [Apple HealthKit setup](https://developer.apple.com/documentation/healthkit/setting-up-healthkit)
 - [Apple Health export](https://support.apple.com/guide/iphone/share-your-health-data-iph5ede58c3d/ios)
@@ -66,7 +68,7 @@ Primary platform sources:
 4. Safety: current pain, recent injury/surgery, concerning symptoms, known conditions, medication considerations, pregnancy/postpartum when relevant, and existing clearance. Positive signals stop automated prescription and route to qualified review.
 5. Goal: general health, cardio, habit, return, race completion/performance, trail, strength, or body-composition support; event date and target are optional.
 6. Real-life capacity: available days, minutes per session, work/shift pattern, sleep, stress, caregiving, surface, climate, treadmill/gym access, and recurring barriers.
-7. Data: owned devices/apps, requested read and write capabilities, primary source, desired history, permitted route, attended-browser availability, import fallback, freshness, and consent.
+7. Data: owned devices/apps, requested read and write capabilities, primary source, desired history, official route, current host browser/computer-use capability, user-supplied tool choice, import fallback, freshness, and consent.
 8. Training preference: recommend-for-me or a named approach, intensity tolerance, social/solo, indoor/outdoor, disliked sessions, coaching tone, and desired explanation depth.
 9. Nutrition: opt-in level, dietary pattern, allergies/intolerances, medically prescribed diet, cooking access, budget, hydration, routine meals, supplements, photo use, and number-free preference.
 10. Delivery and privacy: dashboard, briefings, weekly review, schedule, approval rules, local/cloud processing, photo retention, export, and deletion.
@@ -77,6 +79,7 @@ Primary platform sources:
 - Named methods are preferences, not commands. The agent researches the exact method and checks suitability before proposing it. “Norwegian” may refer to threshold-focused systems used by advanced endurance athletes; “African” is not treated as one method.
 - A plan cannot be finalized when a safety gate is active. The user can still save onboarding answers and receive a clear next step.
 - Missing wearable data reduces confidence; it never prevents a manual plan for an otherwise eligible user.
-- A future browser read is eligible only after the playbook classifies the operation as permitted and a reviewed executor exists, with a visible attended session, `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, and freshness. It never becomes a scheduled sync. No provider executor is currently enabled, and Garmin does not meet the permission classification.
-- A future provider write is eligible only when the exact operation is classified as permitted and a reviewed executor is implemented. It then requires a separate dry-run and one exact approval. Login, source selection, plan approval, and one provider write are distinct permissions; approval cannot authorize an unavailable route. No provider-write executor ships now.
+- Offer attended browser/computer use whenever the current interactive surface exposes it. The user completes login/MFA; reads store `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, and freshness; the route never becomes a scheduled sync.
+- Every provider/browser write requires a separate dry-run, one exact approval, one visible write, and provider-side verification. Login, source selection, plan approval, and one provider write are distinct permissions.
+- If the user explicitly supplies a local script, another plugin, or an adapter, StrideOS guidance steps aside. The host handles it under ordinary permissions and write approval; the public plugin neither blocks it nor teaches its setup recipe.
 - Nutrition and body-composition support are optional. Number-free support is available, and uncertain photo estimates require confirmation before logging.

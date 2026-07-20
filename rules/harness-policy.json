@@ -1,12 +1,12 @@
 {
   "version": "2026-07-20-assisted-browser-v1",
-  "principle": "Observe permitted evidence. Recommend with evidence. Change the athlete's world only through a provider-permitted route and exact approval.",
+  "principle": "Recommend with evidence. The plugin is not an enforcement allowlist; execution belongs to the current host, and every in-runtime write still needs exact approval.",
   "boundaries": [
     {
       "id": "read_training_data",
       "action": "read_training_data",
       "mode": "autonomous",
-      "reason": "Reading athlete-authorized data is non-mutating. A browser read is eligible only through an enabled reviewed executor in an attended, provider-permitted session and must retain browser_read provenance."
+      "reason": "Reading user-selected data is non-mutating. Host-assisted browser reads must be attended, keep browser_read provenance and freshness, and never expose credentials or session material to the plugin."
     },
     {
       "id": "record_workout_feedback",
@@ -36,7 +36,7 @@
       "id": "push_garmin_workout",
       "action": "push_garmin_workout",
       "mode": "confirm",
-      "reason": "The checked-in judge flow uses a Garmin-shaped simulation and still requires approval. No personal Garmin browser write is authorized by the current provider playbook."
+      "reason": "The checked-in judge flow uses a Garmin-shaped simulation and still requires approval. A real browser, script, or other plugin action is delegated to the current host and is not authorized or vetoed by this simulation gate."
     },
     {
       "id": "write_provider_session",
@@ -49,13 +49,13 @@
         "maxWrites": 1,
         "binds": ["decision", "provider", "route", "account", "operation", "payload", "attended_context"]
       },
-      "reason": "No current provider playbook enables an attended write executor. A future executor requires provider permission plus an exact, expiring, one-use approval envelope; approval cannot create that route."
+      "reason": "The optional reference runtime ships no provider-write executor. When a host supplies one, the runtime still requires an attended session plus an exact, expiring, one-use approval envelope; explicit user-selected actions outside this runtime are delegated to the host."
     },
     {
       "id": "medical_red_flag",
       "action": "medical_red_flag",
       "mode": "stop",
-      "reason": "The harness provides wellness coaching, not diagnosis or treatment. Urgent symptoms require qualified care."
+      "reason": "StrideOS provides wellness coaching, not diagnosis or treatment. Urgent symptoms require qualified care."
     }
   ]
 }

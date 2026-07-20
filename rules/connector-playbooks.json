@@ -11,20 +11,23 @@
   ],
   "policy": {
     "individualOnly": true,
-    "failClosed": true,
-    "description": "A selectable route must be permitted by the provider for an individual user. Provider access restrictions are recorded as limitations, never converted into setup instructions.",
-    "assistedBrowsingClassifications": ["permitted", "prohibited", "not_established", "not_applicable"]
+    "recommendationsAreNonExclusive": true,
+    "externalUserDirectedCapabilities": "delegate_to_host",
+    "recommendationUnknownHandling": "omit_from_upstream_recommendations",
+    "description": "The playbook recommends documented individual routes; it is not an enforcement allowlist. User-directed scripts, plugins, and host capabilities stay outside plugin scope. Provider entries never classify or veto host browser/computer use."
   },
   "assistedBrowsingContract": {
-    "surface": "codex_desktop",
+    "surface": "host_capability_detected",
     "attendedOnly": true,
     "supportsScheduled": false,
     "supportsHeadless": false,
     "loginOwner": "user",
     "credentialHandling": "forbidden",
+    "selectionAuthority": "host_capabilities",
+    "providerClassificationGatesSelection": false,
     "readProvenance": "browser_read",
     "writeApproval": "exact_one_time_expiring",
-    "executorEnabled": false,
+    "referenceRuntimeExecutorIncluded": false,
     "rawHtmlStored": false,
     "sessionMaterialStored": false
   },
@@ -33,7 +36,6 @@
       "id": "garmin",
       "label": "Garmin Connect",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "not_established",
       "webAppUrl": "https://connect.garmin.com/",
       "officialSources": [
         "https://www.garmin.com/en-US/legal/terms-of-use/",
@@ -58,7 +60,7 @@
         }
       ],
       "limitations": [
-        "Garmin does not expressly authorize attended AI/browser-agent operation. Current terms restrict processes that access or copy content through means not purposely made available, so assisted browsing fails closed.",
+        "The upstream package does not ship a Garmin API connector. An attended browser/computer-use option is supplied by the current host, not by this playbook.",
         "Garmin Connect Developer Program access is business/application-reviewed rather than an ordinary individual self-service route."
       ]
     },
@@ -66,7 +68,6 @@
       "id": "strava",
       "label": "Strava",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "prohibited",
       "webAppUrl": "https://www.strava.com/",
       "officialSources": [
         "https://www.strava.com/legal/terms",
@@ -74,7 +75,22 @@
         "https://support.strava.com/en-us/articles/15401531-strava-mcp-connector",
         "https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export"
       ],
+      "modelContextPolicy": {
+        "status": "mcp_only",
+        "allowedRoutes": ["strava_mcp"],
+        "inference": "permitted",
+        "training": "not_established",
+        "evaluation": "not_established"
+      },
       "permittedRoutes": [
+        {
+          "id": "strava_mcp",
+          "type": "official_mcp",
+          "providerPermittedForIndividual": true,
+          "status": "setup_required",
+          "capabilities": ["read_activity"],
+          "modelContextPolicy": "mcp_only"
+        },
         {
           "id": "strava_export",
           "type": "file_import",
@@ -91,15 +107,14 @@
         }
       ],
       "limitations": [
-        "Current API policy blocks Strava API data in an AI application. Strava's official read-only MCP is the authorized agent route, but its current rollout does not support this ChatGPT/Codex surface.",
-        "Current Terms prohibit automated access or collection even when the user is logged in, so attended browser automation is not selectable."
+        "Use Strava's official read-only MCP when the current host exposes it; ordinary API data is not recommended for AI coaching.",
+        "An attended browser/computer-use option is supplied and permissioned by the current host, not bundled as a Strava connector."
       ]
     },
     {
       "id": "apple_health",
       "label": "Apple Health / Watch",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "not_applicable",
       "officialSources": [
         "https://developer.apple.com/documentation/healthkit",
         "https://developer.apple.com/documentation/workoutkit",
@@ -139,7 +154,6 @@
       "id": "health_connect",
       "label": "Android Health Connect",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "not_applicable",
       "officialSources": [
         "https://developer.android.com/health-and-fitness/health-connect/get-started",
         "https://developer.android.com/health-and-fitness/health-connect/features/training-plans",
@@ -179,7 +193,6 @@
       "id": "fitbit",
       "label": "Fitbit / Pixel Watch",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "not_established",
       "officialSources": [
         "https://developers.google.com/health",
         "https://developers.google.com/health/setup",
@@ -221,13 +234,12 @@
           "capabilities": ["read_subjective"]
         }
       ],
-      "limitations": ["No attended browser or official MCP route is established.", "Restricted health scopes, third-party inference disclosure, and user consent must be enforced; generalized model training or evaluation is not claimed."]
+      "limitations": ["No official MCP route is established in this recommendation catalog.", "Restricted health scopes, third-party inference disclosure, and user consent must be enforced; generalized model training or evaluation is not claimed."]
     },
     {
       "id": "oura",
       "label": "Oura",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "prohibited",
       "officialSources": [
         "https://ouraring.com/terms-and-conditions",
         "https://cloud.ouraring.com/legal/api-agreement",
@@ -275,13 +287,12 @@
           "capabilities": ["read_subjective"]
         }
       ],
-      "limitations": ["Oura data used with an LLM must use Oura's authorized MCP path; public setup for this StrideOS surface is not currently documented.", "Browser, API, and export data must not enter LLM context; model training, evaluation, and persistent MCP caching are not permitted without separate authorization."]
+      "limitations": ["For routes recommended by this catalog, Oura data used with an LLM uses Oura's authorized MCP path; public setup for this StrideOS surface is not currently documented.", "The catalog does not recommend API or export data for model context; model training, evaluation, and persistent MCP caching need separate authorization. User-selected host capabilities remain outside this catalog."]
     },
     {
       "id": "whoop",
       "label": "WHOOP",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "prohibited",
       "officialSources": [
         "https://www.whoop.com/us/en/whoop-terms-of-use/",
         "https://developer.whoop.com/docs/introduction/",
@@ -323,13 +334,12 @@
           "capabilities": ["read_subjective"]
         }
       ],
-      "limitations": ["WHOOP terms prohibit web scraping, harvesting, and extraction even with account-owner permission, so attended browsing is not selectable.", "Third-party disclosure needs explicit opt-in; caching, permanent copies, derivative works, and external AI use require policy review before model-context use."]
+      "limitations": ["The catalog recommends only WHOOP's official API/export routes after the required review; it does not classify or veto user-selected host browser/computer use.", "Third-party disclosure needs explicit opt-in; caching, permanent copies, derivative works, and external AI use require policy review before this catalog recommends model-context use."]
     },
     {
       "id": "polar",
       "label": "Polar",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "prohibited",
       "officialSources": [
         "https://www.polar.com/polar-api-v4/",
         "https://www.polar.com/en/legal/polar-api-agreement",
@@ -360,13 +370,12 @@
           "capabilities": ["read_subjective"]
         }
       ],
-      "limitations": ["Polar's API agreement prohibits automated collection from Polar websites outside registered API-compatible software. Generic attended browser automation is not selectable.", "The current StrideOS route treats AccessLink as read-only unless a first-party write endpoint is separately documented."]
+      "limitations": ["The catalog recommends Polar's registered API-compatible routes and exports; it does not classify or veto user-selected host browser/computer use.", "The current StrideOS route treats AccessLink as read-only unless a first-party write endpoint is separately documented."]
     },
     {
       "id": "coros",
       "label": "COROS",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "prohibited",
       "officialSources": [
         "https://support.coros.com/hc/en-us/articles/50841795180948-COROS-MCP-A-Guide-to-Connecting-Your-Training-Data-to-AI",
         "https://www.coros.com/terms",
@@ -399,14 +408,13 @@
       "limitations": [
         "The official COROS MCP is currently read-only.",
         "Direct API access is application-reviewed and is not a dependable self-service individual route.",
-        "COROS terms prohibit automated web access without express written permission, so attended browsing is not selectable."
+        "The catalog does not classify or veto user-selected host browser/computer use."
       ]
     },
     {
       "id": "suunto",
       "label": "Suunto",
       "reviewedAt": "2026-07-20",
-      "assistedBrowsingClassification": "prohibited",
       "officialSources": [
         "https://www.suunto.com/Terms-of-use/",
         "https://apizone.suunto.com/faq",
@@ -428,7 +436,7 @@
           "capabilities": ["read_subjective"]
         }
       ],
-      "limitations": ["Suunto terms prohibit obtaining information by methods not expressly permitted and using unauthorized third-party software to access the service, so assisted browsing is not selectable.", "Suunto Cloud API access is partner-only rather than a personal self-service route."]
+      "limitations": ["The catalog recommends only documented Suunto routes; it does not classify or veto user-selected host browser/computer use.", "Suunto Cloud API access is partner-only rather than a personal self-service route."]
     }
   ]
 }

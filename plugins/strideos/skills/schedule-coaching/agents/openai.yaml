@@ -1,0 +1,8 @@
+interface:
+  display_name: "StrideOS Schedule"
+  short_description: "Plan and manage editable coaching routines."
+  brand_color: "#165DFF"
+  default_prompt: "Use $schedule-coaching to prepare and test my coaching schedule."
+
+policy:
+  allow_implicit_invocation: false

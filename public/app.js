@@ -146,11 +146,11 @@ function renderBootstrap(data) {
   $("#consoleDisclosure").textContent = data.mode === "live"
     ? "GPT-5.6 receives only the personal context permitted in Athlete setup; the deterministic policy layer still controls actions."
     : personalDashboard
-      ? "Deterministic demo reasoning now uses your local athlete dashboard. No personal context is sent to OpenAI; provider actions remain unavailable unless a playbook proves permission and a reviewed executor exists."
+      ? "Deterministic demo reasoning now uses your local athlete dashboard. No personal context is sent to OpenAI. Official routes are recommendations; user-selected host tools remain available, and every write still needs an exact preview and approval."
       : "The no-setup judge path uses labeled synthetic data. Complete Athlete setup for personal local demo reasoning, or add an OpenAI key for GPT-5.6.";
-  $("#initialMessageMode").textContent = personalDashboard ? "Personal local dashboard · no direct provider writes" : "Synthetic athlete · no external writes";
+  $("#initialMessageMode").textContent = personalDashboard ? "Personal local dashboard · host actions require approval" : "Synthetic athlete · no external writes";
   $("#initialMessageText").textContent = personalDashboard
-    ? "Ask about today to reason from the approved plan, recovery, and source freshness. Garmin delivery stays local/manual because no permitted browser-agent route is established."
+    ? "Ask about today to reason from the approved plan, recovery, and source freshness. If this AI host exposes attended browser or computer use, StrideOS can suggest it; the optional local runtime simply does not bundle a live provider executor."
     : "This workspace starts safely: ask a question to create a labeled synthetic decision trace. Garmin writes are simulated.";
   $("#openOnboarding").textContent = data.needsOnboarding ? "Athlete setup" : "Athlete setup ✓";
   updatePlanEntry(data.training);
@@ -558,13 +558,13 @@ function renderOnboardingNav() {
 function fieldHint(section, field) {
   if (section.id === "safety" && field.id === "parqStatus") return 'Use the current official form at <a href="https://eparmedx.com/" target="_blank" rel="noreferrer">ePARmed-X+ ↗</a>.';
   if (section.id === "strength" && field.id === "experience") return "Strength is part of the recommendation even when you have never lifted before.";
-  if (section.id === "data" && field.id === "sources") return "StrideOS uses only provider-permitted individual routes. Garmin currently uses approved exports or manual entry; native health stores need authorized companions.";
+  if (section.id === "data" && field.id === "sources") return "StrideOS recommends official provider routes. When your current AI surface exposes attended browser or computer use, you may choose that too. These recommendations are not an allowlist.";
   if (section.id === "preferences" && field.id === "trainingStyle") return "New to training methods? Keep Recommend for me. A starter will normally begin with three separated run / walk sessions, two short technique-first strength sessions, and optional easy cycling when it fits.";
   if (section.id === "nutrition" && field.id === "supplements") return "Include product, dose, and timing when known. StrideOS reviews context; it does not assume a supplement is needed.";
   if (section.id === "delivery" && ["morningBrief", "preWorkoutBrief", "postWorkoutReflection", "weeklyReview"].includes(field.id)) return "This proposes a schedule only. Nothing is created until you test the prompt and create it in Scheduled.";
   if (section.id === "delivery" && field.id === "workoutDelivery") return "Reading completed activities and sending a structured workout are separate permissions.";
-  if (section.id === "delivery" && field.id === "workoutDeliveryTarget") return "Garmin browser-agent delivery is not currently permitted. Apple Watch and Android require authorized native companions with separately verified delivery support.";
-  if (section.id === "delivery" && field.id === "connectorSetupMode") return "Only provider-permitted routes may be set up. The user always signs in, the agent never handles passwords or MFA codes, and approval cannot make an unavailable write route valid.";
+  if (section.id === "delivery" && field.id === "workoutDeliveryTarget") return "For Garmin or another provider web app, you may choose attended browser or computer use when your current AI surface exposes it. You sign in; every write is previewed and approved once.";
+  if (section.id === "delivery" && field.id === "connectorSetupMode") return "StrideOS can guide official setup or suggest an available host tool. It never handles passwords or MFA codes and does not disable scripts, plugins, browser use, or computer use selected by you.";
   return "";
 }
 
@@ -699,7 +699,7 @@ async function renderOnboardingReview() {
       <article class="review-card"><small>Running frame</small><strong>${analysis.training.runSessionsPerWeek} sessions / week</strong><p>${escapeHtml(humanize(analysis.training.recommended))}. ${analysis.training.researchRequired ? "The requested method needs a suitability research pass." : "The method can be refined from your feedback."}</p></article>
       <article class="review-card"><small>Strength frame</small><strong>${analysis.strength.sessionsPerWeek} sessions / week</strong><p>${escapeHtml(analysis.strength.recommendation)}</p></article>
       <article class="review-card review-full"><small>Evidence route</small><strong>${escapeHtml(analysis.data.primary.label)}</strong><p>${escapeHtml(analysis.data.note)}</p><div class="connector-truth">${connectorChips}</div></article>
-      <article class="review-card review-full"><small>Workout delivery</small><strong>${analysis.workoutDelivery.requested ? escapeHtml(humanize(analysis.workoutDelivery.target || "target_needed")) : "Off"}</strong><p>${escapeHtml(analysis.workoutDelivery.note)} ${escapeHtml(analysis.workoutDelivery.approval)}</p><div class="connector-truth"><span>${escapeHtml(humanize(analysis.workoutDelivery.setupMode))}</span><span>${analysis.workoutDelivery.connector?.workoutDelivery?.attendedOnly ? "No reviewed browser executor" : "No verified device write"}</span></div></article>
+      <article class="review-card review-full"><small>Workout delivery</small><strong>${analysis.workoutDelivery.requested ? escapeHtml(humanize(analysis.workoutDelivery.target || "target_needed")) : "Off"}</strong><p>${escapeHtml(analysis.workoutDelivery.note)} ${escapeHtml(analysis.workoutDelivery.approval)}</p><div class="connector-truth"><span>${escapeHtml(humanize(analysis.workoutDelivery.setupMode))}</span><span>${analysis.workoutDelivery.connector?.workoutDelivery?.attendedOnly ? "Attended host option" : "Reference runtime · no live write"}</span></div></article>
       <article class="review-card review-full"><small>What would improve confidence</small><strong>${escapeHtml(humanize(athlete.missingData.status))}</strong><ul>${gapList}</ul></article>
       <article class="review-card"><small>Fuel support</small><strong>${escapeHtml(humanize(analysis.nutrition.mode))}</strong><p>${escapeHtml(analysis.nutrition.recommendation)}</p></article>
       <article class="review-card"><small>Automation proposals</small><strong>${analysis.automation.proposals.length} selected</strong><ul>${automations}</ul></article>
@@ -805,15 +805,15 @@ $("#onboardingNav").addEventListener("click", async (event) => {
 
 const connectorStatusLabels = {
   available: "Available now",
-  available_attended: "Contract only",
-  attended_session_available: "Contract only",
-  contract_only: "Contract only",
+  available_attended: "Attended host session",
+  attended_session_available: "Attended host session",
+  host_capability_required: "Available when the host exposes it",
   setup_required: "Setup needed",
   companion_required: "Native app required",
   policy_review_required: "Policy review required",
   file_or_manual: "Export or manual",
   manual_only: "Manual only",
-  not_available_for_individual: "No individual write route",
+  not_available_for_individual: "No official self-service write recommendation",
   planned: "Planned"
 };
 
@@ -826,10 +826,10 @@ function connectorStatusClass(status) {
 function connectorSetupMarkup(connector) {
   const attendedDelivery = connector.workoutDelivery?.attendedOnly === true;
   const delivery = connector.workoutDelivery
-    ? `<p class="connector-capability">Workout delivery: ${attendedDelivery ? "not enabled in this build" : escapeHtml(humanize(connector.workoutDelivery.status))}${!attendedDelivery && connector.workoutDelivery.route ? ` · ${escapeHtml(connector.workoutDelivery.route)}` : ""}</p>`
+    ? `<p class="connector-capability">Workout delivery: ${attendedDelivery ? "available when the current host exposes an attended browser/computer tool" : escapeHtml(humanize(connector.workoutDelivery.status))}${!attendedDelivery && connector.workoutDelivery.route ? ` · ${escapeHtml(connector.workoutDelivery.route)}` : ""}</p>`
     : "";
   const methods = connector.setup?.methods?.length
-    ? `<details><summary>Permitted routes</summary><ul>${connector.setup.methods.map((method) => { const status = method.attendedOnly && !method.executorImplemented ? "contract_only" : method.status; return `<li><strong>${escapeHtml(method.label)}</strong>${method.recommended ? " · preferred" : ""}${method.attendedOnly ? " · attended only" : ""}${status ? ` · ${escapeHtml(connectorStatusLabels[status] || humanize(status))}` : ""}</li>`; }).join("")}</ul><p>No attended-browser provider write is enabled in this build. Approval never creates provider permission; a future reviewed executor would require a separate exact approval for each write.</p></details>`
+    ? `<details><summary>Recommended routes</summary><ul>${connector.setup.methods.map((method) => { const status = method.status; return `<li><strong>${escapeHtml(method.label)}</strong>${method.recommended ? " · preferred" : ""}${method.attendedOnly ? " · attended only" : ""}${status ? ` · ${escapeHtml(connectorStatusLabels[status] || humanize(status))}` : ""}</li>`; }).join("")}</ul><p>Browser/computer use is supplied and permissioned by the current host, not by this reference runtime. The user signs in; one exact approval authorizes one visible write.</p></details>`
     : "";
   if (connector.setup?.requiredEnvironment?.length) {
     return `${delivery}${methods}<details><summary>Setup contract</summary><p>Add server-side environment values: <code>${connector.setup.requiredEnvironment.map(escapeHtml).join(" · ")}</code>${connector.setup.optionalEnvironment?.length ? `<br>Optional: <code>${connector.setup.optionalEnvironment.map(escapeHtml).join(" · ")}</code>` : ""}. Secrets never go in the browser.</p></details>`;
@@ -1018,9 +1018,9 @@ function renderAutomationSetup(data) {
       <label>Local time<input type="time" data-auto-time value="${escapeHtml(task.schedule.time)}"></label>
       ${task.cadence === "weekly" ? `<label>Day<select data-auto-day>${automationDays.map((day) => `<option value="${day}" ${task.schedule.day === day ? "selected" : ""}>${escapeHtml(humanize(day))}</option>`).join("")}</select></label>` : ""}
     </div>
-    <p class="automation-schedule">${escapeHtml(task.schedule.label)} · ${escapeHtml(task.schedule.timezone)}<br>${escapeHtml(task.schedule.rrule)}</p>
+    <p class="automation-schedule">${escapeHtml(task.schedule.label)} · ${escapeHtml(task.schedule.timezone)}</p>
     <details><summary>Exact durable prompt</summary><pre>${escapeHtml(task.prompt)}</pre></details>
-    <div class="automation-actions"><button type="button" data-auto-save>Save proposal</button><button type="button" class="test-automation" data-auto-test>Test now</button><button type="button" data-auto-copy>Copy prompt + RRULE</button></div>
+    <div class="automation-actions"><button type="button" data-auto-save>Save proposal</button><button type="button" class="test-automation" data-auto-test>Test now</button><button type="button" data-auto-copy>Copy setup prompt</button></div>
     <span class="automation-test-state">${task.testedAt ? `Last test: ${escapeHtml(humanize(task.lastTestStatus))} · ${escapeHtml(new Date(task.testedAt).toLocaleString())}` : "Manual test required before scheduling"}</span>
   </article>`).join("");
 }
@@ -1075,9 +1075,9 @@ $("#automationDialog").addEventListener("click", async (event) => {
       toast("Manual preview complete · no external actions");
     }
     if (copyButton) {
-      const copy = `${task.prompt}\n\nTimezone: ${task.schedule.timezone}\nSchedule: ${task.schedule.rrule}`;
+      const copy = `${task.prompt}\n\nTimezone: ${task.schedule.timezone}\nSchedule: ${task.schedule.label}`;
       await navigator.clipboard.writeText(copy);
-      toast("Prompt and RRULE copied · paste into Scheduled after testing");
+      toast("Setup prompt copied · paste into Scheduled after testing");
     }
   } catch (error) { toast(error.message); }
   finally {

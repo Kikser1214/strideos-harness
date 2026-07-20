@@ -96,7 +96,7 @@ nav a:hover, footer a:hover { opacity: .6; }
 .install-title b { color: var(--lime); font-weight: 650; }
 .plugin-install pre { margin: 0; padding: clamp(24px, 4vw, 44px); overflow-x: auto; color: #e2e6ff; font: 12px/1.9 var(--font-geist-mono); }
 .plugin-install p { margin: 0; padding: 18px 22px; border-top: 1px solid rgba(255,255,255,.17); color: #9ca4bd; font: 9px/1.6 var(--font-geist-mono); }
-.skill-list { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid rgba(255,255,255,.28); border-left: 1px solid rgba(255,255,255,.28); }
+.skill-list { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(255,255,255,.28); border-left: 1px solid rgba(255,255,255,.28); }
 .skill-list article { min-height: 190px; padding: 22px; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.28); border-bottom: 1px solid rgba(255,255,255,.28); }
 .skill-list article > span { color: var(--lime); font: 9px var(--font-geist-mono); }
 .skill-list article > div { margin-top: auto; }

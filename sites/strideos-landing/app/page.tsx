@@ -6,15 +6,16 @@ const githubUrl = "https://github.com/Kikser1214/strideos-harness";
 const skills = [
   ["coach-athlete", "Onboard, resume, and coordinate the athlete relationship."],
   ["plan-training", "Build and adapt running, strength, recovery, and race plans."],
-  ["use-training-data", "Use permitted provider, file, and manual evidence routes."],
+  ["use-training-data", "Recommend official routes and use athlete-selected host tools."],
   ["support-fueling", "Give optional practical fueling with explicit uncertainty."],
+  ["schedule-coaching", "Prepare read-only morning, workout, and weekly rhythms."],
   ["build-coach-room", "Create the athlete-controlled room for human review."],
 ];
 
 const loop = [
   ["01", "Sense", "Use only evidence the athlete chooses. Preserve source, observation time, retrieval time, and freshness."],
   ["02", "Reason", "Turn the evidence into one athlete map, state what is uncertain, and explain the next recommendation."],
-  ["03", "Gate", "Check the exact intended action against deterministic safety, privacy, provider, and approval rules."],
+  ["03", "Gate", "Check the exact intended action against safety, privacy, the selected tool, host permissions, and approval."],
   ["04", "Verify", "Call a change performed only after the resulting local or external state is read back and confirmed."],
 ];
 
@@ -46,13 +47,13 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow"><span /> Five-skill ChatGPT + Codex plugin</p>
+          <p className="eyebrow"><span /> Six-skill ChatGPT + Codex plugin</p>
           <h1>Train with AI.<br />Keep your people in the loop.</h1>
           <p className="hero-lede">
-            StrideOS installs five focused endurance-coaching skills in ChatGPT Work mode and Codex.
-            Build an athlete map, plan running and strength, use permitted
-            evidence, support fueling, and invite a real human into a private
-            coach room without giving the agent control of your accounts.
+            StrideOS installs six focused endurance-coaching skills in ChatGPT Work mode and Codex.
+            Build an athlete map, plan running and strength, use athlete-selected
+            evidence, support fueling, prepare read-only coaching rhythms, and
+            invite a real human into a private coach room without giving the agent control of your accounts.
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#install">
@@ -62,7 +63,7 @@ export default function Home() {
               Open the live demo
             </a>
           </div>
-          <p className="hero-note">Five skills / Open source / Local-first / Athlete controlled</p>
+          <p className="hero-note">Six skills / Open source / Local-first / Athlete controlled</p>
         </div>
 
         <div className="hero-visual">
@@ -84,19 +85,18 @@ export default function Home() {
       <section className="plugin-section" id="install">
         <div className="plugin-intro">
           <p className="eyebrow light"><span /> The package</p>
-          <h2>Five skills.<br />One athlete-controlled system.</h2>
-          <p>Clone the repository, install `strideos`, restart the desktop app or CLI session, and begin in a new Work/Codex task. No wearable, database, hosted backend, or provider account is required.</p>
+          <h2>Six skills.<br />One athlete-controlled system.</h2>
+          <p>Add the GitHub-backed StrideOS marketplace, install `strideos@strideos`, restart the desktop app or CLI session, and begin in a new Work/Codex task. No wearable, database, hosted backend, or provider account is required.</p>
           <a href={githubUrl} target="_blank" rel="noreferrer">Inspect the plugin source <span>-&gt;</span></a>
         </div>
         <div className="plugin-install" aria-label="StrideOS plugin installation command">
           <div className="install-title"><span>INSTALL / CODEX</span><b>strideos</b></div>
-          <pre><code>{`git clone https://github.com/Kikser1214/strideos-harness.git
-cd strideos-harness
-npx plugins discover .
-npx plugins add ./plugins/strideos --target codex`}</code></pre>
-          <p>Restart the ChatGPT desktop app or Codex CLI, open a new Work/Codex task, and ask StrideOS to build your athlete map.</p>
+          <pre><code>{`codex plugin marketplace add Kikser1214/strideos-harness --ref main
+codex plugin list
+codex plugin add strideos@strideos`}</code></pre>
+          <p>Restart ChatGPT desktop, install or enable StrideOS in Plugins Directory when applicable, open a new Work/Codex task, and begin with <code>@strideos Build my athlete map.</code></p>
         </div>
-        <div className="skill-list" aria-label="Five StrideOS skills">
+        <div className="skill-list" aria-label="Six StrideOS skills">
           {skills.map(([name, body], index) => (
             <article key={name}>
               <span>{String(index + 1).padStart(2, "0")}</span>
@@ -204,11 +204,11 @@ npx plugins add ./plugins/strideos --target codex`}</code></pre>
         <div className="integration-copy">
           <p className="eyebrow light"><span /> Use the tools you already have</p>
           <h2>Keep your accounts. Add coaching skills.</h2>
-          <p>StrideOS exposes a route only when individual permission, model use, and implementation all support the exact capability. This release ships no provider browser or write executor. Supported exports, local files, native companions, and manual check-ins remain honest options.</p>
+          <p>StrideOS recommends official provider routes and, when your current AI surface exposes it, attended browser or computer use in a session you sign into. These recommendations are not an allowlist, and StrideOS never disables another tool you choose.</p>
           <a href={githubUrl} target="_blank" rel="noreferrer">Read the provider playbooks <span>-&gt;</span></a>
         </div>
         <div className="integration-list">
-          <article><div className="connector-icon">G</div><div><h3>Garmin Connect</h3><p>Use an athlete-selected official export with a supported local file, or enter data manually. Agent browsing and watch delivery remain unavailable.</p></div><span>Export / manual</span></article>
+          <article><div className="connector-icon">G</div><div><h3>Garmin Connect</h3><p>Use an official export, or ask the agent to work in the Garmin session you signed into when the current host offers attended browser or computer use.</p></div><span>Official / attended</span></article>
           <article><div className="connector-icon">A</div><div><h3>Apple Watch</h3><p>An authorized user-owned iOS companion is required. Apple Health XML import is not implemented in this release.</p></div><span>Companion required</span></article>
           <article><div className="connector-icon">H</div><div><h3>Health Connect</h3><p>An authorized Android companion is required. Health Connect backup import is not implemented in this release.</p></div><span>Companion required</span></article>
           <article><div className="connector-icon">+</div><div><h3>Files and check-ins</h3><p>FIT, TCX, GPX, CSV, pain, effort, energy, sleep feel, and context work without a provider session.</p></div><span>Available now</span></article>
@@ -219,7 +219,7 @@ npx plugins add ./plugins/strideos --target codex`}</code></pre>
         <div className="control-card">
           <p className="eyebrow"><span /> Human control plane</p>
           <h2>The agent can propose.<br />Only you can approve.</h2>
-          <p>A provider write would also need current provider permission and a reviewed executor. Neither exists in this release, so approval alone can never make the route available.</p>
+          <p>A provider write needs a real tool on the current host, an exact dry-run preview, and one approval for one visible action. StrideOS never turns its recommendations into a veto over browser use, computer use, scripts, or plugins you select.</p>
           <div className="control-tags"><span>Explainable</span><span>Reversible</span><span>Consent-first</span><span>Auditable</span></div>
         </div>
         <div className="decision-card">
@@ -234,7 +234,7 @@ npx plugins add ./plugins/strideos --target codex`}</code></pre>
       <section className="final-cta">
         <p className="eyebrow centered"><span /> Built in the open</p>
         <h2>Train with context.<br />Decide with confidence.</h2>
-        <p>Install the five coaching skills, inspect every rule, and build the athlete room that fits your training life.</p>
+        <p>Install the six coaching skills, inspect every rule, and build the athlete room that fits your training life.</p>
         <div className="hero-actions centered-actions">
           <a className="button button-primary" href="#install">Install the plugin <span>-&gt;</span></a>
           <a className="button button-secondary" href={dashboardUrl} target="_blank" rel="noreferrer">Try the live demo</a>
@@ -243,7 +243,7 @@ npx plugins add ./plugins/strideos --target codex`}</code></pre>
 
       <footer>
         <a className="brand" href="#top"><span className="brand-mark">S/</span><span>StrideOS</span></a>
-        <p>Open-source five-skill coaching plugin for runners.</p>
+        <p>Open-source six-skill coaching plugin for runners.</p>
         <div><a href={githubUrl} target="_blank" rel="noreferrer">GitHub</a><a href={dashboardUrl} target="_blank" rel="noreferrer">Live demo</a></div>
         <small>Built for OpenAI Build Week / 2026</small>
       </footer>

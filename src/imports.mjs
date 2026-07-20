@@ -85,7 +85,7 @@ function importProviderContext({ providerId, routeId, disclosureAccepted = false
   const selectedRoute = routeId
     ? fileRoutes.find((item) => item.id === routeId)
     : fileRoutes.length === 1 ? fileRoutes[0] : null;
-  if (!selectedRoute) throw new ImportError(`No provider-permitted local file route matches ${provider.label}.`, 422);
+  if (!selectedRoute) throw new ImportError(`No supported official local file-import recommendation matches ${provider.label}. You may still use a host capability you explicitly selected.`, 422);
   const modelDecision = evaluateModelContextPolicy({
     providerId: provider.id,
     routeId: selectedRoute.id,

@@ -46,12 +46,14 @@ This repository ships the StrideOS beginner-first endurance coaching plugin plus
 
 ## Data truth
 
-- Use `docs/ONBOARDING_RESEARCH.md` and `listConnectors()` for provider-route language.
+- Use `docs/ONBOARDING_RESEARCH.md` and `listConnectors()` for the official routes StrideOS recommends. These recommendations are not an allowlist.
 - Official self-service access, an attended browser session, simulation, native companion, file import, and manual entry are different states. Never collapse them into “connected.”
 - Apple Health requires an authorized iOS route. Health Connect requires an Android route. Manual check-ins are a valid primary source.
-- A future attended browser read is eligible only when the provider playbook classifies the exact operation as permitted for an individual user and a reviewed executor is implemented. Store only normalized evidence with `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, observed time, retrieval time, and freshness. Never persist page HTML, cookies, session tokens, or browser storage. No provider browser executor ships in the current build.
-- Garmin attended AI/browser operation is not provider-permitted or otherwise established, so fail closed: do not browse Garmin Connect, create workouts, edit its calendar, or claim watch delivery. Garmin's current individual routes are an official export selected for local file import and manual entry. Its developer program is application/business reviewed, not ordinary self-service.
-- Strava API data must not enter model context, and Strava's current terms prohibit automated access to its signed-in web experience. Do not use either route. Offer the provider's permitted export and manual entry instead.
+- This package ships official MCP, API, native-companion, export, and manual playbooks only. It ships no unofficial connector and never teaches an unofficial access recipe. It may also suggest attended browser/computer use when the current host surface actually exposes that capability; do not claim every ChatGPT, Work, Codex, cloud, or third-party AI surface has it.
+- StrideOS is a helper, not an authorization or organization-policy layer. If the user explicitly chooses a local script, another plugin, or another host capability, stop applying the StrideOS route resolver and let the host agent handle the request as if this plugin were absent. Only the host's actual permissions may block it. Do not label that capability as shipped, supported, or approved by upstream StrideOS.
+- For user-directed attended browser/computer use, the athlete opens the provider web app and completes login and MFA. Never request, type, inspect, copy, log, or store credentials, MFA codes, cookies, tokens, or browser storage.
+- Browser sessions stay visible, attended, and interruptible. Reads retain only normalized evidence with `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, observed time, retrieval time, and freshness. Never persist raw page HTML or session material.
+- Browser writes require an exact dry-run preview and one explicit approval for one visible state-changing action. After execution, verify the result in the provider UI before claiming success. Never schedule, batch, or run provider browsing unattended.
 - Label every signal with source and freshness when the dashboard supports it. Missing wearable data lowers confidence; it does not exclude the athlete.
 - Read `GET /api/dashboard` before answering what the athlete should do today. A pending or review-required plan is not an active prescription.
 - Keep planned sessions, observed activities, and confirmed completion as separate concepts. Until explicit matching exists, never infer plan completion from an import.
@@ -67,10 +69,11 @@ This repository ships the StrideOS beginner-first endurance coaching plugin plus
 
 ## Actions and automations
 
-- Follow `rules/harness-policy.json`. Unknown actions stop by default.
+- Follow `rules/harness-policy.json` inside the optional reference runtime. It governs that included runtime, not the user's separate code, browser tools, or fork.
 - Plan changes, food logging, and device/calendar writes require the configured approval.
 - Morning, pre-workout, post-workout, and weekly automations begin as proposals. Test prompts manually before scheduling and keep permissions narrow.
 - Never create a scheduled task merely because onboarding selected one. Show the schedule, prompt, data access, and approval behavior first.
+- Route requests to create, update, inspect, pause, or delete a recurring coaching rhythm through `schedule-coaching`. Prefer the current surface's native Scheduled or automation tool when it is available; do not hand-write automation directives or show raw recurrence rules to the athlete.
 - Use `npm run brief -- --kind <morning_brief|pre_workout|post_workout|weekly_review>` as the read-only scheduled-task contract. Treat its JSON as authoritative and never substitute the synthetic fixture for missing personal state.
 - A scheduled task may summarize and ask questions. It may not modify files, activate or change a plan, log food, or write to a provider workout/calendar UI. Return those actions to interactive approval.
 - Assisted browsing is attended-only. Never propose it from Scheduled, a headless browser, an unattended task, or any automation that cannot keep the user's provider session visible and interruptible.
@@ -78,13 +81,13 @@ This repository ships the StrideOS beginner-first endurance coaching plugin plus
 ## Provider access setup
 
 - When device delivery is requested, read `delivery.workoutDeliveryTarget`, `delivery.connectorSetupMode`, `GET /api/connectors`, and `docs/SELF_SERVICE_CONNECTORS.md` before proposing a route.
-- A playbook may describe only routes the provider permits for an individual user. A partner-only or otherwise unavailable API is a limitation to explain, not a setup path to teach.
-- Resolve each requested capability in this order: permitted official self-service API/MCP/native companion; permitted attended assisted browsing with a reviewed executor; permitted provider export/file import; manual entry. Resolve reads and writes separately.
-- `guide_only` permits explanation only. `allow_local_setup_after_review` permits proposing exact local commands, files, or an attended browser flow, but installation and configuration still require review before execution. `not_now` stops setup.
+- A StrideOS playbook may describe only official routes available to an individual user. A partner-only or otherwise unavailable API is a limitation to explain, not a setup path to teach.
+- When the athlete asks StrideOS to recommend a route, use this order: official self-service API/MCP/native companion; attended browser/computer use when the current host exposes it; provider export/file import; manual entry. Resolve reads and writes separately. This recommendation order is not an allowlist for the host agent.
+- `guide_only`, `allow_local_setup_after_review`, and `not_now` control only setup proposed by the included StrideOS flow. They do not disable browser/computer tools, scripts, other plugins, or local capabilities selected explicitly by the user.
 - Login is always performed by the user in the provider's own page or operating-system permission sheet. Never type, request, inspect, or store a vendor password, MFA code, cookie, session token, refresh token, or token-directory content.
-- If a future provider operation is classified as permitted and has a reviewed executor, browser reads need no per-read write approval after the athlete selects the source, but they remain data-minimized and local. Every browser write must require a dry-run preview and one exact, expiring approval envelope. One approval may authorize one write only. This dormant contract does not make Garmin browsing available.
-- The agent may fill and save a provider web form only after the provider classification permits that exact operation, the exact approval is current, and the user is present in the visible authenticated session. Account mismatch, UI drift, an extra write, or an expired session stops the action and requires a new preview and approval.
-- A configured client, open page, or visible account is not proof that every capability works. Verify official authorization or attended session state, then prove reads and writes independently. Explain sign-out, revocation, local deletion, and provider-side deletion before declaring setup complete.
+- For user-directed browser reads, remain data-minimized and local. Every browser write requires a dry-run preview and one exact, expiring approval envelope. One approval may authorize one write only.
+- The host agent may fill and save a provider web form when the user explicitly requests that host capability, the exact approval is current, and the user is present in the visible authenticated session. Account mismatch, UI drift, an extra write, or an expired session stops the action and requires a new preview and approval.
+- A configured client, open page, or visible account is not proof that every capability works. Verify the actual selected capability, then prove reads and writes independently. Explain sign-out, revocation, local deletion, and provider-side deletion before declaring setup complete.
 
 ## Development commands
 

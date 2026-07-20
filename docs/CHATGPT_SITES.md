@@ -1,17 +1,20 @@
 # ChatGPT Work and Sites contract
 
-StrideOS ships as one five-skill plugin for ChatGPT Work mode and Codex. Its skills may work conversationally, create a coach-room projection, or use the optional local reference implementation, while deterministic authority boundaries remain consistent across every surface.
+StrideOS ships as one six-skill plugin for ChatGPT Work mode and Codex. Its skills may work conversationally, prepare optional scheduled coaching rhythms, create a coach-room projection, or use the optional local reference implementation, while deterministic authority boundaries remain consistent across every surface.
 
 ## Product surfaces
 
-1. **The installed StrideOS plugin** provides five focused skills: `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, and `build-coach-room`.
+1. **The installed StrideOS plugin** provides six focused skills: `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, `schedule-coaching`, and `build-coach-room`.
 2. **The Codex or ChatGPT conversation** is the everyday coaching surface. It runs onboarding, asks follow-up questions, explains uncertainty, proposes plans, collects RPE and pain, and returns every material change to an explicit authority boundary.
 3. **The coach room** is the visual and collaborative projection produced by `build-coach-room`: an athlete-controlled local dashboard, Site, or other explicitly chosen private-capable surface with scoped reviewer access, exact comments, and proposed revisions.
 4. **The optional Node/PWA reference implementation** makes the deterministic onboarding, planning, import, nutrition, dashboard, and approval behavior inspectable. It is not the shipped product identity and is not required to use the plugin.
-5. **Codex desktop attended browsing** is a dormant provider-account contract. It becomes eligible only when a current playbook permits the exact operation and a reviewed executor is implemented. No provider browser executor ships now, and Garmin has no qualifying classification.
-6. **The deterministic policy and authoritative state** remain in control. Neither chat language nor a client-side Site control may activate a plan, claim workout completion, log food, browse a provider session, or write to a provider account.
+5. **Scheduled coaching** is prepared by `schedule-coaching` as a human-readable schedule preview, manual test, and exact read-only prompt. When available, the native Scheduled/automation tool performs creation or updates after review; StrideOS does not hand-write raw automation directives or infer that installation happened, and unattended execution cannot mutate state or use assisted browsing.
+6. **Attended browser/computer use** is the universal second provider tier when the current ChatGPT, Work, Codex, or other AI surface exposes it. The user signs in, reads retain `browser_read` provenance and freshness, and every write receives one exact approval.
+7. **The deterministic state boundary** remains in control of the optional reference runtime. Neither chat language nor a client-side Site control may silently activate a plan, claim workout completion, log food, or perform an external write.
 
-The installed plugin remains the everyday product surface. A coach room never receives or reuses a provider session.
+The installed plugin remains the everyday product surface. A coach room never receives or reuses a provider session. StrideOS provides official recommendations; it does not define an allowlist. Explicitly supplied scripts, plugins, and adapters remain outside StrideOS route guidance.
+
+Work web may use a plugin that is already installed or shared through the workspace, but it cannot read this repository's local folder or start the optional local Node/PWA. Clean-clone installation, local state, file imports, and the full reference runtime require ChatGPT desktop or Codex CLI with access to the athlete's machine.
 
 ## Clean GitHub install flow
 
@@ -20,9 +23,10 @@ The installed plugin remains the everyday product surface. A coach room never re
 3. Questions are asked one plain-language section at a time: goal and history, recent training, health and recovery, schedule, data sources, strength, optional nutrition, coaching style, permissions, and dashboard sharing.
 4. The agent shows a captured summary, missing evidence, provider-route truth, safety status, and confidence before proposing training.
 5. The first plan is a proposal. It becomes active only through its linked server-stored decision and athlete approval.
-6. If the athlete requests provider data or workout delivery, `use-training-data` offers only current individual-permitted and implemented routes. No attended browser route is enabled in this release; a future route would additionally require a reviewed executor, a user-authenticated visible session, and attended execution.
-7. If the athlete opts into a dashboard, `build-coach-room` uses the included `sites/athlete-coach-demo` source as a product template for a new local artifact or athlete-owned Site. The template contains no `project_id`, identity binding, or durable private persistence and must not be called production-private until the chosen surface proves those controls.
-8. The athlete may invite a coach. Sharing a link alone must not grant write authority.
+6. If the athlete requests provider data or workout delivery, `use-training-data` prefers official API/MCP/companion routes, then detects and offers attended host browser/computer use, followed by file/export and manual routes. A user-supplied external tool is handed back to the host rather than blocked by StrideOS guidance.
+7. If the athlete wants recurring support, `schedule-coaching` prepares and manually tests one narrow read-only workflow. The athlete reviews the human-readable local schedule, timezone, prompt, destination, and permissions before confirming it through the native Scheduled/automation tool when that surface is available.
+8. If the athlete opts into a dashboard, `build-coach-room` uses the included `sites/athlete-coach-demo` source as a product template for a new local artifact or athlete-owned Site. The template contains no `project_id`, identity binding, or durable private persistence and must not be called production-private until the chosen surface proves those controls.
+9. The athlete may invite a coach. Sharing a link alone must not grant write authority.
 
 No Vercel account, public server, or platform-specific hosting configuration is part of the target runner experience.
 
@@ -35,7 +39,7 @@ No Vercel account, public server, or platform-specific hosting configuration is 
 | Edit another person's comment | No | No | No |
 | Draft a precise plan revision | Requests | Requests | Yes |
 | Activate or reject a plan change | **Yes** | No | No |
-| Write to a provider workout/calendar UI | Unavailable in this release; a future route would require provider permission, a reviewed executor, a visible attended session, and one-use athlete approval | No | No current executor |
+| Write to a provider workout/calendar UI | Approves one exact preview in a visible attended session | No | Performs one write only when the selected host capability exists, then verifies it |
 | Revoke coach access | **Yes** | No | No |
 
 Comments attach to the exact server-authoritative workout or plan snapshot and carry author identity, timestamp, source, and deletion state. A coach comment is evidence, not an instruction. The agent explains the response and creates a separate diff such as `24 km → 21 km`; the current plan stays active until the athlete approves.
@@ -52,7 +56,7 @@ The durable shared version should use platform-backed persistence:
 - R2 only when the athlete explicitly enables photo or file uploads;
 - local browser storage only for non-authoritative preferences and unfinished text drafts.
 
-The Site must not store provider credentials, API keys, access tokens, browser cookies, session tokens, raw provider pages, or unconfirmed food images. Official-client secrets remain local/private, and attended browser sessions remain inside the athlete's Codex desktop browser.
+The Site must not store provider credentials, API keys, access tokens, browser cookies, session tokens, raw provider pages, or unconfirmed food images. Official-client secrets remain local/private, and attended browser sessions remain inside the current host's visible browser/computer-use surface.
 
 ## What the included demo proves
 
@@ -70,7 +74,7 @@ The Site must not store provider credentials, API keys, access tokens, browser c
 
 The mock resets interactions on refresh and does not claim live coach identity or persistence. Those require the hosted data model above.
 
-It also does not prove provider browsing or provider writes. The separate Codex desktop contract remains conditional on a provider-permitted classification, a reviewed executor, a user-authenticated attended session, and an exact one-write approval. No such executor ships now; Garmin also fails the route classification.
+The synthetic Site also does not prove a live provider write. Test that separately in a user-authenticated visible session: dry-run preview, one exact approval, one attended write, and visible provider-side verification. The public plugin bundles no unofficial provider connector or connection recipe.
 
 ## Public project site versus private athlete site
 

@@ -1,43 +1,49 @@
 # Provider route contract
 
-This snapshot was reviewed on 2026-07-20. Provider terms, product surfaces, and APIs can change. Verify current first-party sources before setup or execution and fail closed if the exact operation is not clearly allowed.
+This upstream recommendation snapshot was reviewed on 2026-07-20. Provider terms, product surfaces, and APIs can change. Verify current first-party sources before recommending an official setup.
+
+**StrideOS provides official recommendations; it does not define an allowlist. Official recommendations are not an allowlist.**
 
 ## Universal rules
 
 - Resolve each capability independently: activity read, recovery read, subjective read, workout create, calendar write, and device delivery.
-- Prefer an official individual self-service MCP, API, or native companion when model use is permitted.
-- Assisted browsing is eligible only when the provider permits the exact agent operation and StrideOS has a reviewed executor. Codex having a browser is not sufficient. This plugin ships no provider browser executor.
-- Otherwise use a provider-issued export only when access and intended model use are both permitted and a supported local parser is present. If not, offer manual subjective entry.
-- Never teach a prohibited access route.
+- Prefer a provider-documented official individual self-service MCP, API, or native companion.
+- Let the athlete select attended browser or computer use in the athlete's own authenticated web session when the host exposes it. Treat this as a host capability, not a StrideOS connector.
+- Otherwise use a provider-issued export with a supported local parser or offer manual subjective entry.
+- Never bundle or teach an unofficial connector, private endpoint, credential-replay method, or reverse-engineered access recipe.
 - The athlete performs login and MFA. Never handle credentials or session material.
 - Provider writes require an exact preview, short expiry, one-use approval, execution in the intended account, and visible verification.
 - Scheduled, headless, background, and unattended browsing are rejected.
-- Model-context permission is separate from data-access permission.
+- Apply model-context restrictions to routes StrideOS recommends. A user-selected external capability remains governed by its host, not this catalog.
 
 ## Current route summary
 
 | Provider | Current individual route for StrideOS | Current limitation |
 | --- | --- | --- |
-| Garmin Connect | Athlete-selected official export with a supported local file; manual check-in | No attended agent read/write or watch delivery is enabled; developer access is application/business reviewed |
-| Strava | Athlete-initiated export; manual check-in | Ordinary API data cannot enter AI coaching under the reviewed policy; automated signed-in browsing is prohibited |
+| Garmin Connect | Athlete-selected official export with a supported local file; manual check-in | Developer access is application/business reviewed; user-selected host capabilities are outside this table |
+| Strava | Official Strava MCP where available; athlete-initiated export; manual check-in | Prefer the MCP for structured reads; user-selected host capabilities are outside this table |
 | Apple Health / Watch | Authorized iOS HealthKit/WorkoutKit companion; manual check-in | A native companion and per-type system permission are required; XML archive parsing is not bundled |
 | Android Health Connect | Authorized Android companion; manual check-in | On-device authorization and a native companion are required; backup archives are not claimed as supported imports |
-| Fitbit / Google Health | Official API setup or athlete export after required disclosure and consent; manual check-in | Browser route is not established; restricted scopes and model-use disclosure must be enforced |
-| Oura | Official Oura MCP only after compatible setup is documented; manual subjective entry | Browser, API, and export data must not enter LLM context; current provider-data routes remain nonselectable |
-| WHOOP | Manual subjective entry | Browser extraction is prohibited; API/export model-context, consent, caching, and derivative-work rules remain fail-closed |
-| Polar | Official API setup where permitted, official export, or manual entry | Browser automation is not offered; treat writes as unavailable unless separately documented |
-| COROS | Official read-only MCP, official export, or manual entry | Direct API access is reviewed; browser automation is not offered |
-| Suunto | Official export or manual entry | Cloud API is partner-oriented; browser automation is not offered |
+| Fitbit / Google Health | Official API setup or athlete export after required disclosure and consent; manual check-in | Restricted scopes and model-use disclosure must be enforced |
+| Oura | Official Oura MCP when compatible; manual subjective entry | Keep current model-use and retention requirements visible; user-selected host capabilities are outside this table |
+| WHOOP | Official API/export after current consent, retention, and model-use review; manual subjective entry | Do not teach an unofficial connector; user-selected host capabilities are outside this table |
+| Polar | Official API setup where permitted, official export, or manual entry | Treat writes as unavailable until the selected capability proves them |
+| COROS | Official read-only MCP, official export, or manual entry | Direct API access is reviewed; the MCP is read-only |
+| Suunto | Official export or manual entry | Cloud API is partner-oriented |
 
 ## File and manual routes
 
-The plugin package itself contains instructions and references, not file parsers. The optional reference runtime supports preview and normalization for its tested FIT, GPX, TCX, and CSV formats. Do not claim parsing on another surface unless that surface exposes a verified parser, and do not place provider files in model context when the provider or route policy blocks that use. Store the normalized summary only after athlete confirmation. Raw provider pages, cookies, tokens, and browser storage never enter the state file.
+The plugin package itself contains instructions and references, not file parsers. The optional reference runtime supports preview and normalization for its tested FIT, GPX, TCX, and CSV formats. Do not claim parsing on another surface unless that surface exposes a verified parser, and keep provider files out of model context when the selected official route does not support that use. Store the normalized summary only after athlete confirmation. Raw provider pages, cookies, tokens, and browser storage never enter the state file.
 
 Manual pain, effort, energy, sleep, and context reports are valid evidence. Preserve who supplied them and when.
 
+## User-selected host capabilities
+
+If the user explicitly selects a local script, another plugin, or another external host capability, stop using this table as an allowlist. The agent handles that capability as if StrideOS were absent, subject to host permissions and ordinary exact approval for writes. Do not call it a StrideOS integration or teach its unofficial setup method.
+
 ## Browser-read provenance
 
-If a future route becomes permitted and implemented, save only:
+For an attended browser/computer-use read, save only:
 
 - provider ID and account-safe label;
 - `provenance: browser_read` and `ingestionRoute: browser_read`;
@@ -63,4 +69,4 @@ Reject mismatch, expiry, replay, partial completion, account drift, UI drift, or
 
 ## Canonical sources
 
-In the StrideOS repository, read `rules/connector-playbooks.json` for provider URLs, route status, capabilities, limitations, review dates, and model-context policies. Use current provider documentation and terms as the final authority.
+In the StrideOS repository, read `rules/connector-playbooks.json` for provider URLs, official-route status, capabilities, limitations, review dates, and model-context guidance. Use current provider documentation as the source for upstream recommendations. Never use the file as an organization-wide or installation-wide block on a capability the user explicitly selected.

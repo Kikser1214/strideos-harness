@@ -27,6 +27,7 @@ const expectedSkills = [
   "build-coach-room",
   "coach-athlete",
   "plan-training",
+  "schedule-coaching",
   "support-fueling",
   "use-training-data"
 ];
@@ -153,7 +154,7 @@ test("StrideOS exposes the complete focused skill set", () => {
     const yaml = parseStrictYaml(readFileSync(agentPath, "utf8"), agentPath);
     assert.equal(typeof yaml.interface, "object");
     assert.match(yaml.interface.default_prompt, new RegExp(`\\$${skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`));
-    assert.equal(yaml.policy.allow_implicit_invocation, true);
+    assert.equal(yaml.policy.allow_implicit_invocation, false);
   }
 });
 
@@ -163,9 +164,13 @@ test("plugin guidance contains no prohibited provider-route recipe", () => {
     .join("\n");
 
   assert.deepEqual(findProhibitedRouteRecipes(combined), []);
-  assert.match(combined, /This plugin ships no provider browser executor/i);
+  assert.match(combined, /recommendations? (?:is|are) not an allowlist/i);
+  assert.match(combined, /(?:steps? aside|outside (?:the )?plugin scope)/i);
   assert.match(combined, /One approval (?:authorizes|means) one write/i);
+  assert.match(combined, /initial request establishes intent; it is not approval/i);
   assert.match(combined, /manual (?:entry|check-in)/i);
+  assert.doesNotMatch(combined, /StrideOS (?:policy|plugin) (?:forbids|prohibits|blocks)/i);
+  assert.doesNotMatch(combined, /cannot (?:override|use)[^.\n]{0,80}(?:StrideOS|plugin) policy/i);
 });
 
 test("prohibited-route guard catches actionable recipes but permits safety statements", () => {
@@ -181,9 +186,9 @@ test("prohibited-route guard catches actionable recipes but permits safety state
 
   const safetyStatements = [
     "Never teach prohibited or unofficial routes.",
-    "Automated signed-in browsing is prohibited for Strava.",
-    "Garmin browser automation is not offered.",
-    "Do not use an unofficial Garmin adapter."
+    "StrideOS does not ship unofficial provider connectors.",
+    "Official recommendations are not an allowlist.",
+    "A user-selected host capability is outside plugin scope."
   ];
   for (const statement of safetyStatements) {
     assert.deepEqual(findProhibitedRouteRecipes(statement, "fixture"), [], statement);

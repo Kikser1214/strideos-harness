@@ -1,6 +1,6 @@
 {
-  "name": "strideos-harness",
-  "version": "0.1.0",
+  "name": "strideos-plugin",
+  "version": "0.2.0",
   "private": false,
   "type": "module",
   "description": "An open-source StrideOS skill plugin package and local reference implementation for endurance coaching.",

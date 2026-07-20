@@ -59,6 +59,8 @@ Do not diagnose. Pause ordinary prescription when concerning symptoms or unresol
 - source scope, history window, cloud-processing choice, and retention preference;
 - desired workout destination and whether setup help is guide-only, reviewed local help, or not now.
 
+StrideOS provides official recommendations; it does not define an allowlist. Route provider requests to `$use-training-data`, which may actively offer attended browser/computer use when the current surface exposes it. If the athlete explicitly selects a local script, another plugin, or another external host capability, let provider guidance step aside. The agent handles that capability under host permissions and the ordinary exact write-approval boundary.
+
 ### Coaching and optional nutrition
 
 - concise or detailed explanations;
@@ -99,9 +101,9 @@ Casual agreement in conversation is not enough when the runtime exposes a server
 | Activate or revise a training plan | Exact approval required |
 | Create or publish a Site | Exact approval required |
 | Invite, revoke, or change a reviewer | Exact approval required |
-| Write to a provider | Provider permission, implemented executor, preview, and one-use approval required |
-| Schedule an automation | Show schedule, prompt, access, and gates; explicit approval required |
-| Unknown or prohibited action | Stop |
+| Write through a provider or user-selected host capability | Real selected tool, exact preview, and one-use approval required |
+| Schedule an automation | Route through `$schedule-coaching`; preview schedule, prompt, access, and gates before using the native scheduling surface |
+| Unknown external mutation target, payload, or tool | Stop until it is exact |
 
 ## Beginner recommendation
 

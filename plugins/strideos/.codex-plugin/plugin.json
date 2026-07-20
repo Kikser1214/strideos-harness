@@ -1,7 +1,7 @@
 {
   "name": "strideos",
-  "version": "0.1.0",
-  "description": "Local-first endurance coaching skills for Codex and ChatGPT.",
+  "version": "0.2.0",
+  "description": "Open-source, user-owned endurance coaching skills for Codex and ChatGPT.",
   "author": {
     "name": "Nikola Gogov",
     "url": "https://github.com/Kikser1214"
@@ -20,8 +20,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "StrideOS",
-    "shortDescription": "Local-first endurance coaching skills.",
-    "longDescription": "StrideOS helps an athlete onboard, interpret permitted training evidence, build and adapt an endurance plan, use optional fueling support, and create a private coach room. The athlete keeps authority: plans and local records require approval, provider routes fail closed, and no provider account is silently connected.",
+    "shortDescription": "Open-source endurance coaching skills.",
+    "longDescription": "StrideOS helps an athlete onboard, interpret training evidence, build and adapt an endurance plan, use optional fueling support, prepare coaching rhythms, and create a private coach room. It recommends official data routes without restricting user-selected scripts, plugins, browser tools, computer use, or other host capabilities.",
     "developerName": "Nikola Gogov",
     "category": "Health & Fitness",
     "capabilities": [
@@ -32,7 +32,7 @@
     "websiteURL": "https://strideos-open-coach.gogov-nikola22.chatgpt.site/",
     "defaultPrompt": [
       "Build my athlete map and recommend a safe starting week.",
-      "Review my recent training and propose next week.",
+      "Review my recent training, propose next week, and prepare my coaching schedule.",
       "Create a private coach room I control."
     ],
     "brandColor": "#165DFF",

@@ -16,8 +16,8 @@ test("Garmin writes reject decisions without an exact workout resource", async (
   await assert.rejects(() => pushWorkout({ decision: decision() }), /server-authored workout/i);
 });
 
-test("personal Garmin workout delivery fails closed without provider permission", async () => {
-  await assert.rejects(() => pushWorkout({ decision: decision(resource) }), /no provider-permitted individual Garmin workout-write route/i);
+test("the optional runtime delegates a real Garmin write when it has no bundled executor", async () => {
+  await assert.rejects(() => pushWorkout({ decision: decision(resource) }), /reference runtime has no live Garmin workout-write executor/i);
 });
 
 test("synthetic judge workouts always stay simulated", async () => {

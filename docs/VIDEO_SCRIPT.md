@@ -5,63 +5,64 @@ Record one clean first run, then edit to the timeline below. Use 1080p or higher
 ## Recording setup
 
 - Reset the local StrideOS profile and use the labeled synthetic athlete for onboarding.
-- Prepare a clean `npx plugins discover .` result showing one `strideos` plugin and five skills.
-- Prepare the plugin manifest, the exact `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, and `build-coach-room` folders, and the coach-room reviewer-diff view for one fast product proof.
+- Prepare a clean `codex plugin list` result showing the `strideos@strideos` marketplace entry, beside a passing `npm run test:plugin` result proving six skills.
+- Prepare the plugin manifest, the exact `coach-athlete`, `plan-training`, `use-training-data`, `support-fueling`, `schedule-coaching`, and `build-coach-room` folders, plus a read-only schedule preview and the coach-room reviewer-diff view for one fast product proof.
 - Prepare one exact structured local workout preview from an approved StrideOS plan.
-- Do not open or sign into Garmin Connect for an agent-operated segment. Current provider permission does not establish attended AI/browser operation.
-- Show the resolver classifying Garmin assisted browsing as `not_established` and blocking provider automation.
-- End the route with user-guided manual entry, or use the labeled synthetic simulation. Neither path may imply that Garmin changed automatically.
+- Sign into the intended Garmin Connect account yourself before recording. Crop or blur account identity and unrelated training data; never show login or MFA.
+- Keep the Garmin Connect page visible while the agent performs one attended, approval-gated workout/calendar write through the host browser or computer-use capability.
+- Prepare the watch/calendar view that will visibly confirm the same workout, date, and targets after the write.
 
 ## Spoken outline and shots
 
 | Time | Screen | Narration |
 | --- | --- | --- |
-| 0:00–0:09 | Plugin discovery, five skill folders, title card | “StrideOS is an open-source five-skill coaching plugin for Codex. The skills prepare the work; the athlete keeps control.” |
+| 0:00–0:09 | Codex marketplace listing, six skill folders, title card | “StrideOS is an open-source six-skill coaching plugin for Codex. The skills prepare the work; the athlete keeps control.” |
 | 0:09–0:30 | Optional reference app reset; move quickly through starting point, safety, goal, schedule, and strength | “The coach-athlete skill starts with the person, not a template: where they are, what life allows, their strength experience, and whether any safety signal should stop prescription.” |
-| 0:30–0:44 | Data-source and delivery choices | “The use-training-data skill exposes only routes the provider permits and StrideOS implements. Files and manual check-ins remain useful when no direct route exists.” |
-| 0:44–1:02 | Starting-map review and provider-route card | “Every signal keeps its source and freshness. Assisted browsing remains a future conditional tier requiring both provider permission and a reviewed executor; none is enabled in this build.” |
+| 0:30–0:44 | Data-source and delivery choices | “StrideOS recommends official APIs, MCPs, and companions first. If this surface has browser or computer use, it can also work in the account session I signed into; files and manual check-ins remain first-class.” |
+| 0:44–1:02 | Starting-map review and attended-session card | “Every signal keeps its source and freshness. Login stays mine, the browser stays visible, and no provider session is reused in the background.” |
 | 1:02–1:22 | Four-week plan; strength; reduced week four; send to approval | “The plan-training skill fits real days, includes strength, reduces load in week four, and explains every brake. Previewing changes nothing.” |
 | 1:22–1:32 | Decision ledger; approve exact plan | “Only the stored athlete decision activates this exact block.” |
-| 1:32–1:52 | Exact structured Garmin workout shown as a local preview | “The approved plan becomes an exact local preview: workout, steps, targets, and date. Nothing has been sent to Garmin.” |
-| 1:52–2:06 | Provider-route card shows Garmin assisted browsing as `not_established` and blocks the provider action | “Garmin has not established permission for attended AI or browser-agent operation, so StrideOS fails closed instead of opening the account.” |
-| 2:06–2:16 | Manual-entry guidance, or synthetic result labeled **SIMULATION · NO EXTERNAL CHANGE** | “I can enter this preview myself. In judge mode, the same request is only a labeled simulation and changes no external calendar.” |
+| 1:32–1:52 | Exact structured Garmin workout shown as a dry-run preview; athlete gives the one-write approval | “The approved plan becomes an exact dry run: account, workout steps, targets, and date. One approval authorizes this one write.” |
+| 1:52–2:06 | Agent opens the already authenticated Garmin Connect session and fills/saves the structured workout | “I signed in. The agent uses my visible session, never handles my credentials, and performs only the write I approved.” |
+| 2:06–2:16 | Garmin calendar/watch view shows the exact workout on the intended date | “The result is not assumed—the same workout is visibly verified on my calendar.” |
 | 2:16–2:34 | `build-coach-room` comment and exact revision suggestion | “The build-coach-room skill lets a real coach or experienced friend review the shared plan and suggest an exact edit. Only the athlete can accept it.” |
 | 2:34–2:45 | Enter “sharp chest pain and dizziness” | “A safety signal stops the normal coaching path. The model cannot talk its way around the rule.” |
-| 2:45–2:53 | Plugin manifest, five skills, policy, and passing package checks | “The installable package contains five focused skills, while policy tests prove unsupported provider automation stays blocked.” |
+| 2:45–2:53 | Plugin manifest, six skills, ownership document, and passing package checks | “StrideOS provides official recommendations, not an allowlist. It is open source, editable, and every external write stays explicit.” |
 | 2:53–2:55 | GitHub + MIT title card | “StrideOS is open source.” |
 
-## Garmin fail-closed proof checklist
+## Garmin attended-write proof checklist
 
 The final cut must visibly prove this sequence:
 
 1. The local training plan is already athlete-approved.
-2. The exact workout, target date, and steps appear as a structured local preview.
-3. The Garmin playbook visibly reports assisted browsing as `not_established`.
-4. The route resolver blocks provider automation; no Garmin tab is opened or operated by the agent.
-5. The athlete is offered manual entry, plus official export/local supported activity-file import where applicable for data reads.
-6. If the judge action is shown, it is labeled **SIMULATION · NO EXTERNAL CHANGE**.
-7. No account login, provider page, calendar result, or watch result is presented as an agent action.
+2. The exact account hint, workout, target date, and steps appear in a dry-run preview before the provider form is touched.
+3. The athlete gives one exact approval for one write.
+4. The athlete—not the agent—has already completed login and MFA.
+5. The provider page remains visible and interruptible while the agent performs the one approved action.
+6. The final calendar/watch view matches the approved workout and date.
+7. No credential, MFA code, cookie, session token, email address, or unrelated health data appears in the recording.
 
-## Policy callout
+## Ownership callout
 
-Assisted browsing remains in the universal route order, but it is selectable only where a provider explicitly permits the operation and a reviewed executor exists. No provider browser executor is enabled in this build. Garmin is `not_established` and Strava is `prohibited`, so neither gets an assisted-browser route. Both expose only their currently supported export/local-file and manual fallbacks.
+StrideOS provides official recommendations; it does not define an allowlist. The public package never bundles or teaches unofficial connectors. Official API/MCP/companion routes stay preferred, attended host browser/computer use is the universal second tier when the current surface exposes it, and explicitly supplied scripts/plugins remain outside StrideOS guidance.
 
 ## Edit plan
 
 - Use hard cuts or short 4–6 frame dissolves; avoid decorative transitions.
-- Speed up form entry 2.5–4×, but return to real time for plan approval, the exact local preview, the resolver block, and the safety stop.
+- Speed up form entry 2.5–4×, but return to real time for plan approval, the exact dry-run, the Garmin save/verification, and the safety stop.
 - Add burned-in captions with two lines maximum and strong contrast.
-- Add **LOCAL PREVIEW · NOT SENT** over the structured workout.
-- Add **PROVIDER AUTOMATION BLOCKED** when the Garmin resolver result appears.
-- Add **ONE PLUGIN · FIVE SKILLS** over the discovery and manifest beat.
+- Add **DRY RUN · NOTHING WRITTEN YET** over the structured workout preview.
+- Add **USER SIGNED IN · ONE APPROVAL · ONE WRITE** during the attended Garmin action.
+- Add **VISIBLE RESULT VERIFIED** over the calendar/watch result.
+- Add **ONE PLUGIN · SIX SKILLS** over the marketplace-listing and manifest beat.
 - Label the collaborative view **BUILD-COACH-ROOM · ATHLETE APPROVES**.
 - Show `npm run verify` only after it completes.
-- Label the judge path **SIMULATION · NO EXTERNAL CHANGE**.
+- If a fallback judge trace is used instead of the live attended write, label it **SIMULATION · NO EXTERNAL CHANGE** and do not mix it with the real-write claim.
 
 ## Title card and upload
 
 - **Title:** StrideOS — train with AI, keep people in the loop
 - **Subtitle:** OpenAI Build Week 2026 · Codex + GPT-5.6
 - **YouTube title:** StrideOS | OpenAI Build Week 2026 Demo
-- **Description first line:** An open-source five-skill endurance coaching plugin for Codex, with an athlete-controlled coach room and provider routes that fail closed.
+- **Description first line:** An open-source six-skill endurance coaching plugin for Codex, with attended account workflows, exact one-write approval, scheduled coaching rhythms, and an athlete-controlled coach room.
 - Add the public repository URL and MIT license note to the description.

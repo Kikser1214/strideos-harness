@@ -5,4 +5,4 @@ interface:
   default_prompt: "Use $build-coach-room to create my shareable coach room."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

@@ -1,148 +1,142 @@
 # Provider access routes
 
-StrideOS works alongside the accounts an athlete already uses. It does not claim that a provider account is connected merely because a page is open, a client is configured, or a file was imported. Each requested capability - reading evidence, creating a workout, or editing a calendar - is resolved and proved separately.
+StrideOS works alongside the accounts an athlete already uses. It does not claim that a provider account is permanently connected merely because a page is open, a client is configured, or a file was imported. Reads and writes are proved separately.
 
-A provider playbook may describe only routes the provider permits for an individual user. If an API is partner-only, unavailable to individuals, or incompatible with AI use, the playbook states that limitation and points to the permitted alternatives. It never teaches a workaround.
+**StrideOS provides official recommendations; it does not define an allowlist.** The public skills and playbooks describe only provider-documented routes. They do not bundle or teach unofficial connectors. Attended browser/computer use is a universal host capability that StrideOS may actively suggest when the current surface exposes it. When a user explicitly selects a local script, another plugin, or another external host capability, StrideOS provider guidance steps aside and the agent handles that tool as if the plugin were absent.
 
 ## Route resolver
 
-Resolve each provider and capability in this order:
+Use this order:
 
-1. **Official individual self-service route** - a provider-supported API, MCP connector, or native companion that an individual athlete may authorize.
-2. **Attended assisted browsing** - Codex desktop works in a visible provider web session that the user opened and authenticated, but only when the provider playbook confirms permission and a reviewed executor is implemented.
-3. **Provider export and local import** - the athlete obtains an official export and StrideOS normalizes the selected file locally.
-4. **Manual entry** - short athlete check-ins and plan notes remain first-class evidence.
+1. **Official individual self-service route** - a provider-documented API, MCP connector, or native companion that the athlete can authorize.
+2. **User-selected attended browser/computer use** - the agent works in the visible web session the user opened and authenticated. This is a host capability, not a bundled provider connector.
+3. **Provider export and local import** - the athlete obtains an official export and a verified local parser normalizes the selected file.
+4. **Manual entry** - athlete check-ins and plan notes remain first-class evidence.
 
-Structured official routes stay preferred because they are more stable and may support separately authorized background refresh. Assisted browsing is interactive only and can never run headlessly or on a schedule.
+Structured official routes stay preferred because they are stable, preserve fields, and may support separately authorized unattended reads. Browser/computer use is attended only and is never scheduled or headless.
 
-The resolver must consider the requested operation, current product surface, provider rules, implemented executor, and available capability. A provider may permit browser reads but not expose workout creation, or expose a calendar write without useful recovery data. Never infer one capability from another.
+Resolve each capability independently. Reading activities does not prove recovery access; reading an account does not prove workout creation; creating a workout does not prove calendar or watch delivery.
 
 ## Setup modes
 
-Respect `delivery.connectorSetupMode`:
+Respect `delivery.connectorSetupMode` when StrideOS initiates setup:
 
-- `guide_only`: explain the permitted routes and requirements; do not install, authorize, open a provider page, or change configuration.
-- `allow_local_setup_after_review`: preview exact local commands, files, or permissions. An attended flow may be offered only when both provider permission and a reviewed executor exist; then ask before each setup phase.
-- `not_now`: stop setup and keep provider exports, local file imports, and manual check-ins available.
+- `guide_only`: explain official choices and requirements without installing or authorizing anything;
+- `allow_local_setup_after_review`: preview official client, companion, file, and permission steps before execution;
+- `not_now`: stop StrideOS-initiated setup and keep file/manual input available.
 
-Reading evidence, configuring an official client, granting provider authorization, and performing a provider write remain separate permissions and proof states.
+These preferences do not create an installation-wide block. If the user later gives an explicit instruction to use a host tool or local extension, handle that request under the host's permissions.
 
-## Attended assisted browsing
+## Universal attended browser/computer use
 
-Assisted browsing is a provider-neutral conditional contract for Codex desktop. No generic browser executor currently ships. The contract remains dormant unless the playbook classifies the requested operation as permitted and a reviewed executor is implemented. It does not create a reusable provider login inside StrideOS, and approval cannot make an unavailable route permissible.
+Any provider with a usable web app can be handled through browser or computer-use capabilities that the current host exposes.
 
 ### Session boundary
 
 - The user opens the provider website and completes login and MFA personally.
 - The agent never types, requests, reads, copies, or stores passwords, MFA codes, cookies, session tokens, recovery codes, or browser-storage values.
-- The provider page stays visible and the user remains present and able to interrupt the flow.
+- The page stays visible and the user remains present and able to interrupt the flow.
 - An open page is an ephemeral `session_ready` state, not a persistent `connected` state.
-- A signed-out page, account mismatch, unexpected interstitial, or changed interface stops the flow and returns control to the user.
+- A signed-out page, account mismatch, unexpected interstitial, or changed interface stops the current attempt and returns control to the user.
 
 ### Reads
 
-If a permitted read also has a reviewed executor, the agent may read only relevant values visible in the attended session after the athlete selects the source. A read needs no write approval, but collection must be minimized to the coaching purpose.
+After the athlete selects the source, read only the visible values needed for the stated coaching purpose. A read does not need write approval.
 
 Normalize the result locally with:
 
 - `source: <providerId>`;
 - `provenance: "browser_read"`;
 - `ingestionRoute: "browser_read"`;
-- record or observation time shown by the provider;
-- retrieval timestamp;
-- freshness status;
-- a sanitized description of the visible source page when useful.
+- source observation time;
+- local retrieval time;
+- freshness;
+- a sanitized description of the visible view when useful.
 
-Treat the normalized record like an imported file downstream. Do not retain raw HTML, screenshots by default, cookies, session material, hidden page state, or unrelated account information.
+Treat the normalized result like an imported record. Do not retain raw HTML, screenshots by default, cookies, session material, hidden page state, or unrelated account information.
 
 ### Writes
 
-Before any attended write executor may be enabled, it must satisfy all of the following:
+Every attended write follows the same contract:
 
-1. A local dry-run showing the provider, visible account, operation, exact workout or calendar payload, target date, and expected result. The preview must not type into a form because some sites save drafts automatically.
-2. Revalidation against the current approved plan, safety state, pain, recovery evidence, and destination.
-3. One exact, expiring approval envelope bound to the provider, account hint, route, operation, resource hash, and destination.
-4. An atomic execution claim so the same approval cannot be replayed.
-5. A visible attended action in the provider UI and a sanitized completion receipt.
+1. Build a dry-run showing the provider, visible account, operation, exact workout or calendar payload, target date, and expected result. Do not prefill a form during preview because some web apps save drafts automatically.
+2. Revalidate the current approved plan, safety state, recovery evidence, and destination.
+3. Create one exact, expiring approval envelope bound to the account hint, operation, resource hash, and destination.
+4. After approval, perform one visible action in the provider UI.
+5. Inspect the visible result before reporting the write as performed.
 
-This is a future acceptance contract: one approval may authorize one write only. It must not authorize a batch, second workout, calendar edit, retry after UI drift, or later session. Any materially different field or extra provider confirmation requires a new preview and approval.
+One approval means one write. A retry, second workout, changed date, changed payload, additional calendar edit, account change, or UI drift requires a new preview and approval.
 
-## Garmin Connect
+Never perform provider browsing from Scheduled, headless, background, or unattended work.
 
-Garmin attended AI/browser operation is not established as provider-permitted, so StrideOS fails closed. Do not use Garmin Connect assisted browsing for reads or writes, operate its workout builder, change its calendar, or claim delivery to a watch.
+## User-supplied adapters and other plugins
 
-The current individual paths are:
+The upstream package does not describe, ship, audit, or support unofficial adapters. It also does not block them.
 
-- an athlete-selected official Garmin export followed by local file import;
-- manual entry.
+When the user explicitly names an existing script, local adapter, other plugin, MCP server, companion, or host tool:
 
-Garmin Connect Developer Program access is application/business reviewed rather than ordinary self-service for an individual athlete. It is documented as a limitation, not offered as a setup path.
+1. Stop applying the StrideOS provider catalog as an allowlist.
+2. Confirm the exact capability and requested operation exist.
+3. Let the user configure authentication directly without exposing secrets.
+4. Handle the tool under its host permissions as if StrideOS were absent.
+5. Preserve source and freshness for reads.
+6. Use an exact preview, one approval, one write, and result verification for mutations.
+7. Do not label the tool as a StrideOS integration or reproduce its unofficial connection recipe.
 
-## Strava
+## Official recommendation notes
 
-Do not use ordinary Strava API data in model context. Strava's current API policy blocks that use and identifies Strava's MCP as the authorized agent route, while its current terms prohibit automated access to the signed-in web experience. The current first-party MCP rollout does not support this ChatGPT/Codex surface. Therefore StrideOS must not generate a Strava API-to-AI route or use assisted browsing on `strava.com`, even when the athlete is logged in.
+These notes describe what the public plugin may proactively recommend. They do not restrict user-selected host capabilities.
 
-Offer only routes Strava currently permits for this product:
+### Garmin Connect
 
-- an athlete-initiated official account export followed by local import, subject to the current export terms;
-- manual entry.
+For structured self-service data, recommend an athlete-selected official Garmin export followed by a supported local import, or manual entry. Garmin Connect Developer Program access is application/business reviewed rather than a normal individual setup path.
 
-Revisit the playbook only when Strava publishes a compatible official route for this product.
+If the athlete asks to use Garmin Connect in the browser, use the universal attended flow. The athlete signs in; a workout/calendar write receives an exact preview and one approval; the agent performs one visible write and verifies that it appears in the intended calendar. Do not call this a bundled Garmin connector.
 
-## COROS
+### Strava
 
-COROS provides an official MCP for individual users in supported AI clients. Prefer that structured, user-authorized route for activity, health, recovery, fitness, and training context. The MCP is currently read-only; it cannot create workouts or change the athlete's plan.
+Prefer the official Strava MCP where it is available on the current host. Otherwise recommend the athlete's official export or manual entry. Do not teach an unofficial API setup as a substitute for the MCP.
 
-Do not use assisted browsing on COROS Training Hub. Current COROS terms prohibit robots, scrapers, and other automated web access without express written permission. Official export and manual entry remain the read fallback, and no workout-delivery route is claimed.
+If the athlete explicitly selects the signed-in Strava web app, use the universal attended flow as a host capability, not as a StrideOS connector.
 
-## Apple Watch and Apple Health
+### COROS
 
-Apple Health reads and structured Apple Watch delivery require a user-authorized native iOS companion. Use [HealthKit authorization](https://developer.apple.com/documentation/HealthKit/authorizing-access-to-health-data) for selected evidence types and [WorkoutKit](https://developer.apple.com/documentation/workoutkit) for previewing and scheduling supported workouts. The user approves system permissions on their Apple device.
+Prefer the official COROS MCP for user-authorized reads in supported AI clients. The MCP is read-only, so do not imply workout creation. Official export and manual input remain available. User-selected attended browser/computer use is handled by the universal session contract.
 
-An agent may scaffold the companion only after local-setup consent. Before the companion writes anything, it must show the exact workout, destination, authorization state, and disconnect/delete path. Until it proves a successful round trip, report `companion_required`. The user-provided Apple Health XML export is a future file route; the current StrideOS importer does not parse it.
+### Apple Watch and Apple Health
 
-## Android and Wear OS
+Apple Health reads and structured Apple Watch delivery require a user-authorized native iOS companion. Use [HealthKit authorization](https://developer.apple.com/documentation/HealthKit/authorizing-access-to-health-data) for selected evidence types and [WorkoutKit](https://developer.apple.com/documentation/workoutkit) for previewing and scheduling supported workouts. The user approves system permissions on the Apple device.
 
-Android requires a user-authorized native companion using [Health Connect](https://developer.android.com/health-and-fitness/health-connect/get-started). Planned-exercise support and permissions must be checked against the installed Android, Health Connect, and destination-app versions. Health Connect availability alone does not prove that a watch will receive or execute a workout.
+An agent may scaffold the companion only after local-setup consent. Before a companion write, show the exact workout, destination, authorization state, and disconnect/delete path. Keep `companion_required` until a complete round trip is proved.
 
-Scaffold only after consent, request only required record types, test on-device, and keep `companion_required` until a complete round trip succeeds. A `PlannedExerciseSessionRecord` needs the platform feature and write permission, and its presence does not prove that a watch consumed it. Health Connect's Android 14+ backup ZIP is not a current StrideOS import route: Google documents it for backup/restore and the archive format must be validated before support is claimed.
+### Android and Wear OS
 
-## Google Health for Fitbit and Pixel Watch
+Use a user-authorized native companion with [Health Connect](https://developer.android.com/health-and-fitness/health-connect/get-started). Request only required record types and prove planned-exercise support on the installed Android, Health Connect, and destination-app versions. A planned-exercise write does not by itself prove that a watch consumed it.
 
-Use only the official Google Health API, an athlete-selected Google export, or manual entry. Attended browsing is not established as provider-permitted, and no official Google Health MCP is documented. API setup uses Google Cloud and OAuth; testing is limited to allowlisted users, while broader release can require OAuth verification and a security review because the health scopes are restricted.
+### Fitbit and Google Health
 
-Google permits AI-driven health and fitness features only within its user-data rules: the feature and data use must be visible, necessary, disclosed, and consented to. The playbook does not claim permission for generalized model training or evaluation. These constraints apply equally when an athlete supplies an export.
+Recommend the official Google Health API, an athlete-selected Google export, or manual entry. API setup uses Google Cloud, OAuth, required scopes, disclosure, and consent; broader release may require verification. A user-selected web flow remains a host capability under the universal attended contract.
 
-## Oura
+### Oura
 
-Oura's API and export are legitimate individual access routes, but they are not LLM-ingestion routes. Oura requires its authorized MCP whenever Oura data is accessed or processed with an LLM, prohibits scraping, and prohibits model training and evaluation. The official MCP is recorded as the sole model-context route, but it remains nonselectable because Oura has not documented a compatible setup for this StrideOS surface. Until that changes, accept only a subjective manual check-in that does not transcribe Oura data.
+Prefer Oura's official MCP for LLM use when compatible setup is available. Keep Oura's current model-use and retention requirements visible. If no compatible official route is available, offer manual subjective entry. A user-selected attended web flow remains outside the StrideOS recommendation catalog.
 
-## WHOOP
+### WHOOP
 
-WHOOP prohibits scraping, harvesting, and data extraction from its web experience even when the account owner consents, so attended browsing is never offered. Its official OAuth API and athlete export are recorded but remain `policy_review_required`: the current terms require user opt-in for third-party disclosure and impose caching, permanent-copy, and derivative-work restrictions without expressly authorizing external AI/model-context use. Manual subjective entry remains available while that policy is unresolved.
+Recommend only official OAuth/API or athlete-export routes after the current consent, retention, and model-use requirements are satisfied; otherwise offer manual subjective entry. A user-selected attended web flow remains outside the StrideOS recommendation catalog.
 
-## Other providers
+### Other providers
 
-For Polar, Suunto, Wahoo, and any new provider, verify current first-party documentation and terms before producing a playbook. Record separately:
-
-- routes permitted for an individual user;
-- AI-use restrictions;
-- available read and write capabilities;
-- whether attended browser access is permitted;
-- official export formats;
-- revocation and deletion behavior;
-- source URLs and the last verification date.
-
-If no permitted direct or browser route exists, say so plainly and offer only the provider's official export and manual entry. Never describe a fallback as automatic device delivery.
+For Polar, Suunto, Wahoo, and new providers, document current official individual routes, read/write capabilities, export formats, revocation, deletion, source URLs, and verification date. Do not add unofficial connection instructions. User-selected browser/computer use and local extensions remain outside that official catalog.
 
 ## Completion checklist
 
-For any future provider executor, setup is complete only when the selected capability is proved and its limits are visible:
+A provider setup or one-off attended operation is complete only when its actual limits are visible:
 
-- official authorization or attended-session state verified with the correct account;
-- normalized read provenance and freshness verified, when reading;
-- exact dry-run and one-write approval verified, when writing;
-- provider-side result visibly confirmed;
-- sign-out or revocation explained;
-- local normalized records deletable;
-- raw credentials and session material absent from Git, Sites, logs, screenshots, and StrideOS state.
+- the intended account and selected capability are verified;
+- normalized read provenance and freshness are recorded, when reading;
+- the exact dry-run and one-write approval are verified, when writing;
+- the provider-side result is visibly confirmed;
+- sign-out or revocation is explained where relevant;
+- local normalized records are deletable;
+- raw credentials and session material are absent from Git, Sites, logs, screenshots, and StrideOS state.

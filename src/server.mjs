@@ -426,11 +426,11 @@ async function api(req, res, pathname, runtime = {}) {
     );
     if (decision.gate.action === "push_garmin_workout" && !garminDeliveryAllowed) {
       decision = buildDecision({
-        evidence: [...decision.evidence, garminStatus().workoutDeliverySupported === true ? "Garmin workout delivery is not enabled in the completed athlete profile." : "No provider-permitted individual Garmin workout-write route is currently established."],
+        evidence: [...decision.evidence, garminStatus().workoutDeliverySupported === true ? "Garmin workout delivery is not enabled in the completed athlete profile." : "The optional reference runtime does not include a live Garmin workout-write executor."],
         action: "read_training_data",
         context: {},
         proposal: garminStatus().workoutDeliverySupported !== true
-          ? "Keep the exact structured workout in StrideOS and use it as a manual reference. Garmin browser-agent delivery is unavailable under the current provider-permitted route policy."
+          ? "Keep the exact structured workout in StrideOS and use it as a manual reference. An explicitly chosen browser, script, or plugin action remains outside this runtime and is delegated to the current host."
           : personal.profile.delivery?.workoutDelivery
           ? `Keep the workout in StrideOS. The selected destination is ${personal.profile.delivery.workoutDeliveryTarget.replaceAll("_", " ")}, not Garmin.`
           : "Keep the workout in StrideOS. Device delivery is off and no external write was created."
@@ -534,11 +534,12 @@ async function api(req, res, pathname, runtime = {}) {
         attended: expectedContext.attended,
         scheduled: expectedContext.scheduled,
         headless: expectedContext.headless,
+        browserToolAvailable: true,
         playbooks
       }).find((item) => item.id === approval.resource.routeId && item.type === "assisted_browsing" && item.selectable);
       if (!route) {
-        updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The approved provider route is not currently permitted and enabled." } });
-        throw new HttpError(409, "The approved provider route is not currently permitted and enabled.");
+        updateDecision(decision.id, { status: "stopped", result: { performed: false, message: "The current host no longer exposes the exact attended route from this approval." } });
+        throw new HttpError(409, "The current host no longer exposes the exact attended route from this approval.");
       }
 
       const currentStateBinding = currentProviderWriteStateBinding();
@@ -564,7 +565,7 @@ async function api(req, res, pathname, runtime = {}) {
         const provider = playbooks.providers.find((item) => item.id === approval.resource.providerId);
         const actualPage = actual?.pageUrl ? new URL(actual.pageUrl) : null;
         const providerPage = provider?.webAppUrl ? new URL(provider.webAppUrl) : null;
-        const contextMatches = actual?.surface === "codex_desktop" && actual?.attended === true && actual?.scheduled === false && actual?.headless === false;
+        const contextMatches = actual?.surface === expectedContext.surface && actual?.attended === true && actual?.scheduled === false && actual?.headless === false;
         const scopeMatches = actual?.providerId === approval.resource.providerId
           && actual?.routeId === approval.resource.routeId
           && actual?.accountBinding === approval.resource.accountBinding
@@ -659,7 +660,7 @@ async function api(req, res, pathname, runtime = {}) {
       }
       if (source === "approved_training_plan") {
         if (garminStatus().workoutDeliverySupported !== true) {
-          throw new HttpError(409, "No provider-permitted individual Garmin workout-write route is currently established.");
+          throw new HttpError(409, "The optional reference runtime does not include a live Garmin workout-write executor; a user-selected host action is outside this endpoint.");
         }
         const onboarding = getOnboarding();
         const athleteId = onboarding?.profile?.personal?.preferredName || "local-athlete";
@@ -734,7 +735,7 @@ export function createServer({ providerWriteExecutor = null, connectorPlaybooks 
     } catch (error) {
       const status = error instanceof HttpError || error instanceof ImportError || error instanceof FeedbackError ? error.status : 500;
       if (status === 500) console.error(error);
-      json(res, status, { error: status === 500 ? "The harness could not complete that request." : error.message });
+      json(res, status, { error: status === 500 ? "The optional StrideOS reference runtime could not complete that request." : error.message });
     }
   });
 }

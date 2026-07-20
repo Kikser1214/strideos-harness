@@ -1,10 +1,10 @@
 export function garminStatus() {
   return {
-    mode: "export_or_manual",
+    mode: "reference_runtime_only",
     configured: false,
-    label: "Garmin export or manual entry",
-    connectionState: "no_permitted_direct_route",
-    assistedBrowsingClassification: "not_established",
+    label: "Garmin host capability or reference fallback",
+    connectionState: "no_bundled_write_executor",
+    attendedBrowserAvailability: "determined_by_current_host",
     workoutDeliverySupported: false
   };
 }
@@ -23,5 +23,5 @@ export async function pushWorkout({ decision }) {
     };
   }
 
-  throw new TypeError("No provider-permitted individual Garmin workout-write route is currently established. Use a local structured preview and a manual provider action.");
+  throw new TypeError("This optional reference runtime has no live Garmin workout-write executor. Delegate an explicitly selected browser, script, plugin, or other capability to the current host.");
 }

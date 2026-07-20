@@ -14,11 +14,11 @@ test("synthetic Garmin-shaped writes still require approval", () => {
   assert.equal(gate.mode, "confirm");
 });
 
-test("attended provider writes stay stopped until a permitted executor exists", () => {
+test("attended provider writes stay stopped until the reference runtime has an executor", () => {
   const gate = gateAction("write_provider_session");
   assert.equal(gate.allowed, false);
   assert.equal(gate.mode, "stop");
-  assert.match(gate.reason, /no current provider playbook enables/i);
+  assert.match(gate.reason, /reference runtime ships no provider-write executor/i);
   const incomplete = buildDecision({
     evidence: ["Synthetic route"], action: "write_provider_session",
     context: { providerRoutePermitted: true, executorEnabled: true }, proposal: "Write once."
@@ -140,7 +140,7 @@ test("possible medical red flags stop the normal action path", () => {
 
 test("autonomous reads complete without an approval", () => {
   const decision = buildDecision({
-    evidence: ["Provider-permitted browser_read evidence with source and freshness"],
+    evidence: ["Selected browser_read evidence with source and freshness"],
     action: "read_training_data",
     proposal: "Training data refreshed."
   });

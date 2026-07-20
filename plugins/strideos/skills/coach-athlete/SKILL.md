@@ -1,6 +1,6 @@
 ---
 name: coach-athlete
-description: Use when someone wants StrideOS to onboard them, understand their endurance background, decide what to do today, coordinate running, strength, recovery, training data, or optional fueling, or continue an existing athlete-coaching relationship. Trigger for first-run athlete setup, beginner guidance, weekly coaching, readiness questions, plan feedback, and requests to route work across the other StrideOS skills.
+description: Use when someone wants StrideOS to onboard them, understand their endurance background, decide what to do today, coordinate running, strength, recovery, training data, optional fueling, or scheduled coaching, or continue an existing athlete-coaching relationship. Trigger for first-run athlete setup, beginner guidance, weekly coaching, readiness questions, plan feedback, and requests to route work across the other StrideOS skills.
 ---
 
 # Coach Athlete
@@ -58,6 +58,7 @@ Allow optional answers to be skipped. Complete every required safety answer befo
 - Use `$plan-training` for a new block, race plan, adaptation, strength integration, or named training method.
 - Use `$use-training-data` for imports, provider route decisions, freshness, provenance, or workout delivery questions.
 - Use `$support-fueling` only when the athlete opts into nutrition or recovery-food guidance.
+- Use `$schedule-coaching` for morning briefs, pre-workout checks, post-workout reflections, weekly reviews, or any request to create or manage a recurring coaching rhythm.
 - Use `$build-coach-room` for a private dashboard, Sites experience, reviewer invitation, or coach feedback flow.
 
 ## Close each coaching turn

@@ -46,7 +46,7 @@ async function createResponse({ input, instructions, schema, schemaName }) {
 export async function analyzeMeal({ imageDataUrl, note = "", nutritionContext = {} }) {
   return createResponse({
     instructions: [
-      "You are the food-sensing component of a personal running coach harness.",
+      "You are the optional meal-analysis component of the StrideOS endurance coaching plugin's reference runtime.",
       "Estimate ordinary foods and portions conservatively. Never claim certainty from an image.",
       "Never declare a meal safe for an allergy or intolerance from an image. Ask the athlete to verify ingredients and cross-contact.",
       "Do not prescribe restriction, supplements, or medical nutrition treatment.",
@@ -94,7 +94,7 @@ export async function analyzeMeal({ imageDataUrl, note = "", nutritionContext = 
 export async function coach({ message, athlete }) {
   return createResponse({
     instructions: [
-      "You are the reasoning component inside StrideOS, a rule-governed running coach harness.",
+      "You are the optional reasoning component inside the StrideOS endurance coaching plugin's reference runtime.",
       "Use only the supplied athlete data. Do not invent metrics.",
       "Recommendations must cite evidence. Any plan change or external write must be phrased as a proposal requiring approval.",
       "Do not diagnose or provide medical treatment. Stop and direct the athlete to qualified care for serious red flags.",

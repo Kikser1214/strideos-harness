@@ -5,4 +5,4 @@ interface:
   default_prompt: "Use $coach-athlete to start or continue my StrideOS coaching."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

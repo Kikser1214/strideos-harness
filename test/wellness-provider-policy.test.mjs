@@ -25,11 +25,11 @@ const route = (providerPolicy, id) => {
   return match;
 };
 
-const assertNoAttendedRoute = (providerPolicy) => {
+const assertNoBundledAttendedRoute = (providerPolicy) => {
   assert.equal(
     providerPolicy.permittedRoutes.some((candidate) => candidate.type === "assisted_browsing"),
     false,
-    `${providerPolicy.id} must not expose attended browsing`
+    `${providerPolicy.id} must not bundle a provider-specific browser executor`
   );
 };
 
@@ -37,11 +37,11 @@ const assertSource = (providerPolicy, source) => {
   assert.ok(providerPolicy.officialSources.includes(source), `${providerPolicy.id} needs ${source}`);
 };
 
-test("Google Health uses only documented API/export routes with explicit AI constraints", () => {
+test("Google Health upstream recommendations keep explicit AI constraints without governing host tools", () => {
   const fitbit = provider("fitbit");
 
-  assert.equal(fitbit.assistedBrowsingClassification, "not_established");
-  assertNoAttendedRoute(fitbit);
+  assert.equal("assistedBrowsingClassification" in fitbit, false);
+  assertNoBundledAttendedRoute(fitbit);
   assert.deepEqual(fitbit.modelContextPolicy, {
     status: "conditional",
     allowedRoutes: ["google_health_api", "fitbit_export"],
@@ -57,14 +57,14 @@ test("Google Health uses only documented API/export routes with explicit AI cons
   assertSource(fitbit, "https://support.google.com/accounts/answer/3024190");
 });
 
-test("Oura data is MCP-only for LLM use and every undocumented read route fails closed", () => {
+test("Oura upstream recommendations prefer MCP for LLM use without governing host tools", () => {
   const oura = provider("oura");
   const mcp = route(oura, "oura_mcp");
   const api = route(oura, "oura_api");
   const exportRoute = route(oura, "oura_export");
 
-  assert.equal(oura.assistedBrowsingClassification, "prohibited");
-  assertNoAttendedRoute(oura);
+  assert.equal("assistedBrowsingClassification" in oura, false);
+  assertNoBundledAttendedRoute(oura);
   assert.equal(oura.modelContextPolicy.status, "mcp_only");
   assert.deepEqual(oura.modelContextPolicy.allowedRoutes, ["oura_mcp"]);
   assert.equal(oura.modelContextPolicy.training, "prohibited");
@@ -79,13 +79,13 @@ test("Oura data is MCP-only for LLM use and every undocumented read route fails 
   assertSource(oura, "https://cloud.ouraring.com/docs/authentication");
 });
 
-test("WHOOP prohibits attended browsing and has no selectable model-context data route", () => {
+test("WHOOP upstream recommendations require review while host tools stay outside the catalog", () => {
   const whoop = provider("whoop");
   const oauth = route(whoop, "whoop_oauth");
   const exportRoute = route(whoop, "whoop_export");
 
-  assert.equal(whoop.assistedBrowsingClassification, "prohibited");
-  assertNoAttendedRoute(whoop);
+  assert.equal("assistedBrowsingClassification" in whoop, false);
+  assertNoBundledAttendedRoute(whoop);
   assert.equal(whoop.modelContextPolicy.status, "not_established");
   assert.deepEqual(whoop.modelContextPolicy.allowedRoutes, []);
   assert.equal(selectableStatuses.has(oauth.status), false);

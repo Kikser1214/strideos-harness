@@ -6,37 +6,57 @@ StrideOS ships as an installable plugin package for ChatGPT Work mode and Codex.
 
 - Git;
 - Node.js 20 or newer;
-- Work mode or Codex in the ChatGPT desktop app, or Codex CLI, for the validated local-source path.
+- Work mode or Codex in the ChatGPT desktop app, or Codex CLI, for the validated repository-marketplace path.
 
 No wearable, provider account, OpenAI API key, database, or cloud deployment is required.
 
-## Install the plugin from a clone
+## Recommended: add the GitHub marketplace
+
+This keeps the marketplace source backed by the public repository and is the preferred setup when you want to use StrideOS across supported Codex environments:
+
+```bash
+codex plugin marketplace add Kikser1214/strideos-harness --ref main
+codex plugin list
+codex plugin add strideos@strideos
+```
+
+`codex plugin list` should show the StrideOS marketplace entry. `codex plugin add strideos@strideos` installs it for Codex CLI. Restart the ChatGPT desktop app, open **Plugins Directory**, and install or enable **StrideOS** there; then begin a new Work/Codex task. A workspace administrator may control which personal marketplaces and plugins are visible.
+
+## Local clone marketplace
+
+Use this route when you want to inspect or change the repository before loading the plugin:
 
 ```bash
 git clone https://github.com/Kikser1214/strideos-harness.git
 cd strideos-harness
-npx plugins discover .
-npx plugins add ./plugins/strideos --target codex
+codex plugin marketplace add .
+codex plugin list
+codex plugin add strideos@strideos
 ```
 
-Use the relative `./plugins/strideos` path from the repository root. This is portable and avoids local-path parsing problems in some Windows CLI environments.
+The `.` is the repository root containing `.agents/plugins/marketplace.json`; do not point the marketplace command directly at the nested skill package.
 
 Windows PowerShell:
 
 ```powershell
 git clone https://github.com/Kikser1214/strideos-harness.git
 Set-Location strideos-harness
-npx.cmd plugins discover .
-npx.cmd plugins add ./plugins/strideos --target codex
+codex plugin marketplace add .
+codex plugin list
+codex plugin add strideos@strideos
 ```
 
-Discovery should report one plugin named `strideos` with five skills. The installer registers the package in the local Codex plugin cache and configuration. The clone also contains `.agents/plugins/marketplace.json`, which describes StrideOS to the ChatGPT desktop plugin directory. Restart the ChatGPT desktop app or begin a new Codex CLI session, then open a new Work/Codex task so the skills are loaded.
+The marketplace listing should expose `strideos@strideos`; `npm run test:plugin` separately proves the exact six-skill package inventory. Restart the ChatGPT desktop app or begin a new Codex CLI session, install or enable StrideOS in the desktop **Plugins Directory** when applicable, and open a new Work/Codex task so the skills are loaded.
 
-[OpenAI's plugin documentation](https://learn.chatgpt.com/docs/plugins) currently supports plugins in Work mode on ChatGPT web, in Work mode or Codex in the ChatGPT desktop app, and through the Codex CLI plugin browser. Plugins are not available in Chat mode, the IDE extension, or mobile. A workspace administrator may further control installation and marketplace visibility.
+An installed plugin is a cached snapshot. After editing a fork or local clone, update the version/cachebuster in `plugins/strideos/.codex-plugin/plugin.json`, reinstall `strideos@strideos` from the intended marketplace source, restart when required, and open a new task. Do not edit a generated cache and expect the change to persist. See [Ownership, forks, and local extensions](OWNERSHIP_AND_EXTENSIONS.md).
+
+[OpenAI's plugin documentation](https://learn.chatgpt.com/docs/plugins) currently supports installed or workspace-shared plugins in Work mode on ChatGPT web, in Work mode or Codex in the ChatGPT desktop app, and through the Codex CLI plugin browser. Plugins are not available in Chat mode, the IDE extension, or mobile. Work web cannot access this clone's local folder or run its optional local reference implementation; use ChatGPT desktop or Codex CLI for that path. A workspace administrator may further control installation and marketplace visibility.
 
 Try:
 
-> I want StrideOS to coach me. Start with first-time onboarding and recommend a safe starting week.
+> @strideos I want StrideOS to coach me. Start with first-time onboarding and recommend a safe starting week.
+
+The bundled skills use explicit invocation so StrideOS does not silently enter unrelated chats or another personal coaching workspace.
 
 ## What is installed
 
@@ -49,6 +69,7 @@ skills/coach-athlete/
 skills/plan-training/
 skills/use-training-data/
 skills/support-fueling/
+skills/schedule-coaching/
 skills/build-coach-room/
 LICENSE
 ```
@@ -61,12 +82,12 @@ From the repository root:
 
 ```bash
 npm run test:plugin
-npx plugins discover .
+codex plugin list
 ```
 
-The repository acceptance test checks the manifest, exact skill inventory, skill frontmatter, UI prompts, references, assets, provider model-context rules, and prohibited-route regression guards.
+The repository acceptance test checks the manifest, exact skill inventory, skill frontmatter, UI prompts, references, assets, official-recommendation language, ownership behavior, and unofficial-recipe regression guards.
 
-Contributors can also run the Codex plugin-creator `validate_plugin.py` helper and skill-creator `quick_validate.py` helper when those system tools are available locally. The release procedure validates the source package, every skill, and the installed cache copy.
+Contributors can also run the Codex plugin-creator `validate_plugin.py` helper and skill-creator `quick_validate.py` helper when those system tools are available locally. The release procedure validates the source package, every skill, and the installed plugin copy.
 
 ## Run the optional local reference implementation
 
@@ -124,9 +145,9 @@ Set `OPENAI_API_KEY`, keep the configured model, and restart. Personal context i
 
 ## Training data and providers
 
-Provider setup is deliberately outside zero-account first run. The data skill resolves each read or write capability against the current source-backed playbook. It describes only provider-permitted individual routes and fails closed when permission, model-context use, or implementation is missing.
+Provider setup is deliberately outside zero-account first run. StrideOS provides official recommendations; it does not define an allowlist. The data skill prefers official API/MCP/companion routes, detects attended browser/computer use on the current interactive host, then offers provider export/local import and manual entry.
 
-The current plugin ships no provider browser executor. The athlete always completes login and MFA; the agent never handles credentials or session material. Garmin's current individual route is an athlete-selected official export with a supported local file or manual entry. Strava API data does not enter AI coaching under the reviewed policy, and signed-in browser automation is prohibited.
+The athlete always completes login and MFA; the agent never handles credentials or session material. Browser/computer use stays visible, attended, and unavailable to Scheduled or headless work. Reads retain `browser_read` provenance and freshness; every write receives one dry-run preview, one approval, one write, and visible verification. The public package never bundles or teaches unofficial connectors. If the user explicitly supplies a script, plugin, or adapter, StrideOS route guidance steps aside and the host handles it.
 
 See [Provider access routes](SELF_SERVICE_CONNECTORS.md) and [`rules/connector-playbooks.json`](../rules/connector-playbooks.json).
 

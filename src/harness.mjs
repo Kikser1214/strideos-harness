@@ -28,12 +28,13 @@ export function gateAction(action, context = {}) {
     };
   }
 
-  if (action === "write_provider_session" && context.providerRoutePermitted === true && context.executorEnabled === true) {
+  const runtimeRouteAvailable = context.runtimeRouteAvailable === true || context.providerRoutePermitted === true;
+  if (action === "write_provider_session" && runtimeRouteAvailable && context.executorEnabled === true) {
     return {
       ...boundary,
       allowed: false,
       mode: "confirm",
-      reason: "One exact, expiring approval authorizes one attended provider write. Account, route, operation, and payload are bound to the envelope."
+      reason: "One exact, expiring approval authorizes one attended runtime write. Account, route, operation, and payload are bound to the envelope; the host owns execution permission."
     };
   }
 
@@ -110,7 +111,7 @@ function approvalEnvelopeError(code, message) {
 export function buildDecision({ evidence, action, context, proposal, resource = null, approvalEnvelope = null, id = null, createdAt = null }) {
   let gate = gateAction(action, context);
   if (action === "write_provider_session" && (!approvalEnvelope || approvalEnvelope.kind !== "provider_write_v1")) {
-    gate = { ...gate, allowed: false, mode: "stop", reason: "Provider writes stop unless an exact server-authored approval envelope is present." };
+    gate = { ...gate, allowed: false, mode: "stop", reason: "The optional reference runtime will not execute a provider write without an exact server-authored approval envelope. User-selected actions outside this runtime remain delegated to the host." };
   }
   const timestamp = createdAt ? asDate(createdAt, "Decision creation time").toISOString() : new Date().toISOString();
   return {
@@ -150,8 +151,8 @@ export function buildProviderWriteDecision({
     scheduled: browserContext?.scheduled,
     headless: browserContext?.headless
   };
-  if (context.surface !== "codex_desktop" || context.attended !== true || context.scheduled !== false || context.headless !== false) {
-    throw new TypeError("Provider-write approvals require an explicit attended Codex desktop context.");
+  if (!String(context.surface || "").trim() || context.attended !== true || context.scheduled !== false || context.headless !== false) {
+    throw new TypeError("Provider-write approvals require an explicit attended host context.");
   }
 
   const id = newDecisionId(created.getTime());
@@ -169,7 +170,7 @@ export function buildProviderWriteDecision({
     operation: exactText(operation, "Write operation"),
     target: exactText(target, "Write target", 240),
     stateBinding: { athleteStateVersion, planStateVersion },
-    browserContext: { surface: "codex_desktop", attended: true, scheduled: false, headless: false },
+    browserContext: { surface: String(context.surface), attended: true, scheduled: false, headless: false },
     payload: canonicalApprovalValue(payload, "provider write payload")
   };
   if (!resource.capability.startsWith("write_")) throw new TypeError("Provider-write capability must be a write capability.");
@@ -186,7 +187,7 @@ export function buildProviderWriteDecision({
   return buildDecision({
     evidence,
     action: "write_provider_session",
-    context: { providerRoutePermitted: true, executorEnabled: true },
+    context: { runtimeRouteAvailable: true, executorEnabled: true },
     proposal,
     resource,
     approvalEnvelope,
@@ -311,7 +312,7 @@ export function demoCoachDecision(message = "", dashboard = null, athleteId = "l
         evidence,
         action: "read_training_data",
         context: {},
-        proposal: `Keep ${resource.workout.name} for ${resource.workout.durationMinutes} minutes at RPE ${resource.workout.intensity?.rpe || "easy"}. Garmin agent delivery is unavailable under the current provider-permitted route policy; use the exact local workout as a manual reference.`
+        proposal: `Keep ${resource.workout.name} for ${resource.workout.durationMinutes} minutes at RPE ${resource.workout.intensity?.rpe || "easy"}. This optional reference runtime has no delivery executor; use the exact local workout here or delegate an explicitly chosen browser, script, or plugin action to the current host.`
       });
       if (resource) return buildDecision({
         evidence,

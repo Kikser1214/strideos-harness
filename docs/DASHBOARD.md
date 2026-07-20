@@ -1,6 +1,6 @@
 # Optional reference dashboard contract
 
-The repository's optional StrideOS reference dashboard is a deterministic projection of local athlete state. The shipped product is the five-skill plugin; this PWA exists so contributors and judges can inspect the same authority rules visually. It does not ask the model to calculate readiness, mark sessions complete, or decide whether a plan is active.
+The repository's optional StrideOS reference dashboard is a deterministic projection of local athlete state. The shipped product is the six-skill plugin; this PWA exists so contributors and judges can inspect the same authority rules visually. It does not ask the model to calculate readiness, mark sessions complete, or decide whether a plan is active.
 
 ## Server authority
 
@@ -34,7 +34,7 @@ No wearable is required. Manual check-ins and normalized activity files are vali
 
 ## Athlete controls
 
-The same screen links to the full plan, data-source setup, optional fuel companion, and decision ledger. Local plan activation and food logging pass through server-stored decisions. No real provider-write executor ships; provider delivery remains unavailable unless the exact operation is provider-permitted and a reviewed executor is implemented. Refreshing after a local confirmation reflects the authoritative result rather than optimistic client state.
+The same screen links to the full plan, data-source setup, optional fuel companion, and decision ledger. Local plan activation and food logging pass through server-stored decisions. When the current host exposes attended browser/computer use, an exact provider write may proceed only after a dry-run and one-use athlete approval; an explicitly supplied external tool remains outside StrideOS route guidance. Refreshing after a confirmation reflects the verified result rather than optimistic client state.
 
 The **Coach's margin** attaches a short athlete note to the exact approved session shown on the today card. Keep, adjust, move, and cannot-do states can include practical reasons, a requested direction, an optional pain score, and free text. The note becomes fresh evidence immediately because its Save action is explicit, but it never edits the plan. **Ask coach to revise** starts a new coaching turn with the note, session snapshot, and approval boundary included.
 
@@ -48,4 +48,4 @@ The same responsive interface is installable as a PWA. Localhost remains the def
 
 ## Failure and empty behavior
 
-The HTML begins in a truthful loading state. If onboarding is incomplete, it shows setup guidance and no personal numbers. Network/API failures preserve the last confirmed dashboard and surface a visible toast; they do not replace it with demo athlete data. Provider-route labels distinguish simulation, provider-permitted and executor-backed attended browsing, native companions, file import, and manual entry. Contract-only browser routes are not shown as usable. They never claim that StrideOS owns or persistently connects a provider account. Garmin must appear as export/file-import or manual only, never as an attended read, workout/calendar write, or watch-delivery route.
+The HTML begins in a truthful loading state. If onboarding is incomplete, it shows setup guidance and no personal numbers. Network/API failures preserve the last confirmed dashboard and surface a visible toast; they do not replace it with demo athlete data. Provider-route labels distinguish simulation, official connectors, available attended host browser/computer use, native companions, file import, manual entry, and explicitly supplied external tools. They never claim that StrideOS owns or persistently connects a provider account. Garmin may use the attended route when the host exposes it: user login, `browser_read` provenance for reads, and one exact approval per visible workout/calendar write.
