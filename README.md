@@ -158,6 +158,17 @@ StrideOS keeps model reasoning separate from authority:
 5. **Approve or stop** — activate only the exact approved local change; external writes additionally need a real selected tool and one exact approval.
 6. **Verify** — call an action performed only after its resulting state is read back or visibly attested.
 
+## Post-Build Week roadmap
+
+These are research directions, not features in the current release, and they carry no promised delivery date. The goal is to extend the current approval-gated coaching loop across longer time horizons while keeping retention visible, optional, and athlete controlled.
+
+- **Longitudinal athlete memory** — connect completed sessions, morning and evening check-ins, symptoms, recovery, fueling, environment, and athlete notes across weeks, months, and seasons. Recurring patterns—such as a side stitch appearing under particular combinations of load, heat, timing, or fueling—should be surfaced as testable hypotheses, never diagnoses or claims of causation.
+- **Training response analysis** — compare what was planned with what was completed, what felt sustainable, and what repeatedly produced useful adaptation over one-to-three-week, two-to-three-month, and annual windows. Preserve missing-data and confidence limits instead of manufacturing certainty.
+- **Running form over time** — compare athlete-supplied running videos or images, label observations with uncertainty, suggest practical form or strength work when useful, and track whether later evidence supports the intervention. This remains movement feedback, not medical assessment.
+- **Flexible fueling and body context** — let each athlete choose anything from simple meal photos to confirmed macro tracking, then examine longer-term relationships with training and recovery. Optional progress images or measurements must never be used to infer an exact body-fat percentage, diagnosis, health status, performance potential, or moral judgment from appearance.
+
+The roadmap does not change the current authority model: an insight is evidence for a conversation, not permission to alter a plan, retain new data, expand sharing, or perform an external write.
+
 ## Run the optional local reference implementation
 
 The plugin does not require the web reference implementation. Use it when you want to inspect the deterministic state machine, onboarding, dashboard, imports, nutrition confirmation, decisions, and tests.

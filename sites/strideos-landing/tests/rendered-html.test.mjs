@@ -45,6 +45,13 @@ test("server-renders the plugin-first StrideOS landing page", async () => {
   assert.match(html, /Garmin session you signed into/i);
   assert.match(html, /one approval for one visible action/i);
   assert.match(html, /never disables another tool you choose/i);
+  assert.match(html, /Post-Build Week roadmap/i);
+  assert.match(html, /The next loop[\s\S]*is longer/i);
+  assert.match(html, /Not in the current release/i);
+  assert.match(html, /Longitudinal athlete memory/i);
+  assert.match(html, /Running form over time/i);
+  assert.match(html, /Flexible fueling and body context/i);
+  assert.match(html, /without inferring body fat, health, or potential from appearance/i);
   assert.doesNotMatch(html, /community bridge|unofficial/i);
   assert.doesNotMatch(html, /private endpoint|credential replay|workout builder|one-use Garmin/i);
   assert.doesNotMatch(html, /Threshold intervals|react-loading-skeleton|Your site is taking shape/i);

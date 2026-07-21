@@ -39,6 +39,7 @@ export default function Home() {
           <a href="#how-it-works">How it works</a>
           <a href="#coach-mode">Training Circle</a>
           <a href="#integrations">Your accounts</a>
+          <a href="#roadmap">Roadmap</a>
         </nav>
         <a className="nav-cta" href={githubUrl} target="_blank" rel="noreferrer">
           View source <span aria-hidden="true">+</span>
@@ -228,6 +229,69 @@ codex plugin add strideos@strideos`}</code></pre>
           <p>Recovery has improved, but calf soreness is still present. Keep today easy and reassess tomorrow morning.</p>
           <div className="decision-reason"><b>Why</b><span>Protect the key session without stacking load onto a pain signal.</span></div>
           <div className="decision-actions"><button type="button" className="decline">Keep current plan</button><button type="button" className="approve">Approve change</button></div>
+        </div>
+      </section>
+
+      <section className="roadmap-section" id="roadmap">
+        <div className="roadmap-intro">
+          <p className="eyebrow"><span /> Post-Build Week roadmap</p>
+          <h2>The next loop<br />is longer.</h2>
+          <p className="roadmap-lede">
+            Today, StrideOS helps with the next decision. The research direction is
+            to make athlete-approved evidence useful across a season—without
+            mistaking correlation for causation or turning optional context into surveillance.
+          </p>
+          <p className="roadmap-status"><span>Exploring</span> Not in the current release</p>
+        </div>
+
+        <div className="roadmap-evidence" aria-label="Example of athlete evidence becoming useful over longer time horizons">
+          <div className="horizon-head">
+            <span>ATHLETE EVIDENCE / TIME HORIZON</span>
+            <span>HYPOTHESES, NOT DIAGNOSES</span>
+          </div>
+          <div className="horizon-track" aria-hidden="true">
+            <i /><i /><i /><i />
+          </div>
+          <div className="horizon-grid">
+            <article>
+              <span>Today</span>
+              <strong>Morning check-in</strong>
+              <p>Legs calm. Sleep felt normal.</p>
+            </article>
+            <article>
+              <span>1–3 weeks</span>
+              <strong>Issue repeats</strong>
+              <p>Side stitch appears late in hard blocks.</p>
+            </article>
+            <article>
+              <span>2–3 months</span>
+              <strong>Pattern is tested</strong>
+              <p>Compare heat, fueling, load, and session timing.</p>
+            </article>
+            <article>
+              <span>Season</span>
+              <strong>Learning stays useful</strong>
+              <p>Show what helped, what did not, and confidence.</p>
+            </article>
+          </div>
+
+          <div className="roadmap-streams">
+            <article>
+              <span className="stream-index">01</span>
+              <div><h3>Longitudinal athlete memory</h3><p>Sessions, check-ins, symptoms, fueling, recovery, and context tied to dates with athlete-controlled retention.</p></div>
+              <em>Across weeks and seasons</em>
+            </article>
+            <article>
+              <span className="stream-index">02</span>
+              <div><h3>Running form over time</h3><p>Athlete-supplied video comparisons, confidence-labelled observations, and practical drills when improvement is useful.</p></div>
+              <em>Movement, not diagnosis</em>
+            </article>
+            <article>
+              <span className="stream-index">03</span>
+              <div><h3>Flexible fueling and body context</h3><p>From simple meal photos to confirmed macros, plus optional progress context without inferring body fat, health, or potential from appearance.</p></div>
+              <em>As simple as the athlete wants</em>
+            </article>
+          </div>
         </div>
       </section>
 
