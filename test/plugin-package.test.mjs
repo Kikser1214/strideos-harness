@@ -189,6 +189,7 @@ test("StrideOS exposes the complete focused skill set", () => {
 
 test("first-plan orchestration completes authorized provider evidence or obtains an explicit provisional choice", () => {
   const coordinator = readFileSync(join(pluginRoot, "skills", "coach-athlete", "SKILL.md"), "utf8");
+  const readme = readFileSync(join(root, "README.md"), "utf8");
   const authority = readFileSync(
     join(pluginRoot, "skills", "coach-athlete", "references", "onboarding-and-authority.md"),
     "utf8"
@@ -198,14 +199,26 @@ test("first-plan orchestration completes authorized provider evidence or obtains
   assert.match(coordinator, /before an individualized plan or a handoff to `\$plan-training`, route the requested read through `\$use-training-data`/i);
   assert.match(coordinator, /continue to planning only after the evidence has actually been retrieved and normalized with source and freshness/i);
   assert.match(coordinator, /Never assume permission to continue without the requested evidence/i);
+  assert.match(coordinator, /Record the exact scopes separately for each selected provider/i);
+  assert.match(coordinator, /Summarize provider, scopes, history window/i);
   assert.match(authority, /Do not reinterpret the request as "connect later\."/i);
   assert.match(authority, /Consent to provider access is not consent to silently plan without the provider data/i);
+  assert.match(authority, /Ask one round per turn/i);
+  assert.match(authority, /Reading one provider or scope never authorizes another/i);
+  assert.match(coordinator, /Open the browser questionnaire \(recommended\).*Continue here in chat/is);
+  assert.match(coordinator, /ChatGPT's in-app browser/i);
+  assert.match(coordinator, /Do not launch an OS\/system browser, Chrome, or another external browser while the in-app browser is available/i);
+  assert.match(coordinator, /When localhost or the in-app browser is unavailable.*grouped interview/is);
+  assert.match(readme, /@strideos Start first-time onboarding\./i);
+  assert.match(readme, /opens it in the in-app browser and keeps that embedded tab available throughout onboarding/i);
   assert.ok(
     onboarding.principles.some((principle) =>
       principle.includes("complete the read before the first individualized plan") &&
       principle.includes("interview-only provisional plan")
     )
   );
+  assert.equal(onboarding.conversation.mode, "grouped_natural_language");
+  assert.ok(onboarding.conversation.groups.find((group) => group.id === "data_and_scope")?.requiresExplicitScopeConfirmation);
 });
 
 test("plugin guidance contains no prohibited provider-route recipe", () => {

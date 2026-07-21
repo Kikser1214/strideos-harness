@@ -7,7 +7,7 @@
 - **Repository:** https://github.com/Kikser1214/strideos-harness
 - **Live landing site:** https://strideos-open-coach.gogov-nikola22.chatgpt.site/
 - **Training Circle demo:** https://strideos-coach-demo.gogov-nikola22.chatgpt.site/
-- **Demo video:** add the public YouTube URL after the final cut
+- **Demo video:** https://youtu.be/sREE8wtsRBE
 - **Codex feedback session:** add the `/feedback` session ID from the primary build task
 - **Architecture and judge path:** `docs/ARCHITECTURE.md` and `docs/JUDGING_GUIDE.md`
 
@@ -27,7 +27,7 @@ Training evidence is fragmented across a watch, a plan, meal photos, and the ath
 
 StrideOS ships six focused plugin skills for ChatGPT Work mode and Codex: `coach-athlete` builds the athlete map and coordinates the coaching loop; `plan-training` researches methods and proposes running plus strength blocks; `use-training-data` recommends official evidence routes and hands explicitly selected browser, computer, script, or plugin capabilities back to the host; `support-fueling` provides optional, athlete-controlled nutrition support; `schedule-coaching` prepares preview-first morning, pre-workout, post-workout, and weekly rhythms; and `build-coach-room` creates a scoped local dashboard or private Site as a Training Circle for human review.
 
-StrideOS starts by building an athlete map for someone who may not know how to train. It asks about current movement, running history, safety, goals, real-life schedule, strength experience and equipment, data sources, coaching preferences, and optional nutrition. A deterministic analysis returns starting stage, deadline pressure, declared-versus-observed load, available time, recovery constraints, missing evidence, confidence, an explicit strength recommendation, provider-route truth, and any safety gate before a plan exists.
+StrideOS starts by building an athlete map for someone who may not know how to train. It keeps the detailed intake but collects it through eight coherent conversational rounds, so one natural-language reply can answer several related questions without losing structured information. It covers current movement, running history, safety, goals, real-life schedule, strength experience and equipment, data sources, coaching preferences, and optional nutrition. For each selected provider it confirms exact read scopes, history window, and whether to read now before planning; an authorized read-now step happens before the athlete is asked to manually reproduce source-observable history. A deterministic analysis returns starting stage, deadline pressure, declared-versus-observed load, available time, recovery constraints, missing evidence, confidence, an explicit strength recommendation, provider-route truth, and any safety gate before a plan exists.
 
 From there, StrideOS creates a deterministic four-week running and strength proposal. It supports couch-to-active, general cardio, return-to-running, and race-distance paths; places sessions inside real availability; reduces load in week four; and explains how pain, poor recovery, or missed sessions change the block. Named methods trigger a suitability-research gate instead of being copied blindly. Previewing changes nothing: activation requires an explicit server-recorded approval.
 

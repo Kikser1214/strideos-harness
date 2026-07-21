@@ -23,13 +23,13 @@ StrideOS uses explicit invocation. Begin every rehearsal with `@strideos` so its
 
 Send this exact opening prompt:
 
-> @strideos This is a synthetic first-time-user test. I am starting from zero and do not know how to train. Start from the beginning, ask one question at a time, and recommend what I should do. Do not use any existing athlete data, files, accounts, or prior chats. Stop after presenting the first plan proposal. Do not activate it, create a Site, invite anyone, schedule anything, or open a provider.
+> @strideos This is a synthetic first-time-user test. I am starting from zero and do not know how to train. Start from the beginning, ask related questions in grouped rounds so I can answer several at once, and recommend what I should do. Do not use any existing athlete data, files, accounts, or prior chats. Stop after presenting the first plan proposal. Do not activate it, create a Site, invite anyone, schedule anything, or open a provider.
 
 Answer the questions as a healthy synthetic adult beginner with three realistic running days, two short strength windows, no wearable, no current pain, and a general-cardio goal. Optional nutrition may stay off or loose.
 
 Pass only when the flow:
 
-- asks one focused question at a time in plain language;
+- asks one coherent group at a time in plain language, accepts a natural-language answer, reflects extracted facts, and follows up only on missing or ambiguous information;
 - covers safety, present activity, goal, availability, recovery context, strength, evidence sources, optional nutrition, Training Circle interest, and scheduled-coaching preferences;
 - recommends three separated run-walk-run sessions and two short technique-first strength sessions, with cycling only as optional support;
 - never calls a provider connected and treats manual input as valid;

@@ -19,6 +19,41 @@ test("schema defaults an unfamiliar athlete to a recommendation instead of metho
   assert.match(preferences.description, /recommends the starting approach by default/i);
 });
 
+test("grouped conversational onboarding covers every granular field exactly once", () => {
+  const schema = loadOnboardingSchema();
+  assert.equal(schema.conversation.mode, "grouped_natural_language");
+  assert.equal(schema.conversation.targetRounds, 8);
+  const schemaPaths = schema.sections.flatMap((section) => section.fields.map((field) => `${section.id}.${field.id}`)).sort();
+  const groupedPaths = schema.conversation.groups.flatMap((group) => group.fieldPaths).sort();
+  assert.deepEqual(groupedPaths, schemaPaths);
+  assert.equal(new Set(groupedPaths).size, groupedPaths.length);
+  assert.ok(schema.conversation.rules.some((rule) => /ask only for required/i.test(rule)));
+});
+
+test("provider reads record exact per-provider scopes and timing", () => {
+  const scoped = completeProfile({
+    data: {
+      sources: ["garmin", "strava"], primarySource: "garmin", historyWindow: "12_weeks", manualCheckins: true,
+      authorizedRead: true, readTiming: "now_before_plan",
+      providerScopes: { garmin: ["activities", "workout_details", "sleep"], strava: ["activities", "route_elevation"] }
+    }
+  });
+  const validation = validateProfile(scoped, { complete: true });
+  assert.equal(validation.valid, true);
+  const analysis = buildOnboardingAnalysis(validation.profile);
+  assert.equal(analysis.data.readBeforePlan, true);
+  assert.deepEqual(analysis.data.providerScopes.garmin, ["activities", "workout_details", "sleep"]);
+
+  const incomplete = validateProfile(completeProfile({
+    data: {
+      sources: ["garmin", "strava"], primarySource: "garmin", historyWindow: "12_weeks", manualCheckins: true,
+      authorizedRead: true, readTiming: "now_before_plan", providerScopes: { garmin: ["activities"] }
+    }
+  }), { complete: true });
+  assert.equal(incomplete.valid, false);
+  assert.ok(incomplete.missing.includes("data.providerScopes.strava"));
+});
+
 test("photo retention is fixed to no retention and only applies when photo nutrition is enabled", () => {
   const schema = loadOnboardingSchema();
   const nutrition = schema.sections.find((section) => section.id === "nutrition");

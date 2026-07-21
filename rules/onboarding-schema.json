@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-21-pre-plan-evidence",
+  "version": "2026-07-21-grouped-scope",
   "title": "Build your athlete map",
   "description": "A beginner-friendly intake that gives StrideOS enough context to recommend running, strength, recovery, data, and optional nutrition support safely.",
   "principles": [
@@ -10,8 +10,86 @@
     "Never present a planned or simulated connector as connected.",
     "Do not finalize a training prescription while a safety gate is active.",
     "Reading history and delivering a structured workout are separate permissions; setup assistance never implies permission to write.",
-    "When an athlete authorizes a selected provider read and wants to use that data, complete the read before the first individualized plan unless the athlete explicitly chooses an interview-only provisional plan."
+    "When an athlete authorizes a selected provider read and wants to use that data, complete the read before the first individualized plan unless the athlete explicitly chooses an interview-only provisional plan.",
+    "Conversational onboarding asks related questions in grouped rounds, extracts the same granular fields, confirms what was understood, and follows up only on missing or ambiguous answers.",
+    "Data permission is provider-specific and scope-specific. Confirm the provider, exact read scopes, history window, and read timing before retrieving evidence."
   ],
+  "conversation": {
+    "mode": "grouped_natural_language",
+    "targetRounds": 8,
+    "rules": [
+      "Ask one related group per turn and explicitly allow optional answers to be skipped.",
+      "Accept one natural-language answer for the whole group; extract it into the listed field paths without demanding form syntax.",
+      "After each answer, briefly reflect the extracted facts and ask only for required, safety-relevant, or decision-relevant gaps.",
+      "Never hide an authorization request inside a general question bundle. Summarize provider, scopes, history window, and timing, then obtain one explicit confirmation for the read.",
+      "Ask conditional branches only when they apply: event details for event goals, safety follow-up for a positive signal, nutrition details when nutrition is enabled, and delivery details when workout delivery is requested.",
+      "Run an authorized read-now evidence step before asking the athlete to manually reproduce data the selected source can provide. Confirm imported facts and then collect the subjective context the source cannot know.",
+      "Do not move to an individualized plan until the requested read is normalized, or the athlete explicitly chooses an interview-only provisional plan."
+    ],
+    "groups": [
+      {
+        "id": "you_and_success",
+        "title": "You and what success means",
+        "fieldPaths": [
+          "personal.preferredName", "personal.ageGroup", "personal.units", "personal.timezone", "personal.height", "personal.weight", "personal.weightContext",
+          "goals.primary", "goals.why", "goals.eventDistance", "goals.eventDate", "goals.timeGoal", "goals.successInTwelveWeeks", "goals.deadlineFlexibility"
+        ]
+      },
+      {
+        "id": "safety_check",
+        "title": "Safety before ambition",
+        "fieldPaths": [
+          "safety.currentPain", "safety.chestPain", "safety.dizzinessOrFainting", "safety.unusualBreathlessness", "safety.recentInjuryOrSurgery", "safety.knownCondition", "safety.medicationConsideration", "safety.pregnancyPostpartum", "safety.details", "safety.clearanceStatus", "safety.parqStatus"
+        ]
+      },
+      {
+        "id": "data_and_scope",
+        "title": "Your data and exact scope",
+        "fieldPaths": [
+          "data.sources", "data.primarySource", "data.historyWindow", "data.manualCheckins", "data.authorizedRead", "data.providerScopes", "data.readTiming"
+        ],
+        "requiresExplicitScopeConfirmation": true
+      },
+      {
+        "id": "training_baseline",
+        "title": "Current training and human context",
+        "fieldPaths": [
+          "baseline.activityLevel", "baseline.runningHistory", "baseline.currentWeeklyKm", "baseline.longestRecentRunKm", "baseline.otherActivities", "baseline.lastConsistentTraining", "baseline.recentBenchmark", "baseline.sessionRpeFamiliar"
+        ],
+        "prefillFromAuthorizedEvidence": true
+      },
+      {
+        "id": "plan_fit",
+        "title": "Schedule, environment, and strength",
+        "fieldPaths": [
+          "strength.experience", "strength.sessionsPerWeek", "strength.equipment", "strength.movementConfidence", "strength.techniqueSupport", "strength.limitations", "strength.preference", "strength.likesDislikes",
+          "schedule.daysPerWeek", "schedule.preferredDays", "schedule.minutesWeekday", "schedule.minutesWeekend", "schedule.preferredTime", "schedule.workPattern", "schedule.sleepHours", "schedule.stressLevel", "schedule.surfaces", "schedule.barriers"
+        ]
+      },
+      {
+        "id": "coaching_and_fuel_choice",
+        "title": "How you want to be coached",
+        "fieldPaths": [
+          "preferences.trainingStyle", "preferences.customStyle", "preferences.intensityTolerance", "preferences.sessionPreference", "preferences.coachingTone", "preferences.explanationDepth", "nutrition.mode"
+        ]
+      },
+      {
+        "id": "fuel_details",
+        "title": "Optional fueling details",
+        "condition": { "field": "nutrition.mode", "notEquals": "off" },
+        "fieldPaths": [
+          "nutrition.goal", "nutrition.dietPattern", "nutrition.allergiesIntolerances", "nutrition.medicalDiet", "nutrition.numberFreePreferred", "nutrition.trackingRelationship", "nutrition.cookingAccess", "nutrition.budget", "nutrition.hydration", "nutrition.proteinPowder", "nutrition.creatine", "nutrition.caffeine", "nutrition.supplements", "nutrition.photoMode", "nutrition.photoRetention"
+        ]
+      },
+      {
+        "id": "daily_experience",
+        "title": "Dashboard, delivery, and coaching rhythms",
+        "fieldPaths": [
+          "delivery.dashboard", "delivery.workoutDelivery", "delivery.workoutDeliveryTarget", "delivery.connectorSetupMode", "delivery.morningBrief", "delivery.preWorkoutBrief", "delivery.postWorkoutReflection", "delivery.weeklyReview", "delivery.briefTime", "delivery.preWorkoutLeadMinutes", "delivery.postWorkoutDelayMinutes", "delivery.weeklyReviewDay", "delivery.weeklyReviewTime", "delivery.approvalMode", "delivery.cloudProcessing"
+        ]
+      }
+    ]
+  },
   "sections": [
     {
       "id": "personal",
@@ -115,7 +193,9 @@
         { "id": "primarySource", "label": "Primary training source", "type": "single", "required": true, "options": ["garmin", "apple_health", "health_connect", "strava", "fitbit", "oura", "whoop", "polar", "coros", "suunto", "manual", "file_import", "none"] },
         { "id": "historyWindow", "label": "How much history should be analyzed?", "type": "single", "required": true, "options": ["none", "4_weeks", "12_weeks", "6_months", "1_year"] },
         { "id": "manualCheckins", "label": "Include short pain, effort, energy, and sleep-feel check-ins?", "type": "boolean", "required": true },
-        { "id": "authorizedRead", "label": "Allow reading only the sources you connect?", "type": "boolean", "required": true }
+        { "id": "authorizedRead", "label": "Allow reading only the sources and data types you confirm?", "type": "boolean", "required": true },
+        { "id": "providerScopes", "label": "What may be read from each selected provider?", "type": "provider_scopes", "required": false, "options": ["activities", "workout_details", "route_elevation", "recovery", "sleep", "weight_trend"], "showWhen": { "field": "authorizedRead", "equals": true } },
+        { "id": "readTiming", "label": "When should the selected evidence be read?", "type": "single", "required": true, "options": ["now_before_plan", "later"], "showWhen": { "field": "authorizedRead", "equals": true } }
       ]
     },
     {

@@ -5,12 +5,14 @@ This repository ships the StrideOS beginner-first endurance coaching plugin plus
 ## First run
 
 1. Read `GET /api/bootstrap` or the local state before coaching. If `needsOnboarding` is true, onboarding is the first product flow.
-2. Use `rules/onboarding-schema.json` as the question inventory. The web wizard is the default; a conversational agent may gather the same sections one at a time and save drafts through `POST /api/onboarding`.
-3. Never silently substitute `data/demo-athlete.json` for a real new user. Synthetic data is judge/demo data and must stay labeled.
-4. Optional answers may be skipped. Required answers must be complete before creating the first athlete map.
-5. A completed profile with an active safety gate may be saved, but running and strength prescription remain paused until the indicated review is resolved.
-6. Conversational onboarding must use plain language. Do not ask a new or inactive athlete to choose among unexplained training systems, intensity models, or coaching jargon.
-7. When an athlete selects a provider, authorizes a read, and wants that evidence used, complete the read before proposing the first individualized plan. If the read is unavailable or deferred, obtain an explicit choice to continue with a clearly provisional interview-only plan; never infer "connect later."
+2. Use `rules/onboarding-schema.json` as the question inventory and its `conversation.groups` as the conversational order. The web wizard and grouped chat collect the same versioned athlete map; a conversational agent gathers one coherent group per turn, extracts the same granular fields from a natural-language answer, and saves drafts through `POST /api/onboarding`.
+3. When `http://localhost:4173` is reachable and the current ChatGPT surface exposes its in-app browser, ask the athlete to choose **1. Open the browser questionnaire (recommended)** or **2. Continue here in chat**. If they choose the questionnaire, open it in ChatGPT's in-app browser and keep that same embedded tab available for the whole onboarding. Do not launch an OS/system browser, Chrome, or another external browser while the in-app browser is available.
+4. After the athlete finishes the questionnaire, re-read `GET /api/bootstrap` and verify `onboarding.completedAt` before coaching. An open page or partial draft is not completion. If localhost or the in-app browser is unavailable, explain that briefly and begin the grouped conversational fallback. Never launch an external browser automatically; use one only when the athlete explicitly requests it.
+5. Never silently substitute `data/demo-athlete.json` for a real new user. Synthetic data is judge/demo data and must stay labeled.
+6. Optional answers may be skipped. Required answers must be complete before creating the first athlete map.
+7. A completed profile with an active safety gate may be saved, but running and strength prescription remain paused until the indicated review is resolved.
+8. Conversational onboarding must use plain language. Ask several related questions together when they can be answered naturally, reflect what was extracted, and follow up only on required, safety-relevant, or decision-relevant gaps. Keep safety ambiguity and explicit permission confirmation focused. Do not ask a new or inactive athlete to choose among unexplained training systems, intensity models, or coaching jargon.
+9. When an athlete selects a provider, authorizes a read, and wants that evidence used, complete the read before proposing the first individualized plan. If the read is unavailable or deferred, obtain an explicit choice to continue with a clearly provisional interview-only plan; never infer "connect later."
 
 ## Coaching scope
 
@@ -57,6 +59,7 @@ This repository ships the StrideOS beginner-first endurance coaching plugin plus
 - Browser writes require an exact dry-run preview and one explicit approval for one visible state-changing action. After execution, verify the result in the provider UI before claiming success. Never schedule, batch, or run provider browsing unattended.
 - Label every signal with source and freshness when the dashboard supports it. Missing wearable data lowers confidence; it does not exclude the athlete.
 - Read `GET /api/dashboard` before answering what the athlete should do today. A pending or review-required plan is not an active prescription.
+- During onboarding, record read permission separately for every selected provider and data scope: activities, workout details, route/elevation, recovery, sleep, and optional weight trend. Confirm provider, scopes, history window, and whether to read now before retrieving anything. Read permission never grants a provider write.
 - Keep planned sessions, observed activities, and confirmed completion as separate concepts. Until explicit matching exists, never infer plan completion from an import.
 - Do not calculate or display a synthetic personal readiness score. Unknown, stale, and missing evidence must stay visible.
 

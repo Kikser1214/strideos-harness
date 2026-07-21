@@ -105,6 +105,8 @@ npm.cmd run setup
 
 `setup` installs the locked dependency set, runs the setup doctor, and starts the local experience at <http://localhost:4173>. The first page is the real athlete-map onboarding. It never loads synthetic sample data as a personal profile.
 
+For local ChatGPT desktop use, StrideOS first offers **Open the browser questionnaire (recommended)** or **Continue here in chat**. If the athlete selects the questionnaire, `coach-athlete` opens `http://localhost:4173` inside ChatGPT's in-app browser and keeps that same embedded tab available while the athlete completes the selections; it does not launch an external browser automatically. The skill then re-reads `GET /api/bootstrap` and continues only after `onboarding.completedAt` is present. On Work/cloud surfaces that cannot reach localhost—or surfaces without the in-app browser—the skill explains that briefly and asks the same detailed intake through eight grouped conversational rounds instead.
+
 Stop the server with `Ctrl+C`. Later starts use:
 
 ```bash

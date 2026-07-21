@@ -528,7 +528,19 @@ function onboardingValue(sectionId, fieldId) {
 }
 
 function answered(value) {
-  return value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length > 0);
+  return value !== undefined && value !== null && value !== "" &&
+    (!Array.isArray(value) || value.length > 0) &&
+    (typeof value !== "object" || Array.isArray(value) || Object.keys(value).length > 0);
+}
+
+function providerScopeSources() {
+  const excluded = new Set(["manual", "file_import", "none"]);
+  const selected = Array.isArray(onboardingValue("data", "sources")) ? onboardingValue("data", "sources") : [];
+  return selected.filter((providerId) => !excluded.has(providerId));
+}
+
+function providerScopeComplete(value) {
+  return providerScopeSources().every((providerId) => Array.isArray(value?.[providerId]) && value[providerId].length > 0);
 }
 
 function onboardingFieldVisible(section, field) {
@@ -537,15 +549,21 @@ function onboardingFieldVisible(section, field) {
   return onboardingValue(conditionSection, field.showWhen.field) === field.showWhen.equals;
 }
 
+function onboardingFieldRequired(section, field) {
+  if (!onboardingFieldVisible(section, field)) return false;
+  if (section.id === "data" && field.id === "providerScopes") return onboardingValue("data", "authorizedRead") === true && providerScopeSources().length > 0;
+  return field.required === true;
+}
+
 function sectionProgress(section) {
-  const required = section.fields.filter((field) => field.required && onboardingFieldVisible(section, field));
-  const complete = required.filter((field) => answered(onboardingValue(section.id, field.id))).length;
+  const required = section.fields.filter((field) => onboardingFieldRequired(section, field));
+  const complete = required.filter((field) => field.type === "provider_scopes" ? providerScopeComplete(onboardingValue(section.id, field.id)) : answered(onboardingValue(section.id, field.id))).length;
   return { complete, required: required.length, done: required.length === 0 || complete === required.length };
 }
 
 function totalOnboardingProgress() {
-  const fields = state.onboardingSchema.sections.flatMap((section) => section.fields.filter((field) => field.required && onboardingFieldVisible(section, field)).map((field) => [section.id, field.id]));
-  const complete = fields.filter(([sectionId, fieldId]) => answered(onboardingValue(sectionId, fieldId))).length;
+  const fields = state.onboardingSchema.sections.flatMap((section) => section.fields.filter((field) => onboardingFieldRequired(section, field)).map((field) => [section, field]));
+  const complete = fields.filter(([section, field]) => field.type === "provider_scopes" ? providerScopeComplete(onboardingValue(section.id, field.id)) : answered(onboardingValue(section.id, field.id))).length;
   return Math.round((complete / fields.length) * 100);
 }
 
@@ -565,6 +583,8 @@ function fieldHint(section, field) {
   if (section.id === "safety" && field.id === "parqStatus") return 'Use the current official form at <a href="https://eparmedx.com/" target="_blank" rel="noreferrer">ePARmed-X+ ↗</a>.';
   if (section.id === "strength" && field.id === "experience") return "Strength is part of the recommendation even when you have never lifted before.";
   if (section.id === "data" && field.id === "sources") return "StrideOS recommends official provider routes. When your current AI surface exposes attended browser or computer use, you may choose that too. These recommendations are not an allowlist.";
+  if (section.id === "data" && field.id === "providerScopes") return "Scope is recorded separately for every provider. Reading activities never grants workout delivery or another write.";
+  if (section.id === "data" && field.id === "readTiming") return "Choose Read now before plan when you want provider evidence used in the first individualized plan. Later produces an interview-only provisional plan until the read is completed.";
   if (section.id === "preferences" && field.id === "trainingStyle") return "New to training methods? Keep Recommend for me. A starter will normally begin with three separated run / walk sessions, two short technique-first strength sessions, and optional easy cycling when it fits.";
   if (section.id === "nutrition" && field.id === "supplements") return "Include product, dose, and timing when known. StrideOS reviews context; it does not assume a supplement is needed.";
   if (section.id === "delivery" && ["morningBrief", "preWorkoutBrief", "postWorkoutReflection", "weeklyReview"].includes(field.id)) return "This proposes a schedule only. Nothing is created until you test the prompt and create it in Scheduled.";
@@ -578,13 +598,22 @@ function fieldMarkup(section, field) {
   const value = onboardingValue(section.id, field.id);
   const name = `${section.id}.${field.id}`;
   const inputId = `onboarding-${section.id}-${field.id}`;
-  const required = field.required ? '<span class="required-dot" aria-label="required">●</span>' : "";
+  const required = onboardingFieldRequired(section, field) ? '<span class="required-dot" aria-label="required">●</span>' : "";
   const hint = fieldHint(section, field);
-  const wide = ["textarea", "multi"].includes(field.type) || ["sources", "preferredDays", "surfaces", "equipment"].includes(field.id);
+  const wide = ["textarea", "multi", "provider_scopes"].includes(field.type) || ["sources", "preferredDays", "surfaces", "equipment"].includes(field.id);
   let control = "";
 
   if (field.type === "boolean") {
     control = `<fieldset><legend>${escapeHtml(field.label)}${required}</legend><div class="choice-grid"><label class="choice-card"><input type="radio" name="${name}" value="true" ${value === true ? "checked" : ""}>Yes</label><label class="choice-card"><input type="radio" name="${name}" value="false" ${value === false ? "checked" : ""}>No</label></div></fieldset>`;
+  } else if (field.type === "provider_scopes") {
+    const providers = providerScopeSources();
+    const selections = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    const providerCards = providers.map((providerId) => {
+      const connector = state.onboardingConnectors.find((item) => item.id === providerId);
+      const selected = Array.isArray(selections[providerId]) ? selections[providerId] : [];
+      return `<fieldset class="provider-scope-card"><legend>${escapeHtml(connector?.label || humanize(providerId))}</legend><div class="choice-grid multi-grid">${field.options.map((scope) => `<label class="choice-card"><input type="checkbox" name="${name}.${escapeHtml(providerId)}" value="${escapeHtml(scope)}" ${selected.includes(scope) ? "checked" : ""}>${escapeHtml(humanize(scope))}</label>`).join("")}</div></fieldset>`;
+    }).join("");
+    control = `<fieldset><legend>${escapeHtml(field.label)}</legend>${providers.length ? `<div class="provider-scope-list">${providerCards}</div>` : '<p class="field-empty">Manual entry and file import do not require provider read scopes.</p>'}</fieldset>`;
   } else if (field.type === "multi") {
     const selected = Array.isArray(value) ? value : [];
     control = `<fieldset><legend>${escapeHtml(field.label)}${required}</legend><div class="choice-grid multi-grid">${field.options.map((option) => { const label = section.id === "strength" && field.id === "equipment" && option === "none" ? "No equipment" : humanize(option); return `<label class="choice-card"><input type="checkbox" name="${name}" value="${escapeHtml(option)}" ${selected.includes(option) ? "checked" : ""}>${escapeHtml(label)}</label>`; }).join("")}</div></fieldset>`;
@@ -599,7 +628,18 @@ function fieldMarkup(section, field) {
   const deliveryDependent = section.id === "delivery" && ["workoutDeliveryTarget", "connectorSetupMode"].includes(field.id);
   const photoRetentionDependent = section.id === "nutrition" && field.id === "photoRetention";
   const hidden = (deliveryDependent && onboardingValue("delivery", "workoutDelivery") !== true) || !onboardingFieldVisible(section, field);
-  return `<div class="onboarding-field ${wide ? "wide" : ""}" data-field="${field.id}" ${deliveryDependent ? "data-workout-delivery-dependent" : ""} ${photoRetentionDependent ? "data-photo-retention-dependent" : ""} ${hidden ? "hidden" : ""}>${control}${hint ? `<p class="field-hint">${hint}</p>` : ""}</div>`;
+  return `<div class="onboarding-field ${wide ? "wide" : ""}" data-field="${field.id}" ${deliveryDependent ? "data-workout-delivery-dependent" : ""} ${photoRetentionDependent ? "data-photo-retention-dependent" : ""} ${field.type === "provider_scopes" ? "data-provider-scopes" : ""} ${hidden ? "hidden" : ""}>${control}${hint ? `<p class="field-hint">${hint}</p>` : ""}</div>`;
+}
+
+function updateProviderScopeField() {
+  const step = onboardingSteps()[state.onboardingStep];
+  if (step?.id !== "data") return;
+  const field = step.fields.find((item) => item.id === "providerScopes");
+  const wrapper = $("#onboardingFields").querySelector("[data-provider-scopes]");
+  if (!field || !wrapper) return;
+  const template = document.createElement("template");
+  template.innerHTML = fieldMarkup(step, field).trim();
+  wrapper.replaceWith(template.content.firstElementChild);
 }
 
 function updateWorkoutDeliveryFields() {
@@ -659,7 +699,9 @@ function captureOnboardingStep() {
   for (const field of step.fields) {
     const name = `${step.id}.${field.id}`;
     let value;
-    if (field.type === "multi") value = formData.getAll(name);
+    if (field.type === "provider_scopes") {
+      value = Object.fromEntries(providerScopeSources().map((providerId) => [providerId, formData.getAll(`${name}.${providerId}`)]).filter(([, scopes]) => scopes.length));
+    } else if (field.type === "multi") value = formData.getAll(name);
     else value = formData.get(name);
     if (field.type === "boolean" && value !== null) value = value === "true";
     if (field.type === "number" && value !== null && value !== "") value = Number(value);
@@ -673,7 +715,11 @@ function validateCurrentOnboardingStep() {
   const step = onboardingSteps()[state.onboardingStep];
   if (!step || step.id === "review") return true;
   $("#onboardingFields").querySelectorAll(".field-error").forEach((node) => node.remove());
-  const missing = step.fields.filter((field) => field.required && onboardingFieldVisible(step, field) && !answered(onboardingValue(step.id, field.id)));
+  const missing = step.fields.filter((field) => onboardingFieldRequired(step, field) && (field.type === "provider_scopes" ? !providerScopeComplete(onboardingValue(step.id, field.id)) : !answered(onboardingValue(step.id, field.id))));
+  if (step.id === "data" && onboardingValue("data", "authorizedRead") === true) {
+    const field = step.fields.find((item) => item.id === "providerScopes");
+    if (field && !providerScopeComplete(onboardingValue("data", "providerScopes")) && !missing.includes(field)) missing.push(field);
+  }
   if (step.id === "delivery" && onboardingValue("delivery", "workoutDelivery") === true) {
     for (const fieldId of ["workoutDeliveryTarget", "connectorSetupMode"]) {
       const field = step.fields.find((item) => item.id === fieldId);
@@ -706,6 +752,7 @@ async function renderOnboardingReview() {
     const connectorChips = analysis.data.selected.length
       ? analysis.data.selected.map((connector) => `<span>${escapeHtml(connector.label)} · ${escapeHtml(humanize(connector.status))}</span>`).join("")
       : "<span>Manual only</span>";
+    const scopeChips = Object.entries(analysis.data.providerScopes || {}).flatMap(([providerId, scopes]) => scopes.map((scope) => `<span>${escapeHtml(humanize(providerId))} Â· ${escapeHtml(humanize(scope))}</span>`)).join("") || "<span>No provider scope selected</span>";
     const automations = analysis.automation.proposals.length ? analysis.automation.proposals.map((proposal) => `<li>${escapeHtml(proposal.label)} — proposal only</li>`).join("") : "<li>No scheduled briefs selected</li>";
     const evidenceGaps = [...athlete.missingData.blocking, ...athlete.missingData.important, ...athlete.missingData.helpful].slice(0, 4);
     const gapList = evidenceGaps.length ? evidenceGaps.map((gap) => `<li>${escapeHtml(gap.explanation)}</li>`).join("") : "<li>No important gap before a conservative first plan.</li>";
@@ -718,7 +765,7 @@ async function renderOnboardingReview() {
       <article class="review-card ${["safety_stop", "progression_hold"].includes(athlete.recovery.status) ? "alert" : ""}"><small>Recovery posture <span class="analysis-confidence">${escapeHtml(athlete.recovery.confidence.label)} confidence</span></small><strong>${escapeHtml(humanize(athlete.recovery.status))}</strong><p>${escapeHtml(athlete.recovery.explanation)}</p></article>
       <article class="review-card"><small>Running frame</small><strong>${analysis.training.runSessionsPerWeek} sessions / week</strong><p>${escapeHtml(humanize(analysis.training.recommended))}. ${analysis.training.researchRequired ? "The requested method needs a suitability research pass." : "The method can be refined from your feedback."}</p></article>
       <article class="review-card"><small>Strength frame</small><strong>${analysis.strength.sessionsPerWeek} sessions / week</strong><p>${escapeHtml(analysis.strength.recommendation)}</p></article>
-      <article class="review-card review-full"><small>Evidence route</small><strong>${escapeHtml(analysis.data.primary.label)}</strong><p>${escapeHtml(analysis.data.note)}</p><div class="connector-truth">${connectorChips}</div></article>
+      <article class="review-card review-full"><small>Evidence route</small><strong>${escapeHtml(analysis.data.primary.label)} Â· ${analysis.data.authorizedRead ? escapeHtml(humanize(analysis.data.readTiming || "timing_needed")) : "read not authorized"}</strong><p>${escapeHtml(analysis.data.note)}</p><div class="connector-truth">${connectorChips}${scopeChips}</div></article>
       <article class="review-card review-full"><small>Workout delivery</small><strong>${analysis.workoutDelivery.requested ? escapeHtml(humanize(analysis.workoutDelivery.target || "target_needed")) : "Off"}</strong><p>${escapeHtml(analysis.workoutDelivery.note)} ${escapeHtml(analysis.workoutDelivery.approval)}</p><div class="connector-truth"><span>${escapeHtml(humanize(analysis.workoutDelivery.setupMode))}</span><span>${analysis.workoutDelivery.connector?.workoutDelivery?.attendedOnly ? "Attended host option" : "Reference runtime · no live write"}</span></div></article>
       <article class="review-card review-full"><small>What would improve confidence</small><strong>${escapeHtml(humanize(athlete.missingData.status))}</strong><ul>${gapList}</ul></article>
       <article class="review-card"><small>Fuel support</small><strong>${escapeHtml(humanize(analysis.nutrition.mode))}</strong><p>${escapeHtml(analysis.nutrition.recommendation)}</p></article>
@@ -809,6 +856,16 @@ $("#onboardingForm").addEventListener("submit", async (event) => {
 });
 $("#onboardingFields").addEventListener("change", (event) => {
   if (event.target.name === "delivery.workoutDelivery") updateWorkoutDeliveryFields();
+  if (event.target.name === "data.authorizedRead") {
+    captureOnboardingStep();
+    renderOnboardingStep();
+    return;
+  }
+  if (event.target.name === "data.sources") {
+    captureOnboardingStep();
+    updateProviderScopeField();
+    renderOnboardingNav();
+  }
   if (event.target.name === "nutrition.photoMode") {
     captureOnboardingStep();
     updatePhotoRetentionField();

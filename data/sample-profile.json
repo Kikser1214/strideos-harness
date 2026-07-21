@@ -46,7 +46,8 @@
     "primarySource": "manual",
     "historyWindow": "none",
     "manualCheckins": true,
-    "authorizedRead": true
+    "authorizedRead": true,
+    "readTiming": "now_before_plan"
   },
   "preferences": {
     "trainingStyle": "recommend_for_me",

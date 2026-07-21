@@ -68,12 +68,15 @@ Primary platform sources:
 4. Safety: current pain, recent injury/surgery, concerning symptoms, known conditions, medication considerations, pregnancy/postpartum when relevant, and existing clearance. Positive signals stop automated prescription and route to qualified review.
 5. Goal: general health, cardio, habit, return, race completion/performance, trail, strength, or another athlete-defined outcome; event date and target are optional.
 6. Real-life capacity: available days, minutes per session, work/shift pattern, sleep, stress, caregiving, surface, climate, treadmill/gym access, and recurring barriers.
-7. Data: owned devices/apps, requested read and write capabilities, primary source, desired history, official route, current host browser/computer-use capability, user-supplied tool choice, import fallback, freshness, and consent.
+7. Data: owned devices/apps, primary source, exact per-provider read scopes (activities, workout details, route/elevation, recovery, sleep, and optional weight trend), desired history, read-now versus later timing, separately requested write capabilities, official route, current host browser/computer-use capability, user-supplied tool choice, import fallback, freshness, and consent.
 8. Training preference: recommend-for-me or a named approach, intensity tolerance, social/solo, indoor/outdoor, disliked sessions, coaching tone, and desired explanation depth.
 9. Nutrition: opt-in level, dietary pattern, allergies/intolerances, medically prescribed diet, cooking access, budget, hydration, routine meals, supplements, photo use, and number-free preference.
 10. Delivery and privacy: dashboard, briefings, weekly review, schedule, approval rules, local/cloud processing, the bundled no-retention photo rule, export, and deletion.
 
 ## Recommendation rules
+
+- Conversational onboarding uses the schema's eight grouped rounds. A natural-language answer may populate several granular fields; the agent reflects what it extracted and asks only for missing required information, safety ambiguity, or an explicit permission decision. Grouping must not delete useful athlete-map fields.
+- Complete an explicitly authorized read-now step before asking the athlete to manually reproduce source-observable history. Summarize each provider's exact scopes, history window, and timing for confirmation first. If the read cannot complete, ask whether to pause or continue with a clearly provisional interview-only plan.
 
 - Strength is always considered. For an eligible adult beginner, the default is two short technique-first full-body sessions, adjusted downward when the starting capacity cannot yet support them. Established athletes keep or progress strength according to experience and race load.
 - Named methods are preferences, not commands. The agent researches the exact method and checks suitability before proposing it. “Norwegian” may refer to threshold-focused systems used by advanced endurance athletes; “African” is not treated as one method.

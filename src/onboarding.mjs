@@ -14,6 +14,7 @@ const safetyLabels = {
   medicationConsideration: "a medication consideration"
 };
 const hardSafetyFields = new Set(["chestPain", "dizzinessOrFainting", "unusualBreathlessness"]);
+const nonProviderSources = new Set(["manual", "file_import", "none"]);
 
 export function loadOnboardingSchema() {
   return JSON.parse(fs.readFileSync(schemaUrl, "utf8"));
@@ -24,7 +25,9 @@ export function listConnectors() {
 }
 
 function isBlank(value) {
-  return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
+  return value === undefined || value === null || value === "" ||
+    (Array.isArray(value) && value.length === 0) ||
+    (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0);
 }
 
 function fieldValue(profile, sectionId, fieldId) {
@@ -47,6 +50,13 @@ function normalizeField(field, value) {
   }
   if (field.type === "boolean") return typeof value === "boolean" ? value : value;
   if (field.type === "multi") return Array.isArray(value) ? [...new Set(value.map((item) => String(item).trim()).filter(Boolean))] : value;
+  if (field.type === "provider_scopes") {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+    return Object.fromEntries(Object.entries(value).map(([providerId, scopes]) => [
+      String(providerId).trim(),
+      Array.isArray(scopes) ? [...new Set(scopes.map((scope) => String(scope).trim()).filter(Boolean))] : scopes
+    ]).filter(([providerId, scopes]) => providerId && Array.isArray(scopes) && scopes.length));
+  }
   return value;
 }
 
@@ -61,6 +71,11 @@ export function normalizeProfile(input = {}) {
       if (!fieldIsVisible(input, section.id, field)) continue;
       const value = normalizeField(field, source[field.id]);
       if (value !== undefined) normalized[field.id] = value;
+    }
+    if (section.id === "data" && normalized.providerScopes) {
+      const selected = new Set(Array.isArray(normalized.sources) ? normalized.sources : []);
+      normalized.providerScopes = Object.fromEntries(Object.entries(normalized.providerScopes).filter(([providerId]) => selected.has(providerId) && !nonProviderSources.has(providerId)));
+      if (!Object.keys(normalized.providerScopes).length) delete normalized.providerScopes;
     }
     if (Object.keys(normalized).length) profile[section.id] = normalized;
   }
@@ -92,6 +107,27 @@ export function validateProfile(input = {}, { complete = false } = {}) {
       if (["text", "textarea", "timezone"].includes(field.type) && field.maxLength && String(value).length > field.maxLength) errors.push({ path, message: `Keep this under ${field.maxLength} characters.` });
       if (field.options && field.type === "single" && !field.options.includes(value)) errors.push({ path, message: "Choose one of the available options." });
       if (field.options && field.type === "multi" && (!Array.isArray(value) || value.some((item) => !field.options.includes(item)))) errors.push({ path, message: "Choose only available options." });
+      if (field.type === "provider_scopes") {
+        if (!value || typeof value !== "object" || Array.isArray(value)) errors.push({ path, message: "Choose data types for each selected provider." });
+        else {
+          const selected = new Set(Array.isArray(profile.data?.sources) ? profile.data.sources : []);
+          const allowed = new Set(field.options || []);
+          for (const [providerId, scopes] of Object.entries(value)) {
+            if (!selected.has(providerId) || nonProviderSources.has(providerId) || !Array.isArray(scopes) || scopes.some((scope) => !allowed.has(scope))) {
+              errors.push({ path: `${path}.${providerId}`, message: "Choose only available scopes for a selected provider." });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (complete && profile.data?.authorizedRead === true) {
+    const selectedProviders = (profile.data?.sources || []).filter((providerId) => !nonProviderSources.has(providerId));
+    for (const providerId of selectedProviders) {
+      if (!Array.isArray(profile.data?.providerScopes?.[providerId]) || profile.data.providerScopes[providerId].length === 0) {
+        missing.push(`data.providerScopes.${providerId}`);
+      }
     }
   }
 
@@ -107,8 +143,14 @@ export function validateProfile(input = {}, { complete = false } = {}) {
 
 function completeness(profile) {
   const required = loadOnboardingSchema().sections.flatMap((section) => section.fields.filter((field) => field.required && fieldIsVisible(profile, section.id, field)).map((field) => [section.id, field.id]));
-  const answered = required.filter(([sectionId, fieldId]) => !isBlank(fieldValue(profile, sectionId, fieldId))).length;
-  return { answered, required: required.length, percent: Math.round((answered / required.length) * 100) };
+  const selectedProviders = profile.data?.authorizedRead === true
+    ? (profile.data?.sources || []).filter((providerId) => !nonProviderSources.has(providerId))
+    : [];
+  const answeredFields = required.filter(([sectionId, fieldId]) => !isBlank(fieldValue(profile, sectionId, fieldId))).length;
+  const answeredScopes = selectedProviders.filter((providerId) => Array.isArray(profile.data?.providerScopes?.[providerId]) && profile.data.providerScopes[providerId].length).length;
+  const answered = answeredFields + answeredScopes;
+  const requiredCount = required.length + selectedProviders.length;
+  return { answered, required: requiredCount, percent: Math.round((answered / requiredCount) * 100) };
 }
 
 function safetyAnalysis(profile) {
@@ -136,10 +178,16 @@ function dataAnalysis(profile) {
   const primary = connectors.find((connector) => connector.id === primaryId) || connectors.find((connector) => connector.id === "manual");
   const selected = requested.map((id) => connectors.find((connector) => connector.id === id)).filter(Boolean);
   const activeNow = selected.filter((connector) => connector.canRead && connector.status === "available");
+  const providerScopes = profile.data?.providerScopes || {};
+  const readTiming = profile.data?.authorizedRead === true ? profile.data?.readTiming || null : null;
   return {
     primary,
     selected,
     activeNow,
+    authorizedRead: profile.data?.authorizedRead === true,
+    providerScopes,
+    readTiming,
+    readBeforePlan: profile.data?.authorizedRead === true && readTiming === "now_before_plan",
     needsFallback: !["manual", "none"].includes(primary.id) && !(primary.canRead && primary.status === "available"),
     fallback: primary.id === "manual" || primary.id === "none" ? "manual" : "manual_or_file_import",
     note: ["apple_health", "health_connect"].includes(primary.id)

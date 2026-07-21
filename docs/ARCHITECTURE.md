@@ -98,6 +98,7 @@ Each skill includes a concise `SKILL.md`, OpenAI UI metadata, and a focused refe
 The local Node/PWA proves deterministic behavior:
 
 - first-run onboarding and safety gates;
+- eight-round conversational intake that extracts the full versioned athlete map, including per-provider read scopes and read timing;
 - athlete analysis and training-plan proposals;
 - explicit plan activation and decline;
 - imports, manual check-ins, provenance, and freshness;

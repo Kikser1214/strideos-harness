@@ -14,6 +14,7 @@ Built with Codex and GPT-5.6 for OpenAI Build Week 2026. Licensed under MIT.
 
 - [Open the live StrideOS landing site](https://strideos-open-coach.gogov-nikola22.chatgpt.site/)
 - [Open the live Training Circle demo](https://strideos-coach-demo.gogov-nikola22.chatgpt.site/)
+- [Watch the StrideOS demo video](https://youtu.be/sREE8wtsRBE)
 
 ## Install the plugin
 
@@ -35,9 +36,13 @@ codex plugin list
 codex plugin add strideos@strideos
 ```
 
-For ChatGPT desktop, restart the app, open **Plugins Directory**, install or enable **StrideOS**, and begin a new Work/Codex task. For Codex CLI, begin a new session after `codex plugin add`. Then try:
+For ChatGPT desktop, restart the app, open **Plugins Directory**, install or enable **StrideOS**, and begin a new Work/Codex task. For Codex CLI, begin a new session after `codex plugin add`.
 
-> @strideos I want StrideOS to coach me. Start from the beginning and recommend what I should do.
+### Start StrideOS
+
+> `@strideos Start first-time onboarding.`
+
+StrideOS offers the local questionnaire in ChatGPT's in-app browser when it is available; otherwise it continues with the equivalent grouped chat interview.
 
 StrideOS skills are explicit-invocation only. This keeps the public plugin's rules out of unrelated personal, work, or coaching tasks unless the athlete deliberately selects `@strideos` or one of its bundled skills.
 
@@ -89,6 +94,12 @@ StrideOS asks for information only when it can change safety, the recommendation
 - strength experience, technique confidence, equipment, preferences, and limitations;
 - athlete-selected phone, watch, provider, file, or manual evidence;
 - coaching style, optional nutrition, collaboration, automation, and delivery preferences.
+
+Conversational onboarding keeps that detailed map but collects it in eight coherent rounds rather than a long chain of isolated questions. The athlete can answer a related group in ordinary prose, skip optional details, review what StrideOS extracted, and receive follow-ups only for required information, safety ambiguity, or a decision that changes the next step. Conditional nutrition and device-delivery details appear only when enabled.
+
+When the repository is running locally, the preferred onboarding surface is the browser questionnaire at <http://localhost:4173>. StrideOS asks the athlete to choose **Open the browser questionnaire (recommended)** or **Continue here in chat**. After the athlete chooses the questionnaire, ChatGPT opens it in the in-app browser and keeps that embedded tab available throughout onboarding; StrideOS never launches a separate browser automatically. The athlete selects everything in the wizard, then the agent reads the completed normalized athlete map from `GET /api/bootstrap`; it does not scrape the page or repeat the questionnaire in chat. The eight-round conversational flow is the equivalent fallback for Work/cloud or any host that cannot reach the local runtime or embedded browser.
+
+Data is requested early enough to prevent duplicate work. For every selected provider, the athlete chooses the exact scopes—activities, workout details, route/elevation, recovery, sleep, and optional weight trend—plus a history window and whether to read now before planning or later. StrideOS reflects that scope for explicit confirmation. When read-now evidence is authorized, it retrieves and normalizes the evidence before asking the athlete to manually reproduce provider-observable history; the athlete then confirms the extracted baseline and adds the human context the device cannot know. No read grants a workout or calendar write.
 
 Someone who does not know training terminology is not asked to choose among unexplained systems. For a suitable beginner who wants StrideOS to decide, the starting recommendation is three separated run-walk-run sessions, two short technique-first strength sessions, and optional easy cycling when it fits schedule and recovery. Running grows gradually and walking reduces only when pain, recovery, and recent effort support it.
 

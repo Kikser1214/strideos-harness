@@ -6,6 +6,23 @@ Use this reference for first-run intake, safety stops, state transitions, and ap
 
 Collect fields only when they can change safety, recommendation, delivery, or communication.
 
+## Grouped interview contract
+
+The detailed athlete map remains intact, but conversational onboarding must not present it as a long chain of isolated questions. Run these coherent rounds:
+
+When the cloned reference runtime responds at `http://localhost:4173` and ChatGPT's in-app browser is available, ask the athlete to choose **1. Open the browser questionnaire (recommended)** or **2. Continue here in chat**. Choice 1 opens and keeps the wizard in the same embedded in-app browser tab; it must not launch a separate system browser. After the athlete completes it, re-read `GET /api/bootstrap` and require `onboarding.completedAt`; do not scrape the rendered page or infer completion from a partial draft. If localhost or the in-app browser is unavailable, say so briefly and use this grouped interview. Never open an external browser without the athlete explicitly requesting it. The browser and conversation paths produce the same versioned profile.
+
+1. **You and success:** name, age group, units/timezone, goal, motivation, event details when applicable, and a concrete 12-week win.
+2. **Safety:** present the seven safety signals as one numbered checklist with "none" as a valid answer; ask clearance/PAR-Q+ or detail questions only when relevant.
+3. **Data and exact scope:** selected providers, primary source, per-provider scopes, history window, manual check-ins, and whether the read happens now before planning or later.
+4. **Training baseline:** current movement, running experience, recent consistency, weekly volume, longest effort, other activities, benchmark, and effort-scale familiarity. Prefill provider-observable facts after an authorized read and ask the athlete to confirm them.
+5. **Plan fit:** realistic schedule, work/life constraints, sleep/stress, training environment, barriers, and strength experience, equipment, technique confidence, limitations, and preferences.
+6. **Coaching and fuel choice:** method recommendation or named-method research, intensity tolerance, session preferences, tone, explanation depth, and whether nutrition support is enabled.
+7. **Fuel details, only when enabled:** priorities, dietary constraints, relationship with numbers, cooking/budget/hydration context, supplements, and optional photo use.
+8. **Daily experience:** dashboard, Training Circle, coaching rhythms, workout destination, setup-help preference, approval rule, and cloud-processing choice.
+
+Ask one round per turn, using plain language and explicitly allowing optional items to be skipped. Accept prose or a numbered answer. Extract all supported fields, reflect the important facts, and follow up only on missing required information, safety ambiguity, or an explicit decision boundary. A positive safety answer gets its own focused follow-up. Provider authorization is always summarized and confirmed separately even when its discovery questions were grouped.
+
 ### Identity and context
 
 - preferred name, language, units, timezone;
@@ -56,7 +73,8 @@ Do not diagnose. Pause ordinary prescription when concerning symptoms or unresol
 ### Evidence and delivery
 
 - phone, watch, provider, files, or manual check-ins the athlete chooses to use;
-- source scope, history window, cloud-processing choice, and retention preference;
+- exact per-provider read scopes—activities, workout details, route/elevation, recovery, sleep, and optional weight trend—plus history window and read timing;
+- cloud-processing choice and retention preference;
 - desired workout destination and whether setup help is guide-only, reviewed local help, or not now.
 
 StrideOS provides official recommendations; it does not define an allowlist. Route provider requests to `$use-training-data`, which may actively offer attended browser/computer use when the current surface exposes it. If the athlete explicitly selects a local script, another plugin, or another external host capability, let provider guidance step aside. The agent handles that capability under host permissions and the ordinary exact write-approval boundary.
@@ -68,6 +86,8 @@ When the athlete selects a provider, authorizes a read, and says they want to co
 If the timing is unclear, ask: "You chose [provider] and allowed [scope]. Before I build your first plan, would you like me to read it now? I will use the best available route; if that is attended browsing, you will sign in yourself. If not, I can pause or draft a clearly provisional plan from the interview only."
 
 If the athlete agrees but the read cannot be completed, state the missing route or evidence and ask whether to pause or continue with the interview-only provisional plan. Consent to provider access is not consent to silently plan without the provider data. If the athlete explicitly chooses later or declines, confirm that choice before offering the provisional plan.
+
+Before executing a read, reflect one compact permission statement: each provider, its exact scopes, the history window, and whether it is being read now. Obtain explicit confirmation of that statement. Reading one provider or scope never authorizes another, and no read authorization grants a workout/calendar write.
 
 ### Coaching and optional nutrition
 
