@@ -95,7 +95,7 @@ test("StrideOS plugin manifest describes a distributable skill package", () => {
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 
   assert.equal(manifest.name, "strideos");
-  assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
+  assert.match(manifest.version, /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/);
   assert.equal(manifest.skills, "./skills/");
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.interface.displayName, "StrideOS");

@@ -171,8 +171,7 @@
         { "id": "weeklyReviewDay", "label": "Preferred weekly review day", "type": "single", "required": false, "options": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
         { "id": "weeklyReviewTime", "label": "Preferred weekly review time", "type": "time", "required": false },
         { "id": "approvalMode", "label": "External action rule", "type": "single", "required": true, "options": ["ask_every_time", "ask_for_plan_and_writes", "read_only"] },
-        { "id": "cloudProcessing", "label": "Allow selected text/images to be processed by the configured AI service?", "type": "boolean", "required": true },
-        { "id": "photoRetention", "label": "Photo retention", "type": "single", "required": true, "options": ["do_not_retain", "retain_local", "ask_each_time"] }
+        { "id": "cloudProcessing", "label": "Allow selected text/images to be processed by the configured AI service?", "type": "boolean", "required": true }
       ]
     }
   ]

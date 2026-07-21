@@ -203,7 +203,7 @@ export function buildNutritionCompanion({ profile = {}, activePlan = null } = {}
     supplements: requestedMode === "off" ? [] : supplementReview(profile, protectedContext),
     photo: {
       enabled: photoEnabled,
-      retention: profile.delivery?.photoRetention || "do_not_retain",
+      retention: "do_not_retain",
       rawImageStored: false,
       explanation: photoEnabled
         ? "A selected meal or fridge image may be analyzed for the current request. The raw image is not written to the local state file."

@@ -128,9 +128,10 @@ function browserRouteAllowed(route, { surface, attended, scheduled, headless, br
 }
 
 function universalBrowserRoute(provider, capability, playbooks, webAppUrl = null) {
-  if (!provider || !webAppUrl) return null;
+  const providerId = typeof provider === "string" ? provider : provider?.id;
+  if (!providerId || !webAppUrl) return null;
   return {
-    id: `${provider.id}_assisted_browser`,
+    id: `${providerId}_assisted_browser`,
     type: "assisted_browsing",
     providerPermittedForIndividual: null,
     providerPermissionClaim: "not_evaluated_by_plugin",
@@ -241,7 +242,7 @@ export function resolveProviderRoutes({
   playbooks = loadConnectorPlaybooks()
 } = {}) {
   const provider = playbooks.providers.find((item) => item.id === providerId);
-  if (!provider) return [];
+  if (typeof providerId !== "string" || !/^[a-z0-9][a-z0-9_-]{0,79}$/.test(providerId)) return [];
   const hostBrowserAvailable = browserToolAvailable === true
     || hostCapabilities?.assistedBrowsing === true
     || hostCapabilities?.computerUse === true;
@@ -294,7 +295,7 @@ export function resolveProviderRoutes({
       };
     });
 
-  const browserAvailable = provider && assistedBrowsingAvailable({
+  const browserAvailable = Boolean(hostWebAppUrl) && assistedBrowsingAvailable({
     surface,
     attended,
     scheduled,
@@ -302,7 +303,7 @@ export function resolveProviderRoutes({
     browserToolAvailable: hostBrowserAvailable
   });
   const browser = browserAvailable && !upstream.some((route) => isAttendedBrowserRouteType(route.type))
-    ? universalBrowserRoute(provider, capability, playbooks, hostWebAppUrl)
+    ? universalBrowserRoute(provider || providerId, capability, playbooks, hostWebAppUrl)
     : null;
   if (browser) {
     const omittedByLocalPreference = installationOmitsRecommendation(browser, localRecommendationPreferences);
@@ -543,8 +544,9 @@ export function filterProviderEvidenceForModelContext(records = [], { purpose = 
   for (const record of Array.isArray(records) ? records : []) {
     const provider = playbooks.providers.find((item) => item.id === record?.providerId);
     const route = provider?.permittedRoutes.find((item) => item.id === record?.routeId);
-    const hostBrowserRecord = provider
-      && record?.routeId === `${provider.id}_assisted_browser`
+    const hostBrowserRecord = typeof record?.providerId === "string"
+      && record.providerId.length > 0
+      && record?.routeId === `${record.providerId}_assisted_browser`
       && record?.routeClass === "assisted_browser"
       && record?.routeOrigin === "host_assisted_browser";
     const browserRecord = isAttendedBrowserRouteType(route?.type) || hostBrowserRecord;

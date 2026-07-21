@@ -292,6 +292,36 @@ test("a host-supplied provider page enables the universal attended route without
   assert.deepEqual(filterProviderEvidenceForModelContext([{ id: "whoop-browser", ...record }]).included.map((item) => item.id), ["whoop-browser"]);
 });
 
+test("an unknown provider with a host-supplied web app is normalized without turning the catalog into an allowlist", () => {
+  const hostCapabilities = { computerUse: true, providerWebAppUrl: "https://training.example/" };
+  const route = resolveProviderRoute({
+    providerId: "athlete_selected_provider",
+    capability: "read_activity",
+    purpose: "model_inference",
+    surface: "host_with_computer_use",
+    attended: true,
+    hostCapabilities
+  });
+  assert.equal(route?.id, "athlete_selected_provider_assisted_browser");
+  assert.equal(route?.routeOrigin, "host_assisted_browser");
+  assert.equal(route?.policyProvenance.scope, "current_host_session");
+
+  const record = browserReadProvenance({
+    providerId: "athlete_selected_provider",
+    routeId: route.id,
+    capability: "read_activity",
+    observedAt: "2026-07-20T06:00:00.000Z",
+    retrievedAt: "2026-07-20T06:01:00.000Z",
+    pageUrl: "https://training.example/activities/42?session=discarded",
+    providerWebAppUrl: "https://training.example/",
+    surface: "host_with_computer_use",
+    attended: true,
+    hostCapabilities
+  });
+  assert.equal(record.page, "https://training.example/activities/42");
+  assert.deepEqual(filterProviderEvidenceForModelContext([{ id: "unknown-browser", ...record }]).included.map((item) => item.id), ["unknown-browser"]);
+});
+
 test("resolver decisions classify recommendation gaps without claiming enforcement authority", () => {
   const missing = resolveProviderRouteDecision({ providerId: "apple_health", capability: "read_activity", requestedRouteId: "apple_export" });
   assert.equal(missing.outcome, "no_recommendation");

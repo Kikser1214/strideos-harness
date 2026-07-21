@@ -52,6 +52,10 @@ When the user says, for example, "use this adapter" or a fork includes its own i
 
 Upstream documentation must not include the adapter's unofficial connection recipe. A fork owner may write and maintain different local instructions in that fork.
 
+The optional reference runtime uses conservative multilingual free-text symptom stops, but it is not a medical-language interpreter; structured safety answers, current symptoms, and qualified human judgment remain authoritative.
+
+The bundled nutrition runtime does not retain raw meal, fridge, or body-context photos; local retention and per-photo retention prompts are not implemented in this release.
+
 ## Installed snapshots and updates
 
 Codex loads an installed plugin snapshot. Editing the Git checkout does not mutate an already installed copy or the instructions already loaded into an existing task.

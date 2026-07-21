@@ -502,10 +502,13 @@ test("provider write is not reported performed without a separate exact read-bac
     const proof = { id: decision.id, approvalNonce: decision.approvalEnvelope.nonce, scopeHash: decision.approvalEnvelope.scopeHash };
     const response = await post(base, "/api/decisions/approve", proof);
     assert.equal(response.status, 409);
-    assert.match((await response.json()).error, /separate visible read-back/i);
+    assert.match((await response.json()).error, /may have occurred.*reconcile/i);
     assert.equal(writes, 1);
     assert.equal(verified, 1);
-    assert.equal(findDecision(decision.id).status, "stopped");
+    assert.equal(findDecision(decision.id).status, "verification_required");
+    assert.equal(findDecision(decision.id).result.performed, null);
+    assert.equal(findDecision(decision.id).result.writeMayHaveOccurred, true);
+    assert.equal(findDecision(decision.id).result.providerRecordId, "provider-workout-2");
     assert.equal((await post(base, "/api/decisions/approve", proof)).status, 409);
   }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
 });
@@ -583,6 +586,19 @@ test("safety decisions cannot be approved", () => withServer(async (base) => {
   const coached = await (await post(base, "/api/coach", { message: "I have sharp chest pain and feel dizzy." })).json();
   assert.equal(coached.decision.status, "stopped");
   assert.equal((await post(base, "/api/decisions/approve", { id: coached.decision.id })).status, 409);
+}));
+
+test("multilingual symptom messages stop before ordinary coaching", () => withServer(async (base) => {
+  for (const message of [
+    "Имам болка во градите и вртоглавица.",
+    "Tengo dolor en el pecho y mareo.",
+    "Kam dhimbje në gjoks dhe marramendje."
+  ]) {
+    const coached = await (await post(base, "/api/coach", { message })).json();
+    assert.equal(coached.mode, "deterministic_safety");
+    assert.equal(coached.decision.status, "stopped");
+    assert.equal(coached.decision.gate.action, "medical_red_flag");
+  }
 }));
 
 test("nutrition companion is opt-in and reflects the completed athlete profile", () => withServer(async (base) => {

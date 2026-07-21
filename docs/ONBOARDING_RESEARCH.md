@@ -71,7 +71,7 @@ Primary platform sources:
 7. Data: owned devices/apps, requested read and write capabilities, primary source, desired history, official route, current host browser/computer-use capability, user-supplied tool choice, import fallback, freshness, and consent.
 8. Training preference: recommend-for-me or a named approach, intensity tolerance, social/solo, indoor/outdoor, disliked sessions, coaching tone, and desired explanation depth.
 9. Nutrition: opt-in level, dietary pattern, allergies/intolerances, medically prescribed diet, cooking access, budget, hydration, routine meals, supplements, photo use, and number-free preference.
-10. Delivery and privacy: dashboard, briefings, weekly review, schedule, approval rules, local/cloud processing, photo retention, export, and deletion.
+10. Delivery and privacy: dashboard, briefings, weekly review, schedule, approval rules, local/cloud processing, the bundled no-retention photo rule, export, and deletion.
 
 ## Recommendation rules
 

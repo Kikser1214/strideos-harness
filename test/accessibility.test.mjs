@@ -44,3 +44,9 @@ test("reference UI presents host browsing as an option rather than a plugin veto
   assert.match(html, /catalog never becomes an allowlist/i);
   assert.doesNotMatch(html, /currently available permitted routes|Provider writes stay blocked/i);
 });
+
+test("reference UI distinguishes an uncertain provider write from a safe retry", () => {
+  assert.match(app, /verification_required/);
+  assert.match(app, /Write outcome needs reconciliation/);
+  assert.match(app, /Check the provider before creating any retry/);
+});

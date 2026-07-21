@@ -19,6 +19,12 @@ test("schema defaults an unfamiliar athlete to a recommendation instead of metho
   assert.match(preferences.description, /recommends the starting approach by default/i);
 });
 
+test("onboarding does not advertise photo-retention modes the bundled runtime cannot perform", () => {
+  const schema = loadOnboardingSchema();
+  const delivery = schema.sections.find((section) => section.id === "delivery");
+  assert.equal(delivery.fields.some((field) => field.id === "photoRetention"), false);
+});
+
 test("complete beginner profile validates and receives running plus strength guidance", () => {
   const validation = validateProfile(completeProfile(), { complete: true });
   assert.equal(validation.valid, true);

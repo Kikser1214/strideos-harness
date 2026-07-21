@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildDecision, buildProviderWriteDecision, buildProviderWriteStateBinding, demoCoachDecision, gateAction, validateProviderWriteApproval, workoutResourceFromDashboard } from "../src/harness.mjs";
+import { buildDecision, buildProviderWriteDecision, buildProviderWriteStateBinding, demoCoachDecision, gateAction, messageHasSafetySignal, validateProviderWriteApproval, workoutResourceFromDashboard } from "../src/harness.mjs";
 
 const providerStateBinding = buildProviderWriteStateBinding({ athleteState: { version: 1 }, planState: { id: "plan-1", version: 3 } });
 
@@ -136,6 +136,13 @@ test("possible medical red flags stop the normal action path", () => {
   const decision = demoCoachDecision("I feel dizzy and have sharp chest pain.");
   assert.equal(decision.status, "stopped");
   assert.equal(decision.gate.action, "medical_red_flag");
+});
+
+test("message safety signals recognize multiple athlete languages", () => {
+  assert.equal(messageHasSafetySignal("Имам болка во градите и вртоглавица."), true);
+  assert.equal(messageHasSafetySignal("Tengo dolor en el pecho y mareo."), true);
+  assert.equal(messageHasSafetySignal("Kam dhimbje në gjoks dhe marramendje."), true);
+  assert.equal(messageHasSafetySignal("My easy run felt normal today."), false);
 });
 
 test("autonomous reads complete without an approval", () => {

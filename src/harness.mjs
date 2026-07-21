@@ -3,6 +3,26 @@ import crypto from "node:crypto";
 
 const policyUrl = new URL("../rules/harness-policy.json", import.meta.url);
 
+const multilingualSafetyPatterns = [
+  /\b(?:pain|sharp|chest|hurts?|hurting|ache|injur(?:y|ed)|dizz(?:y|iness)|faint(?:ed|ing)?|shortness\s+of\s+breath|difficulty\s+breathing|cannot\s+breathe|can't\s+breathe)\b/u,
+  /болк|боли|повред|вртоглав|несвест|онесвест|градите|градна\s+болка|не\s+можам\s+да\s+дишам|отежнато\s+дишење/u,
+  /\b(?:bol|boli|povred|ozljed|vrtoglav|nesvjestic|grudima|prsima|tesko\s+disem)\b/u,
+  /\b(?:dolor|lesion|mareo|desmayo|pecho|falta\s+de\s+aire)\b/u,
+  /\b(?:douleur|blessure|vertige|evanoui|poitrine|essoufflement)\b/u,
+  /\b(?:schmerz|verletzt|schwindel|ohnmachtig|brustschmerz|atemnot)\b/u,
+  /\b(?:dolore|infortunio|vertigini|svenuto|petto|mancanza\s+di\s+fiato)\b/u,
+  /\b(?:dor|lesao|tontura|desmaio|peito|falta\s+de\s+ar)\b/u,
+  /\b(?:dhimbje|lendim|marramendje|te\s+fiket|gjoks|frymemarrje)\b/u
+];
+
+export function messageHasSafetySignal(message = "") {
+  const normalized = String(message)
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase();
+  return multilingualSafetyPatterns.some((pattern) => pattern.test(normalized));
+}
+
 export function loadPolicy() {
   return JSON.parse(fs.readFileSync(policyUrl, "utf8"));
 }
@@ -260,7 +280,7 @@ export function workoutResourceFromDashboard(dashboard, athleteId = "local-athle
 export function demoCoachDecision(message = "", dashboard = null, athleteId = "local-athlete") {
   const normalized = message.toLowerCase();
   const wantsFood = /food|meal|lunch|breakfast|dinner|eat|photo/.test(normalized);
-  const mentionsPain = /pain|sharp|dizzy|chest|faint/.test(normalized);
+  const mentionsPain = messageHasSafetySignal(message);
 
   if (mentionsPain) {
     return buildDecision({

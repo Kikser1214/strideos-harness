@@ -6,7 +6,7 @@ import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { garminStatus, pushWorkout } from "./garmin.mjs";
 import { analyzeMeal, coach } from "./openai.mjs";
-import { buildDecision, buildProviderWriteStateBinding, demoCoachDecision, loadPolicy, providerWritePayloadHash, validateProviderWriteApproval, workoutResourceFromDashboard } from "./harness.mjs";
+import { buildDecision, buildProviderWriteStateBinding, demoCoachDecision, loadPolicy, messageHasSafetySignal, providerWritePayloadHash, validateProviderWriteApproval, workoutResourceFromDashboard } from "./harness.mjs";
 import { buildOnboardingAnalysis, listConnectors, loadOnboardingSchema, validateProfile } from "./onboarding.mjs";
 import { connectorFreshnessPolicy, filterProviderEvidenceForModelContext, isAttendedBrowserRouteType, loadConnectorPlaybooks, resolveProviderRoutes, sourcePriority } from "./connectors.mjs";
 import { analyzeAthlete } from "./athlete-analysis.mjs";
@@ -394,15 +394,17 @@ async function api(req, res, pathname, runtime = {}) {
     const message = typeof body.message === "string" ? body.message.trim() : "";
     if (!message) throw new HttpError(400, "Write a message first.");
     if (message.length > 2_000) throw new HttpError(400, "Keep the message under 2,000 characters.");
+    const deterministicSafetyStop = messageHasSafetySignal(message);
     const onboarding = getOnboarding();
     const personal = onboarding?.completedAt ? currentModelAthleteContext(onboarding) : null;
-    if (process.env.OPENAI_API_KEY && !personal) throw new HttpError(409, "Complete athlete onboarding before live coaching.");
-    if (process.env.OPENAI_API_KEY && onboarding.profile.delivery?.cloudProcessing !== true) throw new HttpError(403, "Enable cloud processing in Athlete setup before sending personal coaching context to GPT-5.6.");
-    const result = await coach({ message, athlete: personal || demoAthlete });
+    if (!deterministicSafetyStop && process.env.OPENAI_API_KEY && !personal) throw new HttpError(409, "Complete athlete onboarding before live coaching.");
+    if (!deterministicSafetyStop && process.env.OPENAI_API_KEY && onboarding.profile.delivery?.cloudProcessing !== true) throw new HttpError(403, "Enable cloud processing in Athlete setup before sending personal coaching context to GPT-5.6.");
+    const result = deterministicSafetyStop ? null : await coach({ message, athlete: personal || demoAthlete });
     const athleteId = personal?.profile?.personal?.preferredName || "local-athlete";
     const exactWorkout = workoutResourceFromDashboard(personal?.dashboard, athleteId);
     let decision;
-    if (result) {
+    if (deterministicSafetyStop) decision = demoCoachDecision(message, personal?.dashboard || null, athleteId);
+    else if (result) {
       const requestedGarminWrite = result.action === "push_garmin_workout";
       const action = requestedGarminWrite && !exactWorkout ? "read_training_data" : result.action;
       const proposal = requestedGarminWrite
@@ -437,7 +439,7 @@ async function api(req, res, pathname, runtime = {}) {
       });
     }
     saveDecision(decision);
-    return json(res, 200, { decision, mode: result ? "live" : "demo" });
+    return json(res, 200, { decision, mode: deterministicSafetyStop ? "deterministic_safety" : result ? "live" : "demo" });
   }
 
   if (req.method === "POST" && pathname === "/api/food") {
@@ -505,6 +507,8 @@ async function api(req, res, pathname, runtime = {}) {
     let actionResult;
     if (decision.gate.action === "write_provider_session") {
       let approval;
+      let executionStarted = false;
+      let executionResult = null;
       try {
         approval = validateProviderWriteApproval(decision, {
           approvalNonce: body.approvalNonce,
@@ -583,6 +587,7 @@ async function api(req, res, pathname, runtime = {}) {
           throw new HttpError(409, "Athlete evidence or the training plan changed while the provider preview was being checked.");
         }
 
+        executionStarted = true;
         const result = await executor.execute({
           decision: structuredClone(claimed),
           envelope: structuredClone(approval.envelope),
@@ -597,6 +602,7 @@ async function api(req, res, pathname, runtime = {}) {
           payloadHash: providerWritePayloadHash(approval.resource.payload),
           maxWrites: 1
         });
+        executionResult = result;
         if (result?.performed !== true || result?.writeCount !== 1 || typeof result?.providerRecordId !== "string" || !result.providerRecordId.trim()) {
           throw new HttpError(409, "The provider executor did not return one completed write with a provider record identifier.");
         }
@@ -643,7 +649,23 @@ async function api(req, res, pathname, runtime = {}) {
           message: String(verification.message || result.message || "One attended provider write completed and was verified.").slice(0, 500)
         };
       } catch (error) {
-        updateDecision(decision.id, { status: "stopped", approvalConsumedAt: claimedAt, result: { performed: false, message: "The attended provider write stopped and this approval cannot be replayed." } });
+        if (executionStarted) {
+          const providerRecordId = typeof executionResult?.providerRecordId === "string" && executionResult.providerRecordId.trim()
+            ? executionResult.providerRecordId.trim()
+            : null;
+          updateDecision(decision.id, {
+            status: "verification_required",
+            approvalConsumedAt: claimedAt,
+            result: {
+              performed: null,
+              writeMayHaveOccurred: true,
+              providerRecordId,
+              message: "The attended provider write may have occurred, but exact read-back verification did not complete. Reconcile the provider state before creating or approving any retry."
+            }
+          });
+          throw new HttpError(409, "The provider write may have occurred but could not be verified. Reconcile the provider state before approving any retry.");
+        }
+        updateDecision(decision.id, { status: "stopped", approvalConsumedAt: claimedAt, result: { performed: false, writeMayHaveOccurred: false, message: "The attended provider write stopped before execution and this approval cannot be replayed." } });
         if (error instanceof HttpError) throw error;
         throw new HttpError(409, "The attended provider write stopped and this approval cannot be replayed.");
       }

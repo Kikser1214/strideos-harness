@@ -71,6 +71,7 @@ test("declared allergies are warnings, never image-based safety claims", () => {
   assert.match(estimate.questions.join(" "), /Peanut allergy/);
   assert.match(estimate.warnings.join(" "), /cannot establish allergen safety/i);
   assert.equal(estimate.rawImageStored, false);
+  assert.equal(companion.photo.retention, "do_not_retain");
 });
 
 test("nutrition companion is deterministic and never auto-prescribes supplements", () => {
