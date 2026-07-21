@@ -44,6 +44,15 @@ Collect only information that can change safety, recommendation, delivery, or co
 
 Allow optional answers to be skipped. Complete every required safety answer before prescribing running or strength work.
 
+## Complete requested evidence before the first plan
+
+- When the athlete selects a provider, authorizes a read, and says they want to connect or use that data, treat it as a request to use the data now unless they explicitly say later.
+- After the intake and before an individualized plan or a handoff to `$plan-training`, route the requested read through `$use-training-data`. Do not replace this step with a note that the provider can be connected later.
+- If timing is not explicit, ask one focused question: whether to read the selected provider now before building the first plan.
+- If the athlete says yes, use the best available athlete-selected route and continue to planning only after the evidence has actually been retrieved and normalized with source and freshness.
+- If the read cannot be completed, explain what is missing and ask whether to pause or continue with a clearly labeled interview-only provisional plan. Never assume permission to continue without the requested evidence.
+- If the athlete declines or explicitly chooses later, confirm that choice and ask whether they want the provisional plan. Never describe provider evidence as available until it has actually been read.
+
 ## Recommend a starting frame
 
 - Classify the athlete as starter, returning, building, or established from actual recent training—not aspiration.

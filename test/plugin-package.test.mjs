@@ -187,6 +187,27 @@ test("StrideOS exposes the complete focused skill set", () => {
   }
 });
 
+test("first-plan orchestration completes authorized provider evidence or obtains an explicit provisional choice", () => {
+  const coordinator = readFileSync(join(pluginRoot, "skills", "coach-athlete", "SKILL.md"), "utf8");
+  const authority = readFileSync(
+    join(pluginRoot, "skills", "coach-athlete", "references", "onboarding-and-authority.md"),
+    "utf8"
+  );
+  const onboarding = JSON.parse(readFileSync(join(root, "rules", "onboarding-schema.json"), "utf8"));
+
+  assert.match(coordinator, /before an individualized plan or a handoff to `\$plan-training`, route the requested read through `\$use-training-data`/i);
+  assert.match(coordinator, /continue to planning only after the evidence has actually been retrieved and normalized with source and freshness/i);
+  assert.match(coordinator, /Never assume permission to continue without the requested evidence/i);
+  assert.match(authority, /Do not reinterpret the request as "connect later\."/i);
+  assert.match(authority, /Consent to provider access is not consent to silently plan without the provider data/i);
+  assert.ok(
+    onboarding.principles.some((principle) =>
+      principle.includes("complete the read before the first individualized plan") &&
+      principle.includes("interview-only provisional plan")
+    )
+  );
+});
+
 test("plugin guidance contains no prohibited provider-route recipe", () => {
   const combined = textFiles(pluginRoot)
     .map((file) => readFileSync(file, "utf8"))

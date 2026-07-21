@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-18-beginner-recommendation",
+  "version": "2026-07-21-pre-plan-evidence",
   "title": "Build your athlete map",
   "description": "A beginner-friendly intake that gives StrideOS enough context to recommend running, strength, recovery, data, and optional nutrition support safely.",
   "principles": [
@@ -9,7 +9,8 @@
     "When someone does not know training methods, recommend a plain-language beginner baseline instead of asking them to choose jargon.",
     "Never present a planned or simulated connector as connected.",
     "Do not finalize a training prescription while a safety gate is active.",
-    "Reading history and delivering a structured workout are separate permissions; setup assistance never implies permission to write."
+    "Reading history and delivering a structured workout are separate permissions; setup assistance never implies permission to write.",
+    "When an athlete authorizes a selected provider read and wants to use that data, complete the read before the first individualized plan unless the athlete explicitly chooses an interview-only provisional plan."
   ],
   "sections": [
     {

@@ -10,6 +10,7 @@ This repository ships the StrideOS beginner-first endurance coaching plugin plus
 4. Optional answers may be skipped. Required answers must be complete before creating the first athlete map.
 5. A completed profile with an active safety gate may be saved, but running and strength prescription remain paused until the indicated review is resolved.
 6. Conversational onboarding must use plain language. Do not ask a new or inactive athlete to choose among unexplained training systems, intensity models, or coaching jargon.
+7. When an athlete selects a provider, authorizes a read, and wants that evidence used, complete the read before proposing the first individualized plan. If the read is unavailable or deferred, obtain an explicit choice to continue with a clearly provisional interview-only plan; never infer "connect later."
 
 ## Coaching scope
 

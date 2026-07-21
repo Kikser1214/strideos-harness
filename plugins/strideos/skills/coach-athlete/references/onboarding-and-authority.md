@@ -61,6 +61,14 @@ Do not diagnose. Pause ordinary prescription when concerning symptoms or unresol
 
 StrideOS provides official recommendations; it does not define an allowlist. Route provider requests to `$use-training-data`, which may actively offer attended browser/computer use when the current surface exposes it. If the athlete explicitly selects a local script, another plugin, or another external host capability, let provider guidance step aside. The agent handles that capability under host permissions and the ordinary exact write-approval boundary.
 
+### Pre-plan evidence checkpoint
+
+When the athlete selects a provider, authorizes a read, and says they want to connect or use its data, complete that evidence step before the first individualized plan. Do not reinterpret the request as "connect later." Before handing off to `$plan-training`, hand the requested read to `$use-training-data` and continue only after the evidence has actually been retrieved and normalized.
+
+If the timing is unclear, ask: "You chose [provider] and allowed [scope]. Before I build your first plan, would you like me to read it now? I will use the best available route; if that is attended browsing, you will sign in yourself. If not, I can pause or draft a clearly provisional plan from the interview only."
+
+If the athlete agrees but the read cannot be completed, state the missing route or evidence and ask whether to pause or continue with the interview-only provisional plan. Consent to provider access is not consent to silently plan without the provider data. If the athlete explicitly chooses later or declines, confirm that choice before offering the provisional plan.
+
 ### Coaching and optional nutrition
 
 - concise or detailed explanations;
