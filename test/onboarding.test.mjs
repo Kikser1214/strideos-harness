@@ -19,10 +19,20 @@ test("schema defaults an unfamiliar athlete to a recommendation instead of metho
   assert.match(preferences.description, /recommends the starting approach by default/i);
 });
 
-test("onboarding does not advertise photo-retention modes the bundled runtime cannot perform", () => {
+test("photo retention is fixed to no retention and only applies when photo nutrition is enabled", () => {
   const schema = loadOnboardingSchema();
-  const delivery = schema.sections.find((section) => section.id === "delivery");
-  assert.equal(delivery.fields.some((field) => field.id === "photoRetention"), false);
+  const nutrition = schema.sections.find((section) => section.id === "nutrition");
+  const photoRetention = nutrition.fields.find((field) => field.id === "photoRetention");
+  assert.deepEqual(photoRetention.options, ["do_not_retain"]);
+  assert.deepEqual(photoRetention.showWhen, { field: "photoMode", equals: true });
+
+  const withoutPhotos = validateProfile(completeProfile({ nutrition: { photoMode: false, photoRetention: "do_not_retain" } }), { complete: true });
+  assert.equal(withoutPhotos.valid, true);
+  assert.equal(withoutPhotos.profile.nutrition.photoRetention, undefined);
+
+  const missingRule = validateProfile(completeProfile({ nutrition: { photoMode: true, photoRetention: undefined } }), { complete: true });
+  assert.equal(missingRule.valid, false);
+  assert.ok(missingRule.missing.includes("nutrition.photoRetention"));
 });
 
 test("complete beginner profile validates and receives running plus strength guidance", () => {

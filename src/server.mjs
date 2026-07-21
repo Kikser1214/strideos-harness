@@ -136,6 +136,16 @@ export function currentProviderWriteStateBinding() {
   });
 }
 
+function unresolvedProviderWriteFor(resource, ignoreDecisionId) {
+  return recentDecisions(30).find((item) => item.id !== ignoreDecisionId
+    && item.gate?.action === "write_provider_session"
+    && item.status === "verification_required"
+    && item.result?.writeMayHaveOccurred === true
+    && item.resource?.providerId === resource?.providerId
+    && item.resource?.accountBinding === resource?.accountBinding
+    && item.resource?.target === resource?.target);
+}
+
 export function currentModelAthleteContext(onboarding = getOnboarding()) {
   if (!onboarding?.profile) return null;
   const allImports = listImports();
@@ -506,6 +516,20 @@ async function api(req, res, pathname, runtime = {}) {
 
     let actionResult;
     if (decision.gate.action === "write_provider_session") {
+      const unresolved = unresolvedProviderWriteFor(decision.resource, decision.id);
+      if (unresolved) {
+        updateDecision(decision.id, {
+          status: "stopped",
+          result: {
+            performed: false,
+            writeMayHaveOccurred: false,
+            reconciliationRequired: true,
+            blockedByDecisionId: unresolved.id,
+            message: "A write to this provider target may already have occurred. Reconcile that provider state before approving another write."
+          }
+        });
+        throw new HttpError(409, "A write to this provider target may already have occurred. Reconcile the provider state before approving another write.");
+      }
       let approval;
       let executionStarted = false;
       let executionResult = null;
@@ -659,6 +683,7 @@ async function api(req, res, pathname, runtime = {}) {
             result: {
               performed: null,
               writeMayHaveOccurred: true,
+              outcome: "write_may_have_occurred",
               providerRecordId,
               message: "The attended provider write may have occurred, but exact read-back verification did not complete. Reconcile the provider state before creating or approving any retry."
             }

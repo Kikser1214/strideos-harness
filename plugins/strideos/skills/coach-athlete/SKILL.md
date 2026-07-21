@@ -31,7 +31,7 @@ Read [onboarding-and-authority.md](references/onboarding-and-authority.md) befor
 
 Collect only information that can change safety, recommendation, delivery, or communication:
 
-1. name, units, timezone, and optional body context;
+1. name, units, and timezone;
 2. current movement, running history, recent volume, longest recent effort, and benchmarks;
 3. pain, relevant symptoms, injury or surgery, conditions, medication considerations, and clearance status;
 4. goal, motivation, event and date if any, expectations, and what success means;

@@ -9,7 +9,7 @@ Use this reference when creating a local dashboard, hosted Site, invitation, rol
 - owns the Training Circle and sharing scope;
 - approves or declines plan changes;
 - can invite, revoke, and delete;
-- chooses whether nutrition, body context, health signals, and provider labels are shared;
+- chooses whether nutrition, health signals, and provider labels are shared;
 - remains the only person who can authorize provider actions.
 
 ### Reviewer
@@ -35,7 +35,7 @@ Use this reference when creating a local dashboard, hosted Site, invitation, rol
 6. **Decisions** — pending, approved, declined, expired, blocked, and verified-performed actions.
 7. **Sharing** — people, roles, field scope, date scope, expiry, revoke, and deletion.
 
-Nutrition and body context are hidden unless the athlete explicitly includes them.
+Nutrition is hidden unless the athlete explicitly includes it.
 
 ## Suggestion lifecycle
 

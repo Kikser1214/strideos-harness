@@ -1,6 +1,6 @@
 {
   "name": "strideos-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "type": "module",
   "description": "An open-source StrideOS skill plugin package and local reference implementation for endurance coaching.",

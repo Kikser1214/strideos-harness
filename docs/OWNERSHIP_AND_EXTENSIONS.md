@@ -54,7 +54,7 @@ Upstream documentation must not include the adapter's unofficial connection reci
 
 The optional reference runtime uses conservative multilingual free-text symptom stops, but it is not a medical-language interpreter; structured safety answers, current symptoms, and qualified human judgment remain authoritative.
 
-The bundled nutrition runtime does not retain raw meal, fridge, or body-context photos; local retention and per-photo retention prompts are not implemented in this release.
+The bundled nutrition runtime does not retain raw meal or fridge photos; local retention and per-photo retention prompts are not implemented in this release.
 
 ## Installed snapshots and updates
 

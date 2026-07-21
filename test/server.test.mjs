@@ -508,8 +508,21 @@ test("provider write is not reported performed without a separate exact read-bac
     assert.equal(findDecision(decision.id).status, "verification_required");
     assert.equal(findDecision(decision.id).result.performed, null);
     assert.equal(findDecision(decision.id).result.writeMayHaveOccurred, true);
+    assert.equal(findDecision(decision.id).result.outcome, "write_may_have_occurred");
     assert.equal(findDecision(decision.id).result.providerRecordId, "provider-workout-2");
     assert.equal((await post(base, "/api/decisions/approve", proof)).status, 409);
+
+    const retry = providerWriteDecision();
+    const blockedRetry = saveDecision(retry);
+    assert.equal(blockedRetry.status, "stopped");
+    assert.equal(blockedRetry.result.reconciliationRequired, true);
+    assert.equal(blockedRetry.result.blockedByDecisionId, decision.id);
+    assert.equal((await post(base, "/api/decisions/approve", {
+      id: retry.id,
+      approvalNonce: retry.approvalEnvelope.nonce,
+      scopeHash: retry.approvalEnvelope.scopeHash
+    })).status, 409);
+    assert.equal(writes, 1);
   }, { providerWriteExecutor: executor, connectorPlaybooks: permittedBrowserFixture });
 });
 

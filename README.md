@@ -12,6 +12,9 @@ The athlete stays in control. StrideOS may explain and propose; it does not sile
 
 Built with Codex and GPT-5.6 for OpenAI Build Week 2026. Licensed under MIT.
 
+- [Open the live StrideOS landing site](https://strideos-open-coach.gogov-nikola22.chatgpt.site/)
+- [Open the live Training Circle demo](https://strideos-coach-demo.gogov-nikola22.chatgpt.site/)
+
 ## Install the plugin
 
 ```bash
@@ -67,7 +70,7 @@ The Training Circle is the central collaboration feature. The athlete decides:
 
 - who is invited;
 - which workouts, dates, and fields they can see;
-- whether nutrition or body context is included;
+- whether nutrition is included;
 - how long access lasts;
 - when access is revoked.
 
@@ -145,8 +148,6 @@ The fueling skill supports `off`, `loose`, `guided`, `detailed`, and `number_fre
 
 Meal and fridge photos are estimates. A photo cannot prove ingredients, portions, allergens, cooking fats, cross-contact safety, or nutritional values. The athlete corrects and confirms the normalized record before logging, and the bundled state never retains the raw image.
 
-Body measurements and images are optional. StrideOS does not infer a diagnosis, body-fat percentage, health status, performance potential, or moral judgment from appearance.
-
 ## The control loop
 
 StrideOS keeps model reasoning separate from authority:
@@ -165,7 +166,7 @@ These are research directions, not features in the current release, and they car
 - **Longitudinal athlete memory** — connect completed sessions, morning and evening check-ins, symptoms, recovery, fueling, environment, and athlete notes across weeks, months, and seasons. Recurring patterns—such as a side stitch appearing under particular combinations of load, heat, timing, or fueling—should be surfaced as testable hypotheses, never diagnoses or claims of causation.
 - **Training response analysis** — compare what was planned with what was completed, what felt sustainable, and what repeatedly produced useful adaptation over one-to-three-week, two-to-three-month, and annual windows. Preserve missing-data and confidence limits instead of manufacturing certainty.
 - **Running form over time** — compare athlete-supplied running videos or images, label observations with uncertainty, suggest practical form or strength work when useful, and track whether later evidence supports the intervention. This remains movement feedback, not medical assessment.
-- **Flexible fueling and body context** — let each athlete choose anything from simple meal photos to confirmed macro tracking, then examine longer-term relationships with training and recovery. Optional progress images or measurements must never be used to infer an exact body-fat percentage, diagnosis, health status, performance potential, or moral judgment from appearance.
+- **Flexible fueling history** — let each athlete choose anything from simple meal photos to confirmed macro tracking, then examine longer-term relationships with training and recovery at the level of detail they want.
 
 The roadmap does not change the current authority model: an insight is evidence for a conversation, not permission to alter a plan, retain new data, expand sharing, or perform an external write.
 

@@ -172,7 +172,7 @@ export function buildNutritionCompanion({ profile = {}, activePlan = null } = {}
   ];
   if (nutrition.medicalDiet) boundaries.unshift("Preserve the clinician-prescribed diet. StrideOS may organize questions and routines but must not contradict or replace that plan.");
   if (trackingConcern) boundaries.unshift("Keep support number-free and avoid calorie, macro, body-weight, or compensatory targets; offer qualified eating-disorder support when appropriate.");
-  if (under18) boundaries.unshift("Keep guidance food-first and non-restrictive; supplement or body-composition changes require an appropriate adult and qualified professional context.");
+  if (under18) boundaries.unshift("Keep guidance food-first and non-restrictive; supplement changes require an appropriate adult and qualified professional context.");
 
   return {
     version: NUTRITION_VERSION,

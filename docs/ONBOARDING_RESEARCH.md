@@ -66,7 +66,7 @@ Primary platform sources:
 2. Current movement: inactivity, walking, running, other sports, recent consistency, weekly volume, longest recent session, benchmark, and time away.
 3. Strength: prior/current experience, weekly frequency, movement confidence, coaching history, available equipment, limitations, likes/dislikes, and desired emphasis.
 4. Safety: current pain, recent injury/surgery, concerning symptoms, known conditions, medication considerations, pregnancy/postpartum when relevant, and existing clearance. Positive signals stop automated prescription and route to qualified review.
-5. Goal: general health, cardio, habit, return, race completion/performance, trail, strength, or body-composition support; event date and target are optional.
+5. Goal: general health, cardio, habit, return, race completion/performance, trail, strength, or another athlete-defined outcome; event date and target are optional.
 6. Real-life capacity: available days, minutes per session, work/shift pattern, sleep, stress, caregiving, surface, climate, treadmill/gym access, and recurring barriers.
 7. Data: owned devices/apps, requested read and write capabilities, primary source, desired history, official route, current host browser/computer-use capability, user-supplied tool choice, import fallback, freshness, and consent.
 8. Training preference: recommend-for-me or a named approach, intensity tolerance, social/solo, indoor/outdoor, disliked sessions, coaching tone, and desired explanation depth.
@@ -82,4 +82,4 @@ Primary platform sources:
 - Offer attended browser/computer use whenever the current interactive surface exposes it. The user completes login/MFA; reads store `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, and freshness; the route never becomes a scheduled sync.
 - Every provider/browser write requires a separate dry-run, one exact approval, one visible write, and provider-side verification. Login, source selection, plan approval, and one provider write are distinct permissions.
 - If the user explicitly supplies a local script, another plugin, or an adapter, StrideOS guidance steps aside. The host handles it under ordinary permissions and write approval; the public plugin neither blocks it nor teaches its setup recipe.
-- Nutrition and body-composition support are optional. Number-free support is available, and uncertain photo estimates require confirmation before logging.
+- Nutrition support is optional. Number-free support is available, and uncertain photo estimates require confirmation before logging.

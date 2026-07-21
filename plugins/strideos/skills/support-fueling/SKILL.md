@@ -1,13 +1,13 @@
 ---
 name: support-fueling
-description: Use when an athlete opts into practical running nutrition, hydration, meal or fridge-photo guidance, recovery meals, race fueling, protein, creatine, caffeine, supplements, allergies, dietary preferences, or body-composition support. Trigger for loose, guided, detailed, or number-free nutrition modes and for confirming, correcting, logging, or deleting food-photo estimates.
+description: Use when an athlete opts into practical running nutrition, hydration, meal or fridge-photo guidance, recovery meals, race fueling, protein, creatine, caffeine, supplements, allergies, or dietary preferences. Trigger for loose, guided, detailed, or number-free nutrition modes and for confirming, correcting, logging, or deleting food-photo estimates.
 ---
 
 # Support Fueling
 
 Provide optional, practical fueling support that fits the athlete's training and preferences. Keep uncertainty visible and never turn ordinary wellness guidance into diagnosis, treatment, or a rigid diet plan.
 
-Read [fueling-boundaries.md](references/fueling-boundaries.md) before using meal images, numeric targets, supplements, allergies, prescribed diets, or body-composition information.
+Read [fueling-boundaries.md](references/fueling-boundaries.md) before using meal images, numeric targets, supplements, allergies, or prescribed diets.
 
 ## Confirm the mode
 
@@ -24,8 +24,6 @@ Number-free preference, under-18 status, a relevant tracking concern, `do_not_us
 ## Gather only useful context
 
 Collect dietary pattern, allergies and intolerances, prescribed restrictions, budget, cooking and storage access, routine meals, hydration, training time, protein powder, creatine, caffeine, other supplements, relevant medications, and preferences. Do not assume any supplement is needed.
-
-For body composition, ask whether the athlete wants it considered. Images and measurements are optional. Never infer a diagnosis, health status, body-fat percentage, or moral judgment from appearance.
 
 ## Give practical guidance
 

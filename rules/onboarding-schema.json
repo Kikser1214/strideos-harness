@@ -64,7 +64,7 @@
       "title": "What success means",
       "description": "A plan can build health, confidence, consistency, or race performance. It does not need a race.",
       "fields": [
-        { "id": "primary", "label": "Primary goal", "type": "single", "required": true, "options": ["couch_to_active", "general_health", "cardio", "running_habit", "return_to_running", "finish_race", "race_performance", "trail", "strength", "body_composition_support", "other"] },
+        { "id": "primary", "label": "Primary goal", "type": "single", "required": true, "options": ["couch_to_active", "general_health", "cardio", "running_habit", "return_to_running", "finish_race", "race_performance", "trail", "strength", "other"] },
         { "id": "why", "label": "Why does this matter now?", "type": "textarea", "required": true, "maxLength": 500 },
         { "id": "eventDistance", "label": "Event distance", "type": "single", "required": false, "options": ["5k", "10k", "half_marathon", "marathon", "ultra", "trail", "other"] },
         { "id": "eventDate", "label": "Event date", "type": "date", "required": false },
@@ -136,12 +136,12 @@
       "description": "Use loose guidance, detailed tracking, meal photos, or none at all.",
       "fields": [
         { "id": "mode", "label": "Nutrition support", "type": "single", "required": true, "options": ["off", "loose", "guided", "detailed", "number_free"] },
-        { "id": "goal", "label": "Nutrition priority", "type": "single", "required": false, "options": ["general_health", "training_fuel", "recovery", "body_composition", "routine", "not_sure"] },
+        { "id": "goal", "label": "Nutrition priority", "type": "single", "required": false, "options": ["general_health", "training_fuel", "recovery", "routine", "not_sure"] },
         { "id": "dietPattern", "label": "Dietary pattern", "type": "multi", "required": false, "options": ["omnivore", "vegetarian", "vegan", "pescatarian", "religious_cultural", "medical", "other"] },
         { "id": "allergiesIntolerances", "label": "Allergies or intolerances", "type": "textarea", "required": false, "maxLength": 500 },
         { "id": "medicalDiet", "label": "Clinician-prescribed dietary constraints?", "type": "boolean", "required": false },
         { "id": "numberFreePreferred", "label": "Avoid calories, weight targets, and macro numbers?", "type": "boolean", "required": true },
-        { "id": "trackingRelationship", "label": "How should food and body numbers be handled?", "type": "single", "required": false, "options": ["comfortable_with_numbers", "prefer_no_numbers", "previous_or_current_concern", "clinician_guided", "prefer_not_to_say"] },
+        { "id": "trackingRelationship", "label": "How should food numbers be handled?", "type": "single", "required": false, "options": ["comfortable_with_numbers", "prefer_no_numbers", "previous_or_current_concern", "clinician_guided", "prefer_not_to_say"] },
         { "id": "cookingAccess", "label": "Cooking access", "type": "single", "required": false, "options": ["full_kitchen", "basic", "limited", "mostly_prepared_food"] },
         { "id": "budget", "label": "Food budget style", "type": "single", "required": false, "options": ["tight", "moderate", "flexible", "prefer_not_to_say"] },
         { "id": "hydration", "label": "Hydration routine", "type": "single", "required": false, "options": ["rarely_track", "inconsistent", "consistent", "not_sure"] },
@@ -149,7 +149,8 @@
         { "id": "creatine", "label": "Creatine use", "type": "single", "required": false, "options": ["no", "sometimes", "regularly", "considering"] },
         { "id": "caffeine", "label": "Caffeine use around training", "type": "single", "required": false, "options": ["none", "low", "moderate", "high", "not_sure"] },
         { "id": "supplements", "label": "Other supplements and doses", "type": "textarea", "required": false, "maxLength": 1000 },
-        { "id": "photoMode", "label": "Allow meal or fridge photos when you choose to send them?", "type": "boolean", "required": true }
+        { "id": "photoMode", "label": "Allow meal or fridge photos when you choose to send them?", "type": "boolean", "required": true },
+        { "id": "photoRetention", "label": "Photo retention", "type": "single", "required": true, "options": ["do_not_retain"], "showWhen": { "field": "photoMode", "equals": true } }
       ]
     },
     {

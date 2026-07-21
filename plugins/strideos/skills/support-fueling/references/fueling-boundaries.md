@@ -1,6 +1,6 @@
-# Fueling and body-context boundaries
+# Fueling boundaries
 
-Use this reference whenever guidance involves numbers, meal images, allergies, supplements, prescribed diets, minors, or body composition.
+Use this reference whenever guidance involves numbers, meal images, allergies, supplements, prescribed diets, or minors.
 
 ## Scope
 
@@ -33,10 +33,6 @@ Describe what is visible, state uncertainty, and ask the athlete to confirm hidd
 ## Supplements
 
 Inventory protein powder, creatine, caffeine, electrolytes, vitamins, herbs, and other products without assuming they are necessary. Discuss evidence and relevance conservatively. Ask about medication and medical context before advice that could interact. Avoid product claims, diagnosis, and guaranteed outcomes.
-
-## Body composition
-
-Body measurements and images are optional. Ask what decision the information would change and whether the athlete wants it used. Do not infer body-fat percentage, disease, fitness, character, or performance potential from appearance. Avoid aggressive weight-loss targets, shaming language, and daily fluctuation overinterpretation.
 
 ## Escalate or stop numeric coaching
 

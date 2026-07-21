@@ -31,6 +31,12 @@ function fieldValue(profile, sectionId, fieldId) {
   return profile?.[sectionId]?.[fieldId];
 }
 
+function fieldIsVisible(profile, sectionId, field) {
+  if (!field.showWhen) return true;
+  const conditionSection = field.showWhen.section || sectionId;
+  return fieldValue(profile, conditionSection, field.showWhen.field) === field.showWhen.equals;
+}
+
 function normalizeField(field, value) {
   if (value === undefined || value === null) return undefined;
   if (["text", "textarea", "single", "date", "time", "timezone"].includes(field.type)) return String(value).trim();
@@ -52,6 +58,7 @@ export function normalizeProfile(input = {}) {
     if (!source || typeof source !== "object" || Array.isArray(source)) continue;
     const normalized = {};
     for (const field of section.fields) {
+      if (!fieldIsVisible(input, section.id, field)) continue;
       const value = normalizeField(field, source[field.id]);
       if (value !== undefined) normalized[field.id] = value;
     }
@@ -68,6 +75,7 @@ export function validateProfile(input = {}, { complete = false } = {}) {
 
   for (const section of schema.sections) {
     for (const field of section.fields) {
+      if (!fieldIsVisible(profile, section.id, field)) continue;
       const value = fieldValue(profile, section.id, field.id);
       const path = `${section.id}.${field.id}`;
       if (field.required && isBlank(value)) {
@@ -98,7 +106,7 @@ export function validateProfile(input = {}, { complete = false } = {}) {
 }
 
 function completeness(profile) {
-  const required = loadOnboardingSchema().sections.flatMap((section) => section.fields.filter((field) => field.required).map((field) => [section.id, field.id]));
+  const required = loadOnboardingSchema().sections.flatMap((section) => section.fields.filter((field) => field.required && fieldIsVisible(profile, section.id, field)).map((field) => [section.id, field.id]));
   const answered = required.filter(([sectionId, fieldId]) => !isBlank(fieldValue(profile, sectionId, fieldId))).length;
   return { answered, required: required.length, percent: Math.round((answered / required.length) * 100) };
 }

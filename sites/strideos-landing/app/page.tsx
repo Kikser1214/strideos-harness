@@ -288,7 +288,7 @@ codex plugin add strideos@strideos`}</code></pre>
             </article>
             <article>
               <span className="stream-index">03</span>
-              <div><h3>Flexible fueling and body context</h3><p>From simple meal photos to confirmed macros, plus optional progress context without inferring body fat, health, or potential from appearance.</p></div>
+              <div><h3>Flexible fueling history</h3><p>From simple meal photos to confirmed macros, with longer-term patterns kept as simple or detailed as the athlete wants.</p></div>
               <em>As simple as the athlete wants</em>
             </article>
           </div>

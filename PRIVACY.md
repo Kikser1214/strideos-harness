@@ -27,7 +27,7 @@ StrideOS is local-first by design. The public repository and judge demo use synt
 ## Provider sessions and assisted browsing
 
 - StrideOS playbooks document official provider routes. They are recommendations, not an allowlist or an organization-wide policy. StrideOS does not bundle or teach unofficial connector recipes, and it does not disable scripts, other plugins, browser use, computer use, or other capabilities selected by the user.
-- Attended browser/computer use may be suggested when the current host surface exposes it. The hostâ€”not StrideOSâ€”determines whether that capability exists and can execute on the current surface.
+- Attended browser/computer use may be suggested when the current host surface exposes it. The host—not StrideOS—determines whether that capability exists and can execute on the current surface.
 - In an attended browser flow, the user opens the provider website and completes login and MFA personally. The agent never types, requests, reads, copies, or stores passwords, MFA codes, cookies, session tokens, recovery codes, or browser-storage values.
 - A browser read stores only the coaching-relevant normalized record with `source: <providerId>`, `provenance: "browser_read"`, `ingestionRoute: "browser_read"`, observed time, retrieval time, and freshness. Raw HTML, unrelated account details, and session material are not persisted.
 - An attended provider write requires a non-mutating dry-run and one exact, expiring approval. The approval is consumed by one visible write and cannot authorize a batch or retry.

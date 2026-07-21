@@ -69,6 +69,27 @@ function writeState(state) {
 
 export function saveDecision(decision) {
   const state = readState();
+  if (decision.gate?.action === "write_provider_session" && decision.status === "awaiting_approval") {
+    const unresolved = state.decisions.find((item) => item.id !== decision.id
+      && item.gate?.action === "write_provider_session"
+      && item.status === "verification_required"
+      && item.result?.writeMayHaveOccurred === true
+      && item.resource?.providerId === decision.resource?.providerId
+      && item.resource?.accountBinding === decision.resource?.accountBinding
+      && item.resource?.target === decision.resource?.target);
+    if (unresolved) {
+      Object.assign(decision, {
+        status: "stopped",
+        result: {
+          performed: false,
+          writeMayHaveOccurred: false,
+          reconciliationRequired: true,
+          blockedByDecisionId: unresolved.id,
+          message: "A write to this provider target may already have occurred. Reconcile that provider state before creating a new write proposal."
+        }
+      });
+    }
+  }
   const decisions = state.decisions.filter((item) => item.id !== decision.id);
   decisions.unshift(decision);
   state.decisions = decisions.slice(0, 30);

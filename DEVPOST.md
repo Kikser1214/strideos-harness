@@ -5,6 +5,8 @@
 - **Project:** StrideOS
 - **Category:** Apps for Your Life
 - **Repository:** https://github.com/Kikser1214/strideos-harness
+- **Live landing site:** https://strideos-open-coach.gogov-nikola22.chatgpt.site/
+- **Training Circle demo:** https://strideos-coach-demo.gogov-nikola22.chatgpt.site/
 - **Demo video:** add the public YouTube URL after the final cut
 - **Codex feedback session:** add the `/feedback` session ID from the primary build task
 - **Architecture and judge path:** `docs/ARCHITECTURE.md` and `docs/JUDGING_GUIDE.md`
@@ -45,7 +47,7 @@ For Garmin, StrideOS recommends the official athlete export plus manual input, t
 
 ## How we built it
 
-The project was created from scratch during OpenAI Build Week with Codex. The shipped product is a validation-ready `.codex-plugin` package containing six focused `SKILL.md` modules, UI metadata, scoped references, an icon, and an MIT license. The repository's small Node.js server and responsive PWA are an optional deterministic reference implementation for inspecting onboarding, state transitions, imports, approval gates, and the Training Circle interaction. They are not required to use the skills.
+The project was built with Codex during OpenAI Build Week. The shipped product is a validation-ready `.codex-plugin` package containing six focused `SKILL.md` modules, UI metadata, scoped references, an icon, and an MIT license. The repository's small Node.js server and responsive PWA are an optional deterministic reference implementation for inspecting onboarding, state transitions, imports, approval gates, and the Training Circle interaction. They are not required to use the skills.
 
 The reference implementation uses Garmin's official FIT JavaScript SDK, a versioned onboarding schema, atomic local persistence, deterministic analysis and action gates, and the OpenAI Responses API. Provider playbooks document official routes, and the resolver recommends official self-service API/MCP/companion routes first, then attended browser/computer use when the current host exposes it, followed by provider exports and manual input. The optional reference runtime ships no provider-specific browser or live provider-write executor, but that implementation boundary never vetoes a capability selected on the host. GPT-5.6 receives text and image inputs and returns strict schema-constrained outputs; the model never grants itself permission to act.
 

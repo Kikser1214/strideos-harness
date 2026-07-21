@@ -381,7 +381,7 @@ const optionLabels = {
   hrv: "HRV", gpx: "GPX", tcx: "TCX", csv: "CSV", ios_companion: "iOS companion", android_companion: "Android companion",
   apple_health: "Apple Health / Watch", health_connect: "Android Health Connect", file_import: "FIT / GPX / TCX / CSV",
   recommend_for_me: "Recommend for me", norwegian_inspired: "Norwegian-inspired", run_walk: "Run / walk", number_free: "Number-free support",
-  couch_to_active: "Couch to active", body_composition_support: "Body-composition support", return_to_running: "Return to running",
+  couch_to_active: "Couch to active", return_to_running: "Return to running",
   prefer_not_to_say: "Prefer not to say", do_not_use: "Do not use it", context_only: "Context only", track_trend: "Track the trend",
   support_change: "Support a change", not_applicable: "Not applicable", not_needed: "Not needed", not_sure: "Not sure",
   comfortable_with_numbers: "Comfortable with numbers", prefer_no_numbers: "Prefer no numbers", previous_or_current_concern: "Past or current concern", clinician_guided: "Clinician-guided",
@@ -395,7 +395,7 @@ const optionLabels = {
   general_health: "General health", finish_race: "Finish a race", race_performance: "Race performance", time_goal: "Time goal",
   full_kitchen: "Full kitchen", mostly_prepared_food: "Mostly prepared food", training_fuel: "Training fuel",
   rarely_track: "Rarely think about it", ask_every_time: "Ask every time", ask_for_plan_and_writes: "Ask for plans and external writes",
-  read_only: "Read-only coaching", do_not_retain: "Do not retain", retain_local: "Retain locally", ask_each_time: "Ask each time",
+  read_only: "Read-only coaching", do_not_retain: "Do not retain", ask_each_time: "Ask each time",
   easy_volume: "Easy-volume first", pace_based: "Pace-based", trail_hills: "Trail / hills", custom_research: "Research a custom method",
   avoid_for_now: "Avoid for now", recover_poorly: "I recover poorly", why_it_matters: "Explain why it matters", deep_dive: "Deep dive",
   manual: "Manual check-ins", none: "No device", "4_weeks": "4 weeks", "12_weeks": "12 weeks", "6_months": "6 months", "1_year": "1 year",
@@ -531,14 +531,20 @@ function answered(value) {
   return value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length > 0);
 }
 
+function onboardingFieldVisible(section, field) {
+  if (!field.showWhen) return true;
+  const conditionSection = field.showWhen.section || section.id;
+  return onboardingValue(conditionSection, field.showWhen.field) === field.showWhen.equals;
+}
+
 function sectionProgress(section) {
-  const required = section.fields.filter((field) => field.required);
+  const required = section.fields.filter((field) => field.required && onboardingFieldVisible(section, field));
   const complete = required.filter((field) => answered(onboardingValue(section.id, field.id))).length;
   return { complete, required: required.length, done: required.length === 0 || complete === required.length };
 }
 
 function totalOnboardingProgress() {
-  const fields = state.onboardingSchema.sections.flatMap((section) => section.fields.filter((field) => field.required).map((field) => [section.id, field.id]));
+  const fields = state.onboardingSchema.sections.flatMap((section) => section.fields.filter((field) => field.required && onboardingFieldVisible(section, field)).map((field) => [section.id, field.id]));
   const complete = fields.filter(([sectionId, fieldId]) => answered(onboardingValue(sectionId, fieldId))).length;
   return Math.round((complete / fields.length) * 100);
 }
@@ -591,8 +597,9 @@ function fieldMarkup(section, field) {
     control = `<label for="${inputId}">${escapeHtml(field.label)}${required}</label><input id="${inputId}" name="${name}" type="${type}" value="${escapeHtml(value ?? "")}" ${field.min !== undefined ? `min="${field.min}"` : ""} ${field.max !== undefined ? `max="${field.max}"` : ""} ${field.maxLength ? `maxlength="${field.maxLength}"` : ""}>`;
   }
   const deliveryDependent = section.id === "delivery" && ["workoutDeliveryTarget", "connectorSetupMode"].includes(field.id);
-  const hidden = deliveryDependent && onboardingValue("delivery", "workoutDelivery") !== true;
-  return `<div class="onboarding-field ${wide ? "wide" : ""}" data-field="${field.id}" ${deliveryDependent ? "data-workout-delivery-dependent" : ""} ${hidden ? "hidden" : ""}>${control}${hint ? `<p class="field-hint">${hint}</p>` : ""}</div>`;
+  const photoRetentionDependent = section.id === "nutrition" && field.id === "photoRetention";
+  const hidden = (deliveryDependent && onboardingValue("delivery", "workoutDelivery") !== true) || !onboardingFieldVisible(section, field);
+  return `<div class="onboarding-field ${wide ? "wide" : ""}" data-field="${field.id}" ${deliveryDependent ? "data-workout-delivery-dependent" : ""} ${photoRetentionDependent ? "data-photo-retention-dependent" : ""} ${hidden ? "hidden" : ""}>${control}${hint ? `<p class="field-hint">${hint}</p>` : ""}</div>`;
 }
 
 function updateWorkoutDeliveryFields() {
@@ -603,6 +610,18 @@ function updateWorkoutDeliveryFields() {
     wrapper.hidden = !enabled;
     if (!enabled) wrapper.querySelectorAll("select, input, textarea").forEach((control) => { control.value = ""; });
   });
+}
+
+function updatePhotoRetentionField() {
+  const wrapper = $("#onboardingFields").querySelector("[data-photo-retention-dependent]");
+  if (!wrapper) return;
+  const selected = $("#onboardingFields").querySelector('input[name="nutrition.photoMode"]:checked');
+  const enabled = selected?.value === "true";
+  wrapper.hidden = !enabled;
+  if (!enabled) {
+    wrapper.querySelectorAll("select, input, textarea").forEach((control) => { control.value = ""; });
+    if (state.onboardingProfile.nutrition) delete state.onboardingProfile.nutrition.photoRetention;
+  }
 }
 
 function showOnboardingNotice(message) {
@@ -627,6 +646,7 @@ function renderOnboardingStep() {
   else {
     $("#onboardingFields").innerHTML = step.fields.map((field) => fieldMarkup(step, field)).join("");
     updateWorkoutDeliveryFields();
+    updatePhotoRetentionField();
   }
   $(".onboarding-stage").scrollTop = 0;
 }
@@ -653,7 +673,7 @@ function validateCurrentOnboardingStep() {
   const step = onboardingSteps()[state.onboardingStep];
   if (!step || step.id === "review") return true;
   $("#onboardingFields").querySelectorAll(".field-error").forEach((node) => node.remove());
-  const missing = step.fields.filter((field) => field.required && !answered(onboardingValue(step.id, field.id)));
+  const missing = step.fields.filter((field) => field.required && onboardingFieldVisible(step, field) && !answered(onboardingValue(step.id, field.id)));
   if (step.id === "delivery" && onboardingValue("delivery", "workoutDelivery") === true) {
     for (const fieldId of ["workoutDeliveryTarget", "connectorSetupMode"]) {
       const field = step.fields.find((item) => item.id === fieldId);
@@ -788,8 +808,12 @@ $("#onboardingForm").addEventListener("submit", async (event) => {
   else await moveOnboarding(1);
 });
 $("#onboardingFields").addEventListener("change", (event) => {
-  if (event.target.name !== "delivery.workoutDelivery") return;
-  updateWorkoutDeliveryFields();
+  if (event.target.name === "delivery.workoutDelivery") updateWorkoutDeliveryFields();
+  if (event.target.name === "nutrition.photoMode") {
+    captureOnboardingStep();
+    updatePhotoRetentionField();
+    renderOnboardingNav();
+  }
 });
 $("#onboardingBack").addEventListener("click", () => moveOnboarding(-1));
 $("#openOnboarding").addEventListener("click", () => openAthleteSetup());
